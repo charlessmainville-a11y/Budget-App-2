@@ -1,2 +1,82 @@
-# Budget-App-2
-Second version I guess 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Budget Tracker</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #111;
+      color: #f5f5f5;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .category {
+      margin: 15px 0;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+    }
+    input[type="range"] {
+      width: 100%;
+    }
+    .value {
+      font-weight: bold;
+      margin-left: 10px;
+      color: #6cf;
+    }
+  </style>
+</head>
+<body>
+  <h1>Budget Tracker</h1>
+
+  <div class="category">
+    <label>Food: <span class="value" id="foodValue">$0</span></label>
+    <input type="range" id="food" min="0" max="100" step="1" />
+  </div>
+
+  <div class="category">
+    <label>Transport: <span class="value" id="transportValue">$0</span></label>
+    <input type="range" id="transport" min="0" max="100" step="1" />
+  </div>
+
+  <div class="category">
+    <label>Entertainment: <span class="value" id="entertainmentValue">$0</span></label>
+    <input type="range" id="entertainment" min="0" max="100" step="1" />
+  </div>
+
+  <div class="category">
+    <label>Savings: <span class="value" id="savingsValue">$0</span></label>
+    <input type="range" id="savings" min="0" max="100" step="1" />
+  </div>
+
+  <script>
+    // List of categories
+    const categories = ["food", "transport", "entertainment", "savings"];
+
+    categories.forEach(cat => {
+      const slider = document.getElementById(cat);
+      const valueLabel = document.getElementById(cat + "Value");
+
+      // Load saved value if exists
+      const saved = localStorage.getItem(cat);
+      if (saved !== null) {
+        slider.value = saved;
+        valueLabel.textContent = "$" + saved;
+      }
+
+      // Update on change
+      slider.addEventListener("input", () => {
+        valueLabel.textContent = "$" + slider.value;
+        localStorage.setItem(cat, slider.value);
+      });
+    });
+  </script>
+</body>
+</html>
