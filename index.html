@@ -1,82 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Budget Tracker</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scroll Wall</title>
   <style>
     body {
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       margin: 0;
-      padding: 20px;
+      font-family: Arial, sans-serif;
       background: #111;
-      color: #f5f5f5;
+      color: #fff;
+      overflow-x: hidden;
     }
+
     h1 {
       text-align: center;
-      margin-bottom: 20px;
+      padding: 20px;
+      background: #222;
+      margin: 0;
     }
-    .category {
-      margin: 15px 0;
+
+    .scroll-wall {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      padding: 20px;
     }
-    label {
-      display: block;
-      margin-bottom: 6px;
+
+    .scroll-row {
+      display: flex;
+      overflow-x: auto;
+      gap: 20px;
+      padding-bottom: 10px;
     }
-    input[type="range"] {
-      width: 100%;
+
+    .scroll-row::-webkit-scrollbar {
+      height: 8px;
     }
-    .value {
+
+    .scroll-row::-webkit-scrollbar-thumb {
+      background: #444;
+      border-radius: 4px;
+    }
+
+    .item {
+      min-width: 200px;
+      height: 150px;
+      background: #333;
+      border-radius: 10px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
       font-weight: bold;
-      margin-left: 10px;
-      color: #6cf;
+      transition: transform 0.2s;
+    }
+
+    .item:hover {
+      transform: scale(1.1);
+      background: #555;
     }
   </style>
 </head>
 <body>
-  <h1>Budget Tracker</h1>
-
-  <div class="category">
-    <label>Food: <span class="value" id="foodValue">$0</span></label>
-    <input type="range" id="food" min="0" max="100" step="1" />
+  <h1>Scroll Wall</h1>
+  <div class="scroll-wall">
+    <div class="scroll-row">
+      <div class="item">Item 1</div>
+      <div class="item">Item 2</div>
+      <div class="item">Item 3</div>
+      <div class="item">Item 4</div>
+      <div class="item">Item 5</div>
+    </div>
+    <div class="scroll-row">
+      <div class="item">Item 6</div>
+      <div class="item">Item 7</div>
+      <div class="item">Item 8</div>
+      <div class="item">Item 9</div>
+      <div class="item">Item 10</div>
+    </div>
+    <div class="scroll-row">
+      <div class="item">Item 11</div>
+      <div class="item">Item 12</div>
+      <div class="item">Item 13</div>
+      <div class="item">Item 14</div>
+      <div class="item">Item 15</div>
+    </div>
   </div>
-
-  <div class="category">
-    <label>Transport: <span class="value" id="transportValue">$0</span></label>
-    <input type="range" id="transport" min="0" max="100" step="1" />
-  </div>
-
-  <div class="category">
-    <label>Entertainment: <span class="value" id="entertainmentValue">$0</span></label>
-    <input type="range" id="entertainment" min="0" max="100" step="1" />
-  </div>
-
-  <div class="category">
-    <label>Savings: <span class="value" id="savingsValue">$0</span></label>
-    <input type="range" id="savings" min="0" max="100" step="1" />
-  </div>
-
-  <script>
-    // List of categories
-    const categories = ["food", "transport", "entertainment", "savings"];
-
-    categories.forEach(cat => {
-      const slider = document.getElementById(cat);
-      const valueLabel = document.getElementById(cat + "Value");
-
-      // Load saved value if exists
-      const saved = localStorage.getItem(cat);
-      if (saved !== null) {
-        slider.value = saved;
-        valueLabel.textContent = "$" + saved;
-      }
-
-      // Update on change
-      slider.addEventListener("input", () => {
-        valueLabel.textContent = "$" + slider.value;
-        localStorage.setItem(cat, slider.value);
-      });
-    });
-  </script>
 </body>
 </html>
