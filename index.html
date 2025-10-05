@@ -1,428 +1,196 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Scroll Wall • SFW models • influencers • actors (Reddit)</title>
-<style>
-  :root{
-    --bg:#0d0f12; --bg2:#14171c; --ink:#f3f4f6; --muted:#b6bbc6;
-    --accent:#ff6f9b; --accent-ink:#1d0c13; --panel:#222733;
-    --glow: 0 8px 40px rgba(255,111,155,.18);
-    --shadow: 0 6px 24px rgba(0,0,0,.35);
-    --ring: 0 0 0 2px rgba(255,111,155,.35);
-    --ok:#43d17d; --warn:#ffc857; --err:#ff6b6b;
-  }
-  html,body{height:100%}
-  body{
-    margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-    background: radial-gradient(1200px 600px at 50% -200px,#1a2030,transparent) , var(--bg);
-    color:var(--ink);
-  }
-  .wrap{max-width:880px;margin:24px auto;padding:0 16px 80px}
-  h1{font-size:44px;letter-spacing:.5px;margin:8px 0 6px}
-  .sub{color:var(--muted);font-weight:600;letter-spacing:.3px;margin:0 0 18px}
-  .panel{
-    background: linear-gradient(180deg, rgba(255,255,255,.02), transparent 22%) , var(--panel);
-    border-radius:22px; padding:18px; box-shadow:var(--shadow);
-    border:1px solid rgba(255,255,255,.06);
-  }
-  .controls{display:grid;grid-template-columns: 1fr auto auto;gap:14px;align-items:center}
-  .btn{
-    appearance:none;border:0;border-radius:18px;padding:20px 24px;font-weight:900;
-    background:linear-gradient(180deg,#ff94b5,#ff6f9b); color:#1a0e14; box-shadow:var(--glow);
-    cursor:pointer; font-size:28px; line-height:1; transition:transform .06s ease;
-  }
-  .btn:active{transform:translateY(1px)}
-  .count{font-weight:900;font-size:28px;padding:18px 24px;border-radius:16px;background:#0f1218;border:1px solid rgba(255,255,255,.06)}
-  .toggle{display:flex;gap:12px;align-items:center;user-select:none}
-  .switch{position:relative;width:66px;height:36px;background:#121620;border:1px solid rgba(255,255,255,.1);border-radius:999px;cursor:pointer}
-  .switch input{display:none}
-  .knob{position:absolute;top:4px;left:4px;width:28px;height:28px;background:#fff;border-radius:50%;transition:left .15s ease}
-  .switch input:checked + .knob{left:34px;background:#b8ffd3;box-shadow:0 0 0 6px rgba(67,209,125,.15)}
-  .label{font-weight:800;letter-spacing:.2px}
-
-  .override{display:flex;gap:12px;align-items:center;margin-top:12px}
-  .override .key{font-weight:900}
-  input[type=text]{
-    flex:1; background:#0f1218; color:#e9ecf1; border:1px solid rgba(255,255,255,.08);
-    border-radius:14px; padding:14px 16px; font-size:18px; outline:none
-  }
-  input[type=text]:focus{box-shadow:var(--ring)}
-
-  /* Grid */
-  .grid{margin-top:22px; display:grid; gap:18px}
-  @media (min-width:620px){ .grid{grid-template-columns:repeat(2,1fr)} }
-  @media (min-width:920px){ .grid{grid-template-columns:repeat(3,1fr)} }
-
-  /* Card: “Polaroid” */
-  .card{
-    background: linear-gradient(180deg,rgba(255,255,255,.03),transparent 30%), #1b212c;
-    border:1px solid rgba(255,255,255,.08);
-    border-radius:20px; overflow:hidden; box-shadow: var(--shadow);
-    position:relative; user-select:none;
-  }
-  .photo-wrap{
-    background: #0b0e13;
-    aspect-ratio: 4/5; /* keeps a portrait-ish frame */
-    display:flex; align-items:center; justify-content:center; overflow:hidden;
-  }
-  .photo{width:100%;height:100%;object-fit:contain}
-  .meta{
-    padding:14px 14px 18px; background:
-      radial-gradient(120px 40px at 30% -10px, rgba(255,255,255,.08), transparent),
-      linear-gradient(180deg, rgba(255,255,255,.02), transparent 60%);
-  }
-  .title{font-weight:900;letter-spacing:.2px;margin:6px 0 6px}
-  .by{color:var(--muted);font-size:14px}
-
-  /* Rating strip */
-  .rate{
-    margin-top:10px; display:flex; align-items:center; justify-content:space-between; gap:8px;
-    background:rgba(255,255,255,.04); padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,.06)
-  }
-  .star{
-    cursor:pointer; font-size:22px; line-height:1; filter:drop-shadow(0 2px 10px rgba(255,215,0,.15))
-  }
-  .star.on{color:#ffd54a}
-  .icons{display:flex;gap:10px}
-  .chip{font-weight:800;padding:6px 10px;border-radius:10px;background:#10141d;border:1px solid rgba(255,255,255,.06);font-size:12px;color:#aab2bf}
-
-  /* swipe hint overlay */
-  .swipe-hint{
-    position:absolute; inset:0; pointer-events:none; display:flex; align-items:center; justify-content:center;
-    color:#ffffffcc; font-weight:900; letter-spacing:.3px; text-shadow:0 2px 18px rgba(0,0,0,.55);
-    opacity:0; transition:opacity .15s ease; font-size:26px;
-  }
-  .card.dragging .swipe-hint{opacity:.9}
-  .card.dragging{transform:scale(.99)}
-  .floating{position:fixed;right:18px;bottom:18px;display:flex;gap:10px;z-index:5}
-  .undo{background:#10141d;color:#eaeef4;border:1px solid rgba(255,255,255,.12);padding:12px 14px;border-radius:12px;cursor:pointer}
-  .toast{
-    position:fixed;left:50%;transform:translateX(-50%);
-    bottom:22px;background:#261318;color:#ffd6da;border:1px solid #51212a;
-    padding:10px 14px;border-radius:12px;font-weight:700; box-shadow:var(--shadow); z-index:6
-  }
-  .hide{display:none}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scroll Wall • Models & Influencers</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #111;
+      color: #eee;
+    }
+    header {
+      padding: 1rem;
+      text-align: center;
+    }
+    h1 { margin: 0; font-size: 1.8rem; }
+    h2 { margin: 0.2rem 0 0; font-weight: 400; font-size: 1rem; color: #aaa; }
+    #controls {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: center;
+      margin: 1rem;
+      background: #1c1c1c;
+      padding: 1rem;
+      border-radius: 12px;
+    }
+    button {
+      background: hotpink;
+      border: none;
+      border-radius: 8px;
+      padding: 0.8rem 1.2rem;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    #gallery {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      padding: 1rem;
+    }
+    .card {
+      background: #222;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+      transition: transform 0.3s ease;
+    }
+    .card img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: contain; /* full image fits */
+      max-height: 70vh;
+      background: #000;
+    }
+    .meta {
+      padding: 0.8rem;
+    }
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0.8rem;
+    }
+    .actions button {
+      background: none;
+      color: #eee;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .hidden { display: none; }
+  </style>
 </head>
 <body>
-  <div class="wrap">
+  <header>
     <h1>Scroll Wall</h1>
-    <p class="sub">SFW models • influencers • actors (Reddit). Rate with ★</p>
+    <h2>Models • Influencers • Actors (Reddit). Rate with ⭐</h2>
+  </header>
 
-    <div class="panel">
-      <div class="controls">
-        <button class="btn" id="loadBtn">Load more</button>
-        <div class="count" id="count">0/0</div>
-        <label class="toggle" title="Include over-18 posts">
-          <div class="switch"><input id="nsfw" type="checkbox" checked><span class="knob"></span></div>
-          <span class="label">Allow NSFW</span>
-        </label>
-      </div>
-      <div class="override">
-        <span class="key">Override:</span>
-        <input id="override" type="text" placeholder="e.g. reddit=r/FashionModels,r/ModelPhotography" />
-      </div>
+  <div id="controls">
+    <button id="loadBtn">Load more</button>
+    <div>
+      <label><input type="checkbox" id="nsfwToggle" checked /> Allow NSFW</label>
     </div>
-
-    <div id="tip" style="margin:14px 6px 0;color:#aeb6c4;font-weight:700">
-      Tip: swipe a card left to dismiss, right to ★ like. Undo appears briefly.
+    <div>
+      <label>Override: <input id="override" placeholder="e.g. reddit=r/FashionModels" /></label>
     </div>
-
-    <div id="grid" class="grid"></div>
+    <small id="status">Nothing yet — tap Load more.</small>
   </div>
 
-  <div id="actions" class="floating">
-    <button id="undo" class="undo hide">Undo last swipe</button>
-  </div>
+  <div id="gallery"></div>
 
-  <div id="toast" class="toast hide"></div>
+  <script>
+    /** CONFIG **/
+    const Curated = [
+      "FashionModels","ModelPhotography","ModelsSFW","ModelShots",
+      "Celebs","HighResCelebs","LadyBoners","RedCarpet",
+      "FemaleFashionAdvice","HauteCouture","Lookbook"
+    ];
+    const BATCH = 12;
+    const TIME_RANGE = "week";
+    const STORAGE_KEY = "scrollwall_likes_v2";
 
-<script>
-(() => {
-  /*** CONFIG ***/
-  const Curated = [
-    // Models / photography
-    "FashionModels","ModelPhotography","MostBeautiful","StreetFashion","lookbook",
-    "HumanBeauty","FemaleFashionAdvice","runway","MakeupAddiction","TheWayWeWere",
-    // Celebs / influencers (broad, SFW-leaning)
-    "Celebs","OldSchoolCool","MadeMeSmile","Pics","itookapicture",
-    // a few brand/model niches that often have lookbook/editorial content
-    "malefashionadvice","BeautyGuruChatter","Instagram",
-    // fallback visual
-    "Art","ImaginaryCelebs"
-  ];
-  const BATCH = 18;          // images per click
-  const TIME_RANGE = "week"; // top this week; fallback: hot
-  const STORAGE_KEY = "scrollwall_likes_v1";
-  const HIDE_SEEN_KEY = "scrollwall_seen_v1";
+    const gallery = document.getElementById("gallery");
+    const status = document.getElementById("status");
+    const loadBtn = document.getElementById("loadBtn");
+    const nsfwToggle = document.getElementById("nsfwToggle");
+    const override = document.getElementById("override");
 
-  const els = {
-    grid: document.getElementById('grid'),
-    load: document.getElementById('loadBtn'),
-    count: document.getElementById('count'),
-    nsfw: document.getElementById('nsfw'),
-    override: document.getElementById('override'),
-    undo: document.getElementById('undo'),
-    toast: document.getElementById('toast'),
-    tip: document.getElementById('tip'),
-  };
+    let after = {};
+    let liked = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    let history = [];
 
-  let pool = [];         // prepared posts not yet rendered
-  let totalShown = 0;    // cards rendered
-  let totalFetched = 0;  // posts fetched from API
-  let lastRemoved = null;
-
-  const likes = new Map(JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"));
-  const seen  = new Set(JSON.parse(localStorage.getItem(HIDE_SEEN_KEY) || "[]"));
-
-  updateCount();
-
-  function toast(msg, color="var(--err)") {
-    els.toast.textContent = msg;
-    els.toast.style.borderColor = color;
-    els.toast.classList.remove('hide');
-    clearTimeout(toast._t);
-    toast._t = setTimeout(()=>els.toast.classList.add('hide'), 2200);
-  }
-
-  function pickSubs() {
-    const override = els.override.value.trim();
-    if (override.toLowerCase().startsWith("reddit=")) {
-      const parts = override.split("=")[1]
-        .split(",")
-        .map(s => s.replace(/^r\//i,"").trim())
-        .filter(Boolean);
-      if (parts.length) return parts;
-    }
-    // Shuffle curated and take up to 8 each cycle
-    return Curated.slice().sort(()=>Math.random()-0.5).slice(0,8);
-  }
-
-  async function fetchBatch() {
-    const subs = pickSubs();
-    const allowNSFW = els.nsfw.checked;
-    let posts = [];
-    for (const sub of subs) {
-      // try top/week then fallback hot
-      const urls = [
-        `https://www.reddit.com/r/${sub}/top.json?t=${TIME_RANGE}&limit=100`,
-        `https://www.reddit.com/r/${sub}/hot.json?limit=100`
-      ];
-      for (const url of urls) {
-        try{
-          const r = await fetch(url,{headers:{'Accept':'application/json'}});
-          if (!r.ok) continue;
-          const data = await r.json();
-          if (!data || !data.data) continue;
-          const items = data.data.children.map(c => c.data);
-          for (const it of items) {
-            if (!allowNSFW && it.over_18) continue;
-            const media = chooseImage(it);
-            if (!media) continue;
-            const key = it.id;
-            if (seen.has(key)) continue; // already dismissed before
-            posts.push({
-              id: it.id,
-              title: it.title || "(untitled)",
-              author: it.author,
-              sub: it.subreddit,
-              url: media,
-              over18: !!it.over_18,
-              permalink: "https://reddit.com"+it.permalink
-            });
-          }
-          // modest delay to be polite
-          await new Promise(r=>setTimeout(r,80));
-        }catch(e){ /* ignore and continue */ }
-        if (posts.length >= BATCH*2) break; // enough choices
+    function pickSubs() {
+      if (override.value.startsWith("reddit=")) {
+        return override.value.replace("reddit=","").split(",");
       }
-      if (posts.length >= BATCH*2) break;
-    }
-    totalFetched += posts.length;
-    // keep unique by id
-    const uniq = [];
-    const seenIds = new Set(pool.map(p=>p.id));
-    for (const p of posts) {
-      if (!seenIds.has(p.id)) { uniq.push(p); seenIds.add(p.id); }
-    }
-    pool = pool.concat(uniq);
-    return uniq.length;
-  }
-
-  // Try to determine a direct image URL from a Reddit post
-  function chooseImage(it){
-    // direct image
-    if (it.url_overridden_by_dest && /\.(jpg|jpeg|png|gif)$/i.test(it.url_overridden_by_dest))
-      return it.url_overridden_by_dest;
-
-    // i.imgur.com without extension (convert to .jpg)
-    if (it.domain && /imgur\.com$/i.test(it.domain) && it.url && !/\/a\//.test(it.url)) {
-      const base = it.url.replace(/(\.gifv|\.webp|\.png|\.jpeg|\.jpg)$/i,'');
-      return base + ".jpg";
+      return Curated;
     }
 
-    // Reddit preview
-    if (it.preview && it.preview.images && it.preview.images[0]) {
-      const src = (it.preview.images[0].source || {}).url || "";
-      if (src) return src.replace(/&amp;/g,'&');
-    }
-
-    // Galleries (best effort to first image)
-    if (it.is_gallery && it.media_metadata && it.gallery_data) {
-      const first = it.gallery_data.items[0]?.media_id;
-      const meta = it.media_metadata[first];
-      if (meta && meta.s && meta.s.u) return meta.s.u.replace(/&amp;/g,'&');
-      if (meta && meta.s && meta.s.gif) return meta.s.gif.replace(/&amp;/g,'&');
-    }
-    return null;
-  }
-
-  function updateCount() {
-    els.count.textContent = `${totalShown}/${totalFetched}`;
-  }
-
-  function renderMore(n=BATCH){
-    if (pool.length===0) return;
-    const batch = pool.splice(0,n);
-    for (const p of batch) els.grid.appendChild(makeCard(p));
-    totalShown += batch.length; updateCount();
-  }
-
-  function makeCard(p){
-    const card = document.createElement('article');
-    card.className = 'card'; card.dataset.id = p.id;
-
-    const wrap = document.createElement('div');
-    wrap.className = 'photo-wrap';
-
-    const img = document.createElement('img');
-    img.className = 'photo'; img.loading = 'lazy'; img.alt = p.title;
-    img.src = p.url;
-
-    const hint = document.createElement('div'); hint.className='swipe-hint';
-    hint.textContent = '← dismiss • like →';
-
-    wrap.appendChild(img); wrap.appendChild(hint);
-
-    const meta = document.createElement('div'); meta.className='meta';
-    const title = document.createElement('div'); title.className='title'; title.textContent = truncate(p.title, 100);
-    const by = document.createElement('div'); by.className='by';
-    by.innerHTML = `by u/${escapeHTML(p.author)} • r/${escapeHTML(p.sub)}`
-    const rate = document.createElement('div'); rate.className='rate';
-
-    const star = document.createElement('span'); star.className='star'; star.textContent='★';
-    const liked = likes.get(p.id)===true;
-    if (liked) star.classList.add('on');
-
-    const open = document.createElement('a'); open.className='chip'; open.href = p.permalink; open.target='_blank'; open.rel='noopener'; open.textContent='Reddit';
-    const nsfw = document.createElement('span'); nsfw.className='chip'; nsfw.textContent = p.over18? 'NSFW' : 'SFW';
-    if (p.over18) nsfw.style.background='#261c1f', nsfw.style.borderColor='#55343b';
-
-    star.addEventListener('click', () => {
-      star.classList.toggle('on');
-      likes.set(p.id, star.classList.contains('on'));
-      persistLikes();
-    });
-
-    const icons = document.createElement('div'); icons.className='icons'; icons.append(open, nsfw);
-    rate.append(star, icons);
-
-    meta.append(title, by, rate);
-    card.append(wrap, meta);
-
-    enableSwipe(card, p);
-    return card;
-  }
-
-  function enableSwipe(card, data){
-    let sx=0, sy=0, dx=0, dragging=false, removed=false;
-
-    const onStart = e=>{
-      dragging=true; card.classList.add('dragging');
-      const t = (e.touches?e.touches[0]:e); sx=t.clientX; sy=t.clientY;
-    };
-    const onMove = e=>{
-      if(!dragging) return;
-      const t = (e.touches?e.touches[0]:e);
-      dx = t.clientX - sx;
-      const dy = t.clientY - sy;
-      // small threshold to avoid accidental drags while scrolling
-      card.style.transform = `translate(${dx}px, ${dy*.1}px) rotate(${dx*.03}deg)`;
-      card.style.opacity = String(Math.max(0.35, 1-Math.abs(dx)/420));
-    };
-    const onEnd = ()=>{
-      if(!dragging) return;
-      dragging=false; card.classList.remove('dragging');
-      const threshold = 120;
-      if (dx > threshold) { // like
-        likes.set(data.id,true); persistLikes();
-        removeCard(card, data); removed=true;
-      } else if (dx < -threshold) { // dismiss
-        likes.set(data.id,false); persistLikes();
-        removeCard(card, data); removed=true;
-      }
-      // reset
-      card.style.transform=''; card.style.opacity='';
-      dx=0;
-    };
-    card.addEventListener('touchstart', onStart, {passive:true});
-    card.addEventListener('touchmove',  onMove,  {passive:true});
-    card.addEventListener('touchend',   onEnd);
-    card.addEventListener('mousedown', onStart);
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onEnd);
-
-    function removeCard(el, payload){
-      lastRemoved = {el, payload, index: [...els.grid.children].indexOf(el)};
-      els.undo.classList.remove('hide');
-      seen.add(payload.id); persistSeen();
-      el.style.height = el.getBoundingClientRect().height+'px';
-      requestAnimationFrame(()=>{
-        el.style.transition='all .2s ease'; el.style.opacity='0'; el.style.transform='translateY(-6px)'; el.style.margin='0'; el.style.padding='0';
-        setTimeout(()=> el.remove(), 180);
-      });
-    }
-  }
-
-  function undo(){
-    if(!lastRemoved) return;
-    const {el, payload, index} = lastRemoved;
-    seen.delete(payload.id); persistSeen();
-    // recreate card (original element might have been removed)
-    const card = makeCard(payload);
-    if (index >= els.grid.children.length) els.grid.appendChild(card);
-    else els.grid.insertBefore(card, els.grid.children[index]);
-    lastRemoved = null;
-    els.undo.classList.add('hide');
-  }
-
-  function persistLikes(){ localStorage.setItem(STORAGE_KEY, JSON.stringify([...likes])); }
-  function persistSeen(){ localStorage.setItem(HIDE_SEEN_KEY, JSON.stringify([...seen])); }
-  function truncate(s,n){ return s.length>n ? s.slice(0,n-1)+"…" : s }
-  function escapeHTML(s){ return s.replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])) }
-
-  async function loadFlow(){
-    els.load.disabled = true;
-    if (pool.length < BATCH) {
-      const got = await fetchBatch();
-      if (got === 0) {
-        toast("No fresh image posts found. Try Load more again or different subs.", "var(--warn)");
-        els.load.disabled=false; updateCount(); return;
+    async function fetchBatch() {
+      const subs = pickSubs();
+      const sub = subs[Math.floor(Math.random()*subs.length)];
+      const url = `https://www.reddit.com/r/${sub}/top.json?t=${TIME_RANGE}&limit=${BATCH}${after[sub]?`&after=${after[sub]}`:""}`;
+      try {
+        const r = await fetch(url);
+        const j = await r.json();
+        after[sub] = j.data.after;
+        return j.data.children.map(c => c.data);
+      } catch (e) {
+        console.error("fetch error", e);
+        return [];
       }
     }
-    renderMore(BATCH);
-    els.load.disabled = false;
-  }
 
-  // events
-  els.load.addEventListener('click', loadFlow);
-  els.undo.addEventListener('click', undo);
+    function chooseImage(post) {
+      if (post.post_hint==="image" && post.url) return post.url;
+      if (post.preview?.images?.[0]?.source?.url)
+        return post.preview.images[0].source.url.replace(/&amp;/g,"&");
+      return null;
+    }
 
-  // First click shows something quickly
-  // (We don’t auto-load to keep it user-initiated for bandwidth/privacy.)
-})();
-</script>
+    function makeCard(post, img) {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <img src="${img}" alt="">
+        <div class="meta">
+          <b>${post.title}</b><br>
+          <small>by u/${post.author} • r/${post.subreddit}</small>
+        </div>
+        <div class="actions">
+          <button class="like">⭐</button>
+          <button class="undo hidden">↩ Undo</button>
+        </div>
+      `;
+      const likeBtn = card.querySelector(".like");
+      const undoBtn = card.querySelector(".undo");
+      likeBtn.onclick = () => {
+        liked.push({title: post.title, url: img});
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(liked));
+        history.push(card);
+        card.style.transform = "translateX(100%)";
+        setTimeout(()=>card.remove(),300);
+        undoBtn.classList.remove("hidden");
+      };
+      undoBtn.onclick = () => {
+        if (history.length>0) {
+          gallery.insertBefore(history.pop(), gallery.firstChild);
+        }
+      };
+      return card;
+    }
+
+    async function loadMore() {
+      status.textContent = "Loading...";
+      let posts = await fetchBatch();
+      let added = 0;
+      for (let p of posts) {
+        if (!nsfwToggle.checked && p.over_18) continue;
+        const img = chooseImage(p);
+        if (!img) continue;
+        const card = makeCard(p,img);
+        gallery.appendChild(card);
+        added++;
+      }
+      status.textContent = added>0 ? `Loaded ${added} posts` : "No fresh image posts found.";
+    }
+
+    loadBtn.onclick = loadMore;
+  </script>
 </body>
 </html>
