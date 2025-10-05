@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Scroll Wall · Reddit</title>
+<title>Scroll Wall · Reddit Celebs</title>
 <style>
-  :root{--bg:#0f1013;--panel:#2f3136;--ink:#f5f5f5;--muted:#b9bcc4;--accent:#6cf;--radius:22px;--gap:18px;--shadow:0 8px 24px rgba(0,0,0,.25)}
+  :root{--bg:#0f1013;--panel:#2f3136;--ink:#f5f5f5;--muted:#b9bcc4;--accent:#ff66aa;--radius:22px;--gap:18px;--shadow:0 8px 24px rgba(0,0,0,.25)}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Inter,Arial,sans-serif}
   header{position:sticky;top:0;z-index:10;padding:14px 16px;background:linear-gradient(180deg,rgba(15,16,19,.92),rgba(15,16,19,.7),rgba(15,16,19,0));backdrop-filter:saturate(1.2) blur(8px);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -19,21 +19,17 @@
   @media(min-width:520px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media(min-width:880px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
   .card{background:var(--panel);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);min-height:180px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
-  .title{font-size:16px;font-weight:800}
+  .title{font-size:15px;font-weight:800}
   .meta{color:var(--muted);font-size:12px}
   .card img{width:100%;height:auto;border-radius:14px;background:#3a3b3f;display:block}
-  .skeleton{height:12px;border-radius:999px;background:#3a3b3f;overflow:hidden}
-  .skeleton::before{content:"";display:block;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent);animation:shimmer 1.25s infinite}
-  @keyframes shimmer{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
   #sentinel{height:1px}
   footer{color:var(--muted);text-align:center;margin-top:18px}
-  .pill{background:#1f2328;border:1px solid #38414a;color:#cdd9e5;padding:6px 10px;border-radius:999px;font-size:12px}
 </style>
 </head>
 <body>
 <header class="wrap">
   <h1>Scroll Wall</h1>
-  <span class="hint">Reddit feed · change subs in code or use <span class="pill">?reddit=r/pics,r/EarthPorn</span></span>
+  <span class="hint">Default: celeb/public figure subs · override with ?reddit=…</span>
 </header>
 
 <main class="wrap">
@@ -48,7 +44,13 @@
 
 <script>
 /* ---------- Config ---------- */
-const DEFAULT_SUBS = ['r/pics','r/EarthPorn','r/wallpapers','r/CityPorn','r/itookapicture']; // edit me
+const DEFAULT_SUBS = [
+  'r/Celebs',
+  'r/RedCarpetFashion',
+  'r/OldSchoolCool',
+  'r/ModelPhotography',
+  'r/LadiesOfScience'
+]; 
 const BATCH = 18;
 
 /* ---------- State ---------- */
@@ -76,7 +78,7 @@ function cardEl(item, i){
     <div class="title">${sanitize(item.title || ('Item ' + (i+1)))}</div>
     <div class="meta">${sanitize(item.desc || '')}</div>
     ${item.img ? `<img loading="lazy" alt="${sanitize(item.title||'')}" src="${item.img}">`
-               : `<div class="skeleton" style="height:150px;border-radius:14px"></div>`}
+               : ``}
   `;
   return a;
 }
@@ -108,7 +110,6 @@ async function fetchReddit(subsCSV){
       const data = await r.json();
       const posts = (data?.data?.children || []).map(c => c.data).filter(Boolean);
       const mapped = posts
-        .filter(p => !p.over_18) // skip NSFW
         .map(p => {
           const preview = p.preview?.images?.[0]?.source?.url;
           const direct  = p.url_overridden_by_dest || p.url || '';
@@ -116,15 +117,14 @@ async function fetchReddit(subsCSV){
           return {
             title: p.title,
             desc: `u/${p.author} • ${p.subreddit}`,
-            img: isImgUrl(img) ? img : (p.thumbnail && isImgUrl(p.thumbnail) ? p.thumbnail : ''),
+            img: isImgUrl(img) ? img : '',
             url: `https://www.reddit.com${p.permalink}`
           };
         })
-        .filter(x => x.img); // only keep items with a usable image
+        .filter(x => x.img); 
       out = out.concat(mapped);
     } catch {}
   }
-  // de-dupe by URL
   return uniqBy(out, x => x.url);
 }
 
@@ -136,18 +136,14 @@ const observer = new IntersectionObserver(
 btn.addEventListener('click', loadMore);
 
 (async () => {
-  // allow override via ?reddit=r/pics,r/wallpapers
   const param = q('reddit') || DEFAULT_SUBS.join(',');
   items = await fetchReddit(param);
-
-  // fallback demo if nothing came back
   if (!items || items.length === 0){
     items = Array.from({length: 30}, (_,i)=>({ title:`Item ${i+1}`, desc:'(demo)' }));
   }
-
   status.textContent = `0/${items.length}`;
   observer.observe(sent);
-  loadMore(); loadMore(); // prime two batches so it looks alive
+  loadMore(); loadMore();
 })();
 </script>
 </body>
