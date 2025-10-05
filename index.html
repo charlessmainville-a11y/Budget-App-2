@@ -3,402 +3,227 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Scroll Wall</title>
+<title>Scroll Wall · SFW Models</title>
 <style>
   :root{
-    --bg:#0e0f12;
-    --panel:#1a1c22;
-    --panel-2:#20232b;
-    --ink:#e9eaf0;
-    --ink-dim:#aeb3c3;
-    --accent:#ff77a9;
-    --accent-2:#7dd3fc;
-    --ok:#63e6be;
-    --warn:#ffcc66;
-    --star:#ffd166;
-    --card:#2a2f39;
-    --shadow: 0 10px 30px rgba(0,0,0,.35);
+    --bg:#0e0f12; --ink:#e9eaf0; --ink-d:#aeb3c3;
+    --accent:#ff77a9; --star:#ffd166;
+    --card:#2a2f39; --panel:#20232b; --shadow:0 10px 30px rgba(0,0,0,.35);
   }
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
-    margin:0;
-    color:var(--ink);
+    margin:0; color:var(--ink);
     background:
       radial-gradient(1200px 600px at 20% -10%,#15171d 0%,transparent 60%),
       radial-gradient(900px 400px at 100% 0%,#101218 0%,transparent 70%),
-      linear-gradient(180deg,#0d0f14 0%,#0c0d12 100%),
-      var(--bg);
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Apple Color Emoji","Segoe UI Emoji";
+      linear-gradient(180deg,#0d0f14 0%,#0c0d12 100%);
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial;
   }
-  header{
-    padding:28px 20px 8px;
-  }
-  h1{
-    margin:0 0 8px;
-    font-size:clamp(26px,5.6vw,44px);
-    letter-spacing:.5px;
-  }
-  .subtitle{
-    margin:0 0 16px;
-    color:var(--ink-dim);
-    font-weight:600;
-  }
+  header{padding:26px 18px 8px}
+  h1{margin:0 0 6px; font-size:clamp(26px,5.4vw,42px)}
+  .subtitle{margin:0 0 14px; color:var(--ink-d); font-weight:600}
   .controls{
-    display:flex;
-    gap:10px;
-    align-items:center;
-    flex-wrap:wrap;
-    padding:10px 16px;
-    margin:10px 20px 4px;
-    border-radius:14px;
+    display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+    margin:0 18px 8px; padding:10px 12px; border-radius:14px;
     background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.15));
-    border:1px solid rgba(255,255,255,.06);
-    box-shadow: var(--shadow);
+    border:1px solid rgba(255,255,255,.06); box-shadow:var(--shadow)
   }
   button{
-    appearance:none;
-    border:0;
-    color:#111;
-    background:var(--accent);
-    font-weight:800;
-    padding:12px 18px;
-    border-radius:14px;
-    letter-spacing:.3px;
-    cursor:pointer;
+    appearance:none; border:0; color:#111; background:var(--accent);
+    font-weight:800; padding:10px 16px; border-radius:12px; letter-spacing:.2px; cursor:pointer
   }
-  button:disabled{opacity:.6;cursor:not-allowed}
-  .pill{
-    padding:8px 14px;
-    border-radius:999px;
-    background:var(--panel-2);
-    color:var(--ink);
-    font-weight:700;
-    border:1px solid rgba(255,255,255,.06);
-  }
-  .switch{
-    display:flex; align-items:center; gap:8px;
-    padding:8px 10px; border-radius:12px; background:var(--panel-2);
-    border:1px solid rgba(255,255,255,.06);
-    color:var(--ink);
-    font-weight:600;
-  }
-  .switch input{width:20px;height:20px}
-  .override{
-    flex:1;
-    display:flex; align-items:center; gap:10px;
-    min-width:220px;
-    background:var(--panel);
-    border:1px solid rgba(255,255,255,.06);
-    border-radius:14px;
-    padding:12px 14px;
-    color:var(--ink-dim);
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
-  }
-  .override b{color:var(--ink)}
-  .override input{
-    flex:1;
-    background:transparent;
-    color:var(--ink);
-    border:0; outline:0; font-size:14px;
-  }
-
-  /* Masonry-ish 1 column on phones, 2+ on wide screens */
-  .grid{
-    columns:1;
-    column-gap:14px;
-    padding:14px 14px 120px;
-  }
-  @media (min-width:740px){ .grid{ columns:2; } }
-  @media (min-width:1040px){ .grid{ columns:3; } }
-
-  /* Polaroid card */
+  button:disabled{opacity:.6; cursor:not-allowed}
+  .pill{padding:8px 12px; border-radius:999px; background:var(--panel); color:var(--ink); font-weight:700; border:1px solid rgba(255,255,255,.06)}
+  .grid{columns:1; column-gap:14px; padding:14px 14px 90px}
+  @media(min-width:740px){.grid{columns:2}}
+  @media(min-width:1040px){.grid{columns:3}}
   .card{
-    break-inside:avoid;
-    display:block;
-    background:var(--card);
-    border-radius:18px;
-    box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.04);
-    border:1px solid rgba(255,255,255,.06);
-    margin:0 6px 14px;
-    overflow:hidden;
-    position:relative;
+    break-inside:avoid; display:block; background:var(--card); border-radius:18px;
+    box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.06); margin:0 6px 14px; overflow:hidden; position:relative
   }
-  .polaroid-top{
-    background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,0) 30%);
-    padding:10px 14px 0;
-  }
-  .title{
-    font-weight:800;
-    letter-spacing:.2px;
-    font-size:15px;
-    color:var(--ink);
-    text-shadow:0 1px 0 rgba(0,0,0,.5);
-  }
-  .sub{
-    color:var(--ink-dim);
-    font-size:12px;
-    margin-top:2px;
-  }
-  .thumb{
-    width:100%;
-    display:block;
-    background: #14161c;
-    aspect-ratio: 4/3;
-    object-fit:cover;
-  }
-  .skel{
-    background: linear-gradient(90deg,#2a2e36 25%,#323743 37%,#2a2e36 63%);
-    background-size: 400% 100%;
-    animation: shimmer 1.2s infinite;
-  }
-  @keyframes shimmer {
-    0%{background-position:0% 0}
-    100%{background-position:100% 0}
-  }
-  .polaroid-bottom{
-    padding:12px 12px 14px;
-    background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.18));
-    display:flex; align-items:center; justify-content:space-between; gap:10px;
-  }
-  .stars{ display:flex; gap:4px; }
-  .star{
-    width:22px; height:22px; cursor:pointer; filter: drop-shadow(0 1px 0 rgba(0,0,0,.6));
-    opacity:.85;
-  }
-  .star svg{display:block; width:100%; height:100%}
-  .star.filled svg path{ fill:var(--star); }
-  .badge{
-    font-weight:800; font-size:12px;
-    color:#111; background:var(--ok);
-    padding:6px 10px; border-radius:999px;
-  }
-  .meta{
-    font-size:12px; color:var(--ink-dim);
-    display:flex; gap:10px; align-items:center;
-  }
-  .empty{
-    color:var(--ink-dim);
-    text-align:center; padding:40px 16px 90px;
-  }
+  .pol-top{padding:10px 14px 0; background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,0) 30%)}
+  .title{font-weight:800; letter-spacing:.2px; font-size:15px}
+  .sub{color:var(--ink-d); font-size:12px; margin-top:2px}
+  .thumb{width:100%; display:block; background:#14161c; aspect-ratio:4/3; object-fit:cover}
+  .skel{background:linear-gradient(90deg,#2a2e36 25%,#323743 37%,#2a2e36 63%); background-size:400% 100%; animation:shimmer 1.2s infinite}
+  @keyframes shimmer{0%{background-position:0 0}100%{background-position:100% 0}}
+  .pol-btm{padding:12px; background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.18)); display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .meta{font-size:12px; color:var(--ink-d); display:flex; gap:10px; align-items:center}
+  .badge{font-weight:800; font-size:12px; color:#111; background:#63e6be; padding:6px 10px; border-radius:999px}
+  .stars{display:flex; gap:4px}
+  .star{width:22px; height:22px; cursor:pointer; filter:drop-shadow(0 1px 0 rgba(0,0,0,.6)); opacity:.85}
+  .star svg{width:100%; height:100%}
+  .star.filled svg path{fill:var(--star)}
+  #status{position:fixed;left:12px;right:12px;bottom:12px;padding:10px 12px;border-radius:12px;background:#15171b;color:#cfd3dc;font:12px/1.4 ui-sans-serif;box-shadow:0 8px 30px rgba(0,0,0,.35);z-index:9999;display:none;white-space:pre-wrap;border:1px solid #394452}
+  .empty{color:var(--ink-d); text-align:center; padding:40px 16px 90px}
 </style>
 </head>
 <body>
   <header>
     <h1>Scroll Wall</h1>
-    <p class="subtitle">Models &amp; niche influencers (Reddit) • Rate with ⭐</p>
+    <p class="subtitle">SFW models & fashion (Reddit • Top this week). Rate with ⭐</p>
   </header>
 
   <div class="controls">
-    <button id="btnMore">Load more</button>
+    <button id="more">Load more</button>
     <span class="pill" id="count">0/0</span>
-    <label class="switch">
-      <input id="nsfw" type="checkbox" checked />
-      Allow NSFW
-    </label>
-    <div class="override">
-      <b>Override:</b>
-      <input id="override" placeholder='e.g. reddit=r/FashionModels,r/ModelPhotography' />
-    </div>
+    <span class="pill">Override: <code>?reddit=r/FashionModels,r/ModelPhotography</code></span>
   </div>
 
   <main id="grid" class="grid"></main>
-  <p id="empty" class="empty" style="display:none">Nothing yet—tap <b>Load more</b>.</p>
+  <p id="empty" class="empty" style="display:none">Nothing yet — tap <b>Load more</b>.</p>
+  <div id="status"></div>
 
 <script>
 (() => {
-  // ---------- CONFIG ----------
-  // CORS-friendly Reddit mirror (returns JSON with open CORS)
-  const BASE = 'https://r.jina.ai/http://www.reddit.com';
-  // default sub list (SFW-ish + some “glamour”). User can override in the box.
+  // --- Config (SFW-only subs) ---
   const DEFAULT_SUBS = [
-    'FashionModels','ModelPhotography','GentlemanBoners','CelebFashion',
-    'RedCarpet','ModelClips','LookAtHer','StreetFashion',
-    'PrettyGirls','AttractiveCelebs','Beauty','HighFashionPhotography'
+    'FashionModels','ModelPhotography','RedCarpetFashion',
+    'OldSchoolCool','StreetFashion','CelebFashion','itookapicture'
   ];
-  const BATCH_SIZE = 24;   // how many cards to attempt to add per click
-  // ---------------------------
-
-  const grid = document.getElementById('grid');
-  const btnMore = document.getElementById('btnMore');
+  const BATCH = 24;
+  const BASE = 'https://r.jina.ai/http://www.reddit.com'; // CORS-friendly mirror
   const countEl = document.getElementById('count');
-  const allowNSFW = document.getElementById('nsfw');
-  const overrideInput = document.getElementById('override');
+  const moreBtn = document.getElementById('more');
+  const grid = document.getElementById('grid');
   const empty = document.getElementById('empty');
+  const status = document.getElementById('status');
 
-  // simple state
-  let total = 0, shown = 0;
-  const seen = new Set();                 // post ids we've rendered
-  const afterMap = new Map();             // pagination per subreddit
-  const ratings = loadRatings();          // { id: 1..5 }
+  // ratings in localStorage
+  const RATINGS_KEY = 'sw_sfw_ratings_v1';
+  const ratings = loadRatings();
 
-  // helpers
-  function loadRatings(){
-    try { return JSON.parse(localStorage.getItem('sw_ratings') || '{}'); }
-    catch { return {}; }
+  let shown = 0, total = 0;
+  const seen = new Set();
+  const afterMap = new Map();
+
+  function showStatus(msg, err=false){
+    status.style.display='block';
+    status.style.borderColor = err ? '#ff5c7a' : '#394452';
+    status.textContent = '['+new Date().toLocaleTimeString()+'] ' + msg;
   }
-  function saveRatings(){ localStorage.setItem('sw_ratings', JSON.stringify(ratings)); }
+  function loadRatings(){ try{return JSON.parse(localStorage.getItem(RATINGS_KEY)||'{}')}catch{return{}} }
+  function saveRatings(){ localStorage.setItem(RATINGS_KEY, JSON.stringify(ratings)); }
   function fmtCount(){ countEl.textContent = `${shown}/${total}`; }
+  function q(key){ return new URLSearchParams(location.search).get(key) || ''; }
+  function parseOverride(){
+    const p = q('reddit'); if(!p) return null;
+    return p.split(',').map(s=>s.trim().replace(/^r\//i,'').replace(/^\//,'')).filter(Boolean);
+  }
+  function cleanUrl(u){ return (u||'').replace(/&amp;/g,'&'); }
+  function isImg(u){ return /\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(u); }
 
-  function parseOverride(str){
-    if(!str) return null;
-    // format: "reddit=r/sub1,r/sub2,r/SubName"
-    const m = str.match(/reddit\s*=\s*([^]+)/i);
-    if(!m) return null;
-    return m[1]
-      .split(',')
-      .map(s => s.trim().replace(/^r\//i,'').replace(/^\//,''))
-      .filter(Boolean);
+  async function fetchSub(sub){
+    const state = afterMap.get(sub);
+    const after = state?.token ? `&after=${encodeURIComponent(state.token)}` : '';
+    const url = `${BASE}/r/${sub}/top.json?t=week&limit=50&raw_json=1${after}`;
+    showStatus('Fetching ' + sub);
+    const res = await fetch(url, { cache:'no-store' });
+    const txt = await res.text(); // mirror returns text
+    const data = JSON.parse(txt);
+    afterMap.set(sub, { token: data?.data?.after || null });
+    return (data?.data?.children || []);
   }
 
-  // choose a subreddit (weighted to ones with fewer requests)
-  function pickSub(list){
-    let min = Infinity, pick = list[0];
-    for(const s of list){
-      const after = afterMap.get(s);
-      const weight = after ? after.count : 0;
-      if(weight < min){ min = weight; pick = s; }
-    }
-    return pick;
-  }
-
-  function normalizeUrl(u){
-    if(!u) return null;
-    return u.replace(/&amp;/g,'&').replace(/^https?:\/\/preview\.redd\.it\//,'https://i.redd.it/');
-  }
-
-  function extractImage(post){
-    // prefer preview image if present
-    try{
-      const p = post.data;
-      if(p.post_hint === 'image' || (p.preview && p.preview.images && p.preview.images[0])){
-        const src = p.preview?.images?.[0]?.source?.url || p.url || p.thumbnail;
-        const url = normalizeUrl(src);
-        if(/\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(url) || url.startsWith('https://i.redd.it/')) return url;
-      }
-      // fallback to url
-      if(p.url){
-        const url = normalizeUrl(p.url);
-        if(/\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(url)) return url;
-      }
-    }catch{}
+  function extractImage(p){
+    const d = p.data;
+    // ignore NSFW by design (SFW-only build)
+    if (d.over_18) return null;
+    const preview = d.preview?.images?.[0]?.source?.url;
+    const direct  = d.url_overridden_by_dest || d.url || '';
+    const candidate = cleanUrl(preview || direct);
+    if (candidate && (isImg(candidate) || candidate.startsWith('https://i.redd.it/'))) return candidate;
     return null;
   }
 
-  async function fetchFromSub(sub){
-    const afterState = afterMap.get(sub);
-    const after = afterState?.token ? `&after=${encodeURIComponent(afterState.token)}` : '';
-    const url = `${BASE}/r/${sub}/top.json?t=week&limit=50&raw_json=1${after}`;
-    const res = await fetch(url, { cache: 'no-store' });
-    const txt = await res.text();        // mirror can return text
-    const data = JSON.parse(txt);
-    const children = data?.data?.children || [];
-    const next = data?.data?.after || null;
-    afterMap.set(sub, { token: next, count: (afterState?.count||0)+1 });
-    return children;
-  }
-
-  function makeStars(postId){
-    const wrap = document.createElement('div');
-    wrap.className = 'stars';
-    const cur = Number(ratings[postId]||0);
-
+  function makeStars(id){
+    const wrap = document.createElement('div'); wrap.className='stars';
+    const cur = Number(ratings[id]||0);
     for(let i=1;i<=5;i++){
-      const btn = document.createElement('button');
-      btn.className = 'star' + (i<=cur ? ' filled':'' );
-      btn.setAttribute('aria-label', `Rate ${i} star${i>1?'s':''}`);
-      btn.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.09 6.29 6.95 1.01-5.02 4.89 1.19 6.93L12 18.9l-6.21 3.26 1.19-6.93L1.96 9.3l6.95-1.01L12 2z" fill="rgba(255,255,255,.18)"/></svg>`;
-      btn.addEventListener('click', () => {
-        ratings[postId] = (ratings[postId]===i) ? 0 : i; // toggle same star off
+      const b = document.createElement('button'); b.className='star' + (i<=cur ? ' filled' : '');
+      b.title = `${i} star${i>1?'s':''}`;
+      b.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.29 6.95 1.01-5.02 4.89 1.19 6.93L12 18.9l-6.21 3.26 1.19-6.93L1.96 9.3l6.95-1.01L12 2z" fill="rgba(255,255,255,.18)"/></svg>`;
+      b.addEventListener('click', ()=>{
+        ratings[id] = (ratings[id]===i) ? 0 : i;
         saveRatings();
-        // repaint stars
-        [...wrap.children].forEach((el,idx)=>{
-          el.classList.toggle('filled', idx < (ratings[postId]||0));
-        });
+        [...wrap.children].forEach((el,idx)=> el.classList.toggle('filled', idx < (ratings[id]||0)));
       });
-      wrap.appendChild(btn);
+      wrap.appendChild(b);
     }
     return wrap;
   }
 
-  function cardTemplate(item){
-    const p = item.data;
-    const url = extractImage(item);
-    if(!url) return null;
-    if(!allowNSFW.checked && (p.over_18 || p.whitelist_status==='promo_adult')) return null;
+  function cardFromPost(p){
+    const d = p.data;
+    const img = extractImage(p);
+    if(!img) return null;
+    if(seen.has(d.id)) return null;
+    seen.add(d.id);
 
-    const a = document.createElement('article');
-    a.className = 'card';
-    a.innerHTML = `
-      <div class="polaroid-top">
-        <div class="title">${(p.title||'').slice(0,120)}</div>
-        <div class="sub">r/${p.subreddit} • u/${p.author}</div>
+    const el = document.createElement('article');
+    el.className = 'card';
+    el.innerHTML = `
+      <div class="pol-top">
+        <div class="title">${(d.title||'').slice(0,120)}</div>
+        <div class="sub">r/${d.subreddit} • u/${d.author}</div>
       </div>
-      <img class="thumb skel" alt="${(p.title||'').replace(/"/g,'&quot;')}" />
-      <div class="polaroid-bottom">
-        <div class="meta">
-          <span class="badge">TOP</span>
-          <span>❤ ${p.ups ?? 0}</span>
-        </div>
+      <img class="thumb skel" alt="${(d.title||'').replace(/"/g,'&quot;')}" />
+      <div class="pol-btm">
+        <div class="meta"><span class="badge">TOP</span><span>❤ ${d.ups ?? 0}</span></div>
         <div class="stars"></div>
       </div>
     `;
-    const img = a.querySelector('.thumb');
-    img.addEventListener('load',()=> img.classList.remove('skel'), { once:true });
-    img.src = url;
+    const imgEl = el.querySelector('.thumb');
+    imgEl.addEventListener('load', ()=> imgEl.classList.remove('skel'), { once:true });
+    imgEl.src = img;
 
-    const starWrap = a.querySelector('.stars');
-    starWrap.replaceWith(makeStars(p.id));
-    return a;
+    el.querySelector('.stars').replaceWith(makeStars(d.id));
+    return el;
   }
 
   async function loadBatch(){
-    btnMore.disabled = true;
+    moreBtn.disabled = true;
     empty.style.display = 'none';
-    const list = parseOverride(overrideInput.value) || DEFAULT_SUBS;
-    // try to fetch multiple subs to assemble a decent batch
-    const picked = [];
-    while(picked.length < Math.min(6, list.length)){
-      const s = pickSub(list);
-      if(!picked.includes(s)) picked.push(s);
-      else break;
+    const subs = parseOverride() || DEFAULT_SUBS;
+
+    // pick a few subs to fetch to build one batch
+    const picks = [];
+    while (picks.length < Math.min(5, subs.length)) {
+      const s = subs[picks.length]; // simple round-robin
+      picks.push(s);
     }
 
-    let added = 0, fetched = 0;
-    for(const sub of picked){
+    let added = 0, fetchedCount = 0;
+    for (const sub of picks){
       try{
-        const posts = await fetchFromSub(sub);
-        fetched += posts.length;
-        for(const it of posts){
-          const id = it.data?.id;
-          if(!id || seen.has(id)) continue;
-          const el = cardTemplate(it);
-          if(!el) continue;
-          seen.add(id);
-          grid.appendChild(el);
+        const posts = await fetchSub(sub);
+        fetchedCount += posts.length;
+        for (const post of posts){
+          const card = cardFromPost(post);
+          if(!card) continue;
+          grid.appendChild(card);
           shown++; added++;
-          if(added >= BATCH_SIZE) break;
+          if(added >= BATCH) break;
         }
-      }catch(e){ /* ignore sub fetch errors */ }
-      if(added >= BATCH_SIZE) break;
+      } catch (e){
+        showStatus(`Error fetching ${sub}: ${e.message}`, true);
+      }
+      if(added >= BATCH) break;
     }
-    total = shown + Math.max(0, fetched - added); // rough progress
+
+    // update counters (rough)
+    total = Math.max(total, shown + Math.max(0, fetchedCount - added));
     fmtCount();
-    if(shown===0) empty.style.display = 'block';
-    btnMore.disabled = false;
+    if (shown === 0) empty.style.display = 'block';
+    moreBtn.disabled = false;
   }
 
-  // events
-  btnMore.addEventListener('click', loadBatch);
-  allowNSFW.addEventListener('change', () => {
-    // simple: clear and reload fresh
-    grid.innerHTML = '';
-    shown = 0; total = 0; seen.clear(); afterMap.clear();
-    fmtCount();
-  });
-  // Load first batch on first interaction or if user taps immediately
-  loadBatch();
-
+  // kick off
+  moreBtn.addEventListener('click', loadBatch);
+  fmtCount();
+  loadBatch(); // first batch
 })();
 </script>
 </body>
