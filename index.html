@@ -3,415 +3,471 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Scroll Wall • Models • Influencers • Actors (Reddit)</title>
+<title>Scroll Wall • models • influencers • actors (Reddit)</title>
 <style>
   :root{
-    --bg:#0d0f12; --bg2:#151a22; --ink:#f5f6fb;
-    --muted:#90a1b7; --accent:#ff6fa0; --panel:#212733;
-    --polaroid:#1c222c; --shadow:#0008;
-    --card-w: min(680px, 92vw);
-    --card-h: clamp(260px, 55vh, 520px);
-    --radius: 18px;
+    --bg:#0d0f12;
+    --bg2:#14171c;
+    --ink:#f3f4f6;
+    --muted:#9aa3ad;
+    --accent:#ff6fa5;
+    --accent-ink:#2a0f19;
+    --panel:#1c2129;
+    --ok:#3bd17f;
+    --warn:#ffb86c;
+    --err:#ff6b6b;
+
+    --card-w: min(720px, 92vw);
+    --card-r: 24px;
+    --frame-h: clamp(260px, 52vh, 520px);
   }
-  *{box-sizing:border-box}
+  * { box-sizing:border-box; }
   html,body{height:100%}
   body{
-    margin:0; color:var(--ink); background:
-      radial-gradient(1200px 800px at 50% -200px,#1b2230 10%,transparent 60%),
-      radial-gradient(1400px 1000px at 50% 120%,#121721 10%,transparent 60%),
-      linear-gradient(#0d1219,#0b1017);
-    font-family: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;
+    margin:0; color:var(--ink); background: radial-gradient(1200px 800px at 50% -10%, #1e2430 0%, #0f1217 60%, #0b0d11 100%) fixed, var(--bg);
+    font: 400 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing:antialiased;
   }
-  header{padding:28px 22px 8px}
-  h1{margin:0 0 8px;font-size:42px;letter-spacing:.5px}
-  .sub{margin:0 0 18px;color:var(--muted);font-weight:600;font-size:18px}
+  header{
+    padding:28px 20px 8px;
+    position:sticky; top:0; z-index:5;
+    background: linear-gradient(180deg, rgba(13,15,18,.95), rgba(13,15,18,.7) 70%, rgba(13,15,18,0));
+    backdrop-filter: saturate(1.4) blur(6px);
+  }
+  h1{
+    margin:0 0 6px; font-weight:800; letter-spacing:.5px;
+    font-size: clamp(28px, 5.5vw, 52px);
+  }
+  .sub{
+    margin:0; color:var(--muted); font-weight:600; letter-spacing:.2px;
+  }
 
   /* Controls */
-  .bar{position:sticky;top:0;z-index:5;backdrop-filter:blur(6px)}
   .controls{
-    margin:8px auto 18px; padding:18px; width:min(860px,96vw);
-    background:linear-gradient(180deg,#1f2632,#151a22);
-    border:1px solid #2b3442; border-radius:20px; box-shadow:0 10px 40px #0007;
-    display:grid; grid-template-columns:auto 96px 1fr; gap:14px; align-items:center;
+    margin:16px auto 18px;
+    width:var(--card-w);
+    background:linear-gradient(180deg,#1b2028,#151a21);
+    border:1px solid #2a2f39; border-radius:18px; padding:16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
   }
+  .row{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
   .btn{
-    background:#ff6fa0; color:#111; font-weight:900; border:none; cursor:pointer;
-    border-radius:14px; padding:18px 24px; font-size:22px; box-shadow:0 10px 24px #ff6fa044;
+    background:linear-gradient(180deg,#ff8fba,#ff6fa5);
+    color:#12040b; font-weight:800; border:0; border-radius:16px;
+    padding:18px 26px; font-size:22px; letter-spacing:.3px;
+    box-shadow: 0 10px 24px rgba(255,111,165,.35), inset 0 1px 0 rgba(255,255,255,.25);
   }
-  .count{display:flex;align-items:center;justify-content:center;height:56px;
-    border-radius:14px;background:#10151d;border:1px solid #2b3442;font-weight:800}
-  .toggle{display:flex;align-items:center;gap:10px}
-  .toggle input{appearance:none;width:22px;height:22px;border-radius:6px;border:2px solid #3a485b}
-  .toggle input:checked{background:#49c772;border-color:#49c772}
-  .override{grid-column:1/-1;display:flex;align-items:center;gap:10px}
-  .override b{opacity:.9}
+  .badge{
+    min-width:86px; text-align:center;
+    background:#0f141b; color:#cbd2da; border:1px solid #2c313c;
+    border-radius:14px; padding:12px 16px; font-weight:800; font-size:20px;
+  }
+  .toggle{
+    display:flex; align-items:center; gap:10px; margin-left:auto; white-space:nowrap;
+    color:#cbd2da; font-weight:700;
+  }
+  .switch{appearance:none; width:54px; height:32px; background:#2b323e; border-radius:20px; position:relative; outline:0; cursor:pointer}
+  .switch::after{content:""; position:absolute; top:4px; left:4px; width:24px; height:24px; background:#fff; border-radius:50%; transition:transform .2s}
+  .switch:checked{background:#2c8a4f}
+  .switch:checked::after{transform:translateX(22px)}
+
+  .override{
+    margin-top:12px; display:flex; align-items:center; gap:10px; color:#d7dde5; font-weight:800;
+    background:#0f141b; border:1px solid #2c313c; border-radius:14px; padding:12px 14px;
+  }
   .override input{
-    flex:1; height:48px; border-radius:12px; border:1px solid #2b3442;
-    background:#0e141c; color:var(--ink); padding:0 14px; font-size:16px;
+    flex:1; background:transparent; border:0; outline:0; color:#cfe3ff;
+    font-weight:700; font-size:16px;
   }
-  .muted{color:var(--muted)}
+  .hint{color:#8490a1; font-weight:600; font-size:14px; margin:8px auto 0; width:var(--card-w);}
 
-  /* Grid */
-  main{display:grid; place-items:center}
-  .grid{display:grid; gap:22px; padding:8px 16px 72px}
-  @media (min-width:900px){ .grid{grid-template-columns:repeat(2, minmax(0,1fr));} }
-
-  /* Card (polaroid vibe) */
+  /* Grid / cards */
+  .grid{ width:min(1000px, 94vw); margin:12px auto 80px; display:grid; grid-template-columns:1fr; gap:24px; }
+  @media (min-width:900px){ .grid{ grid-template-columns:1fr 1fr; } }
   .card{
-    width:var(--card-w); max-width:min(680px, 96vw);
-    background:linear-gradient(180deg,#232a37,#171d27);
-    border:1px solid #2b3442; border-radius:var(--radius);
-    box-shadow: 0 14px 50px var(--shadow), inset 0 1px 0 #ffffff08;
-    overflow:hidden; transform-origin:center; position:relative;
-    transition: transform .25s ease, opacity .25s ease, box-shadow .25s ease;
+    width:var(--card-w); max-width:100%;
+    margin-inline:auto;
+    padding:18px 18px 12px; border-radius:var(--card-r);
+    background: linear-gradient(180deg,#1c2129,#171c23);
+    border:1px solid #262c37; box-shadow: 0 16px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+    transform: translate3d(0,0,0);
+    touch-action: pan-y;
+    position:relative;
   }
-  .card:hover{ box-shadow: 0 18px 70px #000a, inset 0 1px 0 #ffffff12 }
   .frame{
-    height:var(--card-h);
-    background:#0a0e14; display:grid; place-items:center;
-    border-bottom:1px dashed #2b3442;
+    height:var(--frame-h);
+    background: radial-gradient(160% 90% at 50% 0%, #0e1116 0%, #10141b 50%, #0b0e13 100%);
+    border-radius:18px; display:grid; place-items:center; overflow:hidden;
   }
   .frame img{
-    max-width:100%; max-height:100%;
-    width:100%; height:100%;
-    object-fit:contain; /* fit entire image */
-    background:#000; /* letterbox bars blend with bg */
+    max-width:100%; max-height:100%; width:auto; height:auto;
+    object-fit: contain; image-rendering:auto; user-select:none; -webkit-user-drag:none;
   }
-  .meta{padding:14px 16px 12px}
-  .title{font-size:20px;font-weight:800;margin:0 0 6px}
-  .byline{margin:0 0 8px; font-size:14px; color:var(--muted)}
-  .row{display:flex;align-items:center;gap:10px;justify-content:space-between}
-  .stars{display:flex;gap:6px}
-  .stars button{all:unset;cursor:pointer;font-size:22px;filter:drop-shadow(0 2px 6px #0009)}
-  .stars button.on{color:#ffd86b}
-  .chip{font-size:12px;color:#c8d2e3;background:#10151d;border:1px solid #2b3442;border-radius:999px;padding:6px 10px}
+  .meta{padding:12px 6px 0}
+  .title{margin:0 0 4px; font-weight:900; letter-spacing:.2px; font-size:20px}
+  .subby{margin:0; color:var(--muted); font-weight:700; font-size:14px}
+  .bar{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px}
+  .rate{display:flex; gap:8px}
+  .star{
+    width:28px; aspect-ratio:1; border-radius:6px; border:1px solid #2b3140;
+    display:grid; place-items:center; cursor:pointer; color:#ffc86b; font-size:18px;
+    background:#121721;
+  }
+  .star.on{ background:#2a1c06; border-color:#3f2b0a; box-shadow: inset 0 0 0 1px #6a4a12; }
+  .act{
+    display:flex; gap:8px;
+  }
+  .pill{
+    border-radius:999px; padding:8px 12px; font-weight:800; border:1px solid #2c313c; background:#0f141b; color:#cbd2da;
+  }
+  .pill.warn{background:#2a1d0b; border-color:#3c2a10; color:#ffcf8a}
+  .pill.ok{background:#092218; border-color:#13462d; color:#7ff0b5}
 
-  /* swipe effects */
-  .card.swiping{transition:none}
-  .card.dismiss-left  { transform: translateX(-120%) rotate(-6deg); opacity:0; }
-  .card.dismiss-right { transform: translateX(120%)  rotate(6deg);  opacity:0; }
+  /* swipe hint */
+  .swipe{
+    position:absolute; inset:0; display:grid; place-items:center; pointer-events:none; opacity:0; transition:opacity .2s;
+    font-weight:900; font-size:28px; letter-spacing:.5px;
+  }
+  .card.swiping .swipe{opacity:.2}
+  .undo{
+    position:fixed; right:16px; bottom:16px; z-index:5;
+    background:#14202b; color:#e8f2ff; border:1px solid #2f3b47; border-radius:999px; padding:10px 14px; font-weight:800;
+    box-shadow:0 10px 26px rgba(0,0,0,.35);
+  }
 
-  /* snackbar (undo) */
+  /* snack */
   .snack{
-    position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
-    display:none; gap:14px; align-items:center;
-    background:#121821; border:1px solid #2b3442; color:var(--ink);
-    padding:12px 14px; border-radius:12px; box-shadow:0 14px 50px #000a; z-index:6;
+    position:fixed; left:50%; transform:translateX(-50%);
+    bottom:12px; background:#1b1f27; border:1px solid #2d3340; color:#e7edf7;
+    border-radius:12px; padding:10px 12px; font-weight:700; box-shadow:0 10px 22px rgba(0,0,0,.35);
+    max-width:92vw;
   }
-  .snack.show{display:flex}
-  .snack .undo{all:unset; cursor:pointer; color:#ff9cc1; font-weight:800}
-  .empty{opacity:.75; padding:18px 0 50px}
+  .snack.err{background:#2b1416; border-color:#4e2228; color:#ffc8c8}
 </style>
 </head>
 <body>
-  <header class="bar">
-    <div style="width:min(860px,96vw);margin:0 auto">
-      <h1>Scroll Wall</h1>
-      <p class="sub">SFW models • influencers • actors (Reddit). Rate with ⭐</p>
-    </div>
-
-    <div class="controls">
-      <button id="loadBtn" class="btn">Load more</button>
-      <div id="count" class="count">0/0</div>
-
-      <label class="toggle">
-        <input id="nsfw" type="checkbox" checked />
-        <span>Allow NSFW</span>
-      </label>
-
-      <label class="override">
-        <b>Override:</b>
-        <input id="override" placeholder="e.g. reddit=r/FashionModels,r/ModelPhotography or 'emily ratajkowski'"/>
-      </label>
-    </div>
+  <header>
+    <h1>Scroll Wall</h1>
+    <p class="sub">SFW models • influencers • actors (Reddit). Rate with ⭐</p>
   </header>
 
-  <main>
-    <div id="grid" class="grid"></div>
-    <p id="empty" class="empty muted">Nothing yet — tap <b>Load more</b>.</p>
-  </main>
+  <section class="controls">
+    <div class="row">
+      <button id="btnMore" class="btn">Load more</button>
+      <div id="badge" class="badge">0/0</div>
 
-  <div id="snack" class="snack">
-    <span>Card dismissed.</span>
-    <button id="undoBtn" class="undo">Undo</button>
-  </div>
+      <label class="toggle">
+        <input id="nsfw" type="checkbox" class="switch" />
+        Allow NSFW
+      </label>
+    </div>
+
+    <div class="override">
+      <span>Override:</span>
+      <input id="override" placeholder="e.g. reddit=r/FashionModels,r/ModelPhotography  — or try: emily ratajkowski" />
+    </div>
+  </section>
+
+  <p class="hint">Tip: swipe a card left to dismiss, right to ⭐ like. Use Undo if you change your mind.</p>
+
+  <main id="grid" class="grid"></main>
+  <button id="undo" class="undo" hidden>↩︎ Undo</button>
+  <div id="snack" class="snack" hidden>…</div>
 
 <script>
-(() => {
-  /*** Subs ***/
-  const DEFAULT_SFW = [
-    'FashionModels','ModelPhotography','Celebs','CelebrityPortraits',
-    'StreetFashion','HighFashion','Modelshoot','PortraitPhotography',
-    'BeautifulFemales','RedCarpet','Runway','MakeupAddiction',
-    'FemaleFashion','Lookbook','GentlemanBoners'
-  ];
-  const EXTRA_NSFW = [
-    'CelebNSFW','ModelNSFW','InstagramBabes','NSFW_Snapchat',
-    'VscoGirls','OnlyFans101','OnlyFansGirls101','NotSafeForFashion',
-    'CuteModeSlutty','BustyPetite'
-  ];
+/* ------------------ config ------------------ */
+const DEFAULT_SUBS = [
+  // SFW fashion/model photography
+  "FashionModels","ModelPhotography","StreetFashion","HauteCouture",
+  "MostBeautiful","CelebFashion","OldSchoolCool",
+  // big general image subs (SFW)
+  "pics","itookapicture","EarthPorn",
+  // name-based SFW celeb/model subs (mix)
+  "emrata","GigiHadid","kendalljenner","alexisren","SashaLuss","TaylorSwift",
+  "MargotRobbie","GalGadot","MadisonBeer"
+];
 
-  /*** State ***/
-  const grid = document.getElementById('grid');
-  const btn  = document.getElementById('loadBtn');
-  const cnt  = document.getElementById('count');
-  const nsfwToggle = document.getElementById('nsfw');
-  const overrideEl = document.getElementById('override');
-  const emptyMsg   = document.getElementById('empty');
-  const snack = document.getElementById('snack');
-  const undoBtn = document.getElementById('undoBtn');
+const PAGE_SIZE = 20;
 
-  let pool = [];           // fetched-but-not-rendered items
-  let totalLoaded = 0;     // count of cards rendered
-  const ratings = JSON.parse(localStorage.getItem('ratings')||'{}');
-  const dismissedStack = []; // [{item, index}]
+/* ------------------ state ------------------ */
+let allowNSFW = false;
+let pool = [];       // items not yet shown
+let shown = [];      // items currently on screen
+let undoStack = [];  // swipe actions
 
-  /*** Helpers ***/
-  const saveRatings = () => localStorage.setItem('ratings', JSON.stringify(ratings));
-  const setCount = () => cnt.textContent = `${totalLoaded}/${pool.length+totalLoaded}`;
-  const shuffle = a => { for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
-  const nowStamp = () => new Date().toLocaleTimeString();
+/* ------------------ dom ------------------ */
+const grid = document.getElementById('grid');
+const btnMore = document.getElementById('btnMore');
+const badge = document.getElementById('badge');
+const snack = document.getElementById('snack');
+const nsfw = document.getElementById('nsfw');
+const override = document.getElementById('override');
+const undoBtn = document.getElementById('undo');
 
-  function showSnack(){
-    snack.classList.add('show');
-    clearTimeout(showSnack.t);
-    showSnack.t = setTimeout(()=> snack.classList.remove('show'), 4000);
+/* ------------------ helpers ------------------ */
+const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
+function showSnack(msg='', isErr=false){
+  snack.textContent = msg || snack.textContent;
+  snack.hidden = false;
+  snack.classList.toggle('err', !!isErr);
+  clearTimeout(showSnack._t);
+  showSnack._t = setTimeout(()=>snack.hidden=true, 3800);
+}
+function setBadge(){
+  badge.textContent = `${shown.length}/${pool.length+shown.length}`;
+}
+function shuffle(a){
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
   }
+  return a;
+}
+function fixUrl(u){ return (u||'').replace(/&amp;/g,'&'); }
 
-  /*** Swipe setup ***/
-  function setupSwipe(card, onDismiss){
-    let startX=0, startY=0, dx=0, dy=0, active=false;
-
-    const start=(x,y)=>{ active=true; startX=x; startY=y; dx=0; dy=0; card.classList.add('swiping'); };
-    const move=(x,y)=>{
-      if(!active) return;
-      dx=x-startX; dy=y-startY;
-      const dampY = Math.max(0.4, 1 - Math.min(Math.abs(dx)/300, 0.6));
-      card.style.transform = `translate(${dx}px, ${dy*dampY}px) rotate(${dx/40}deg)`;
-      card.style.opacity   = String(Math.max(0.35, 1 - Math.abs(dx)/300));
-    };
-    const end=()=>{
-      if(!active) return;
-      active=false; card.classList.remove('swiping');
-      const threshold=120;
-      if(dx>threshold){ card.classList.add('dismiss-right'); setTimeout(onDismiss,180); }
-      else if(dx<-threshold){ card.classList.add('dismiss-left'); setTimeout(onDismiss,180); }
-      else { card.style.transform=''; card.style.opacity=''; }
-    };
-
-    card.addEventListener('touchstart', e=>{ const t=e.touches[0]; start(t.clientX,t.clientY); }, {passive:true});
-    card.addEventListener('touchmove',  e=>{ const t=e.touches[0]; move(t.clientX,t.clientY); }, {passive:true});
-    card.addEventListener('touchend', end); card.addEventListener('touchcancel', end);
-
-    card.addEventListener('mousedown', e=>start(e.clientX,e.clientY));
-    window.addEventListener('mousemove', e=>move(e.clientX,e.clientY));
-    window.addEventListener('mouseup', end);
+/* ------------------ reddit fetch ------------------ */
+async function fetchRedditJson(url){
+  const u = url.includes('?') ? `${url}&raw_json=1` : `${url}?raw_json=1`;
+  const r = await fetch(u, { cache:'no-store' });
+  const ct = r.headers.get('content-type') || '';
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  if (!ct.includes('application/json')) {
+    const text = await r.text();
+    throw new Error('Non-JSON (rate limit / captcha). Try again.');
   }
+  return r.json();
+}
 
-  /*** Card ***/
-  function makeCard(item){
-    const card = document.createElement('article');
-    card.className='card';
+function postToItem(p){
+  // skip non-images early
+  let img = null;
 
-    const frame = document.createElement('div');
-    frame.className='frame';
-    const img = document.createElement('img');
-    img.loading='lazy';
-    img.alt = item.title || '';
-    img.src = item.img;
-    frame.appendChild(img);
-
-    const meta = document.createElement('div');
-    meta.className='meta';
-    meta.innerHTML = `
-      <h3 class="title">${escapeHtml(item.title||'') || '—'}</h3>
-      <p class="byline">by u/${escapeHtml(item.author||'unknown')} •
-         <span class="chip">r/${escapeHtml(item.sub)}</span></p>
-      <div class="row">
-        <div class="stars" aria-label="Rate">
-          ${[1,2,3,4,5].map(n=>`<button title="${n} star" data-n="${n}">★</button>`).join('')}
-        </div>
-        <a class="chip" href="${item.permalink}" target="_blank" rel="noopener">Open on Reddit</a>
-      </div>
-    `;
-
-    card.append(frame, meta);
-
-    // rating state
-    const key = item.id;
-    const starEls = [...meta.querySelectorAll('.stars button')];
-    const apply = n => starEls.forEach((b,i)=> b.classList.toggle('on', i<n));
-    apply(ratings[key]||0);
-    starEls.forEach(b=>{
-      b.addEventListener('click', ()=>{
-        const n = Number(b.dataset.n);
-        ratings[key] = (ratings[key]===n ? 0 : n);
-        apply(ratings[key]); saveRatings();
-      });
-    });
-
-    // swipe to dismiss
-    setupSwipe(card, ()=>{
-      const index = [...grid.children].indexOf(card);
-      card.remove();
-      dismissedStack.push({item, index});
-      showSnack();
-      if (grid.children.length < 8) loadMore();
-    });
-
-    return card;
+  // gallery
+  if (p.is_gallery && p.media_metadata){
+    const first = Object.values(p.media_metadata)[0];
+    if (first?.s?.u || first?.s?.gif) img = first.s.u || first.s.gif;
   }
+  // preview
+  if (!img && p.preview?.images?.[0]?.source?.url) img = p.preview.images[0].source.url;
+  // direct link
+  if (!img && /\.(jpg|jpeg|png|gif|webp)$/i.test(p.url||'')) img = p.url;
+  // i.redd.it / imgur fallback
+  if (!img && /i\.redd\.it|i\.imgur\.com/.test(p.url||'')) img = p.url;
 
-  undoBtn.addEventListener('click', ()=>{
-    const last = dismissedStack.pop();
-    if(!last) return snack.classList.remove('show');
-    const card = makeCard(last.item);
-    const ref = grid.children[last.index] || null;
-    grid.insertBefore(card, ref);
-    snack.classList.remove('show');
-  });
+  if (!img) return null;
 
-  /*** Render ***/
-  function render(items){
-    emptyMsg.style.display='none';
-    items.forEach(item=>{
-      const card = makeCard(item);
-      grid.appendChild(card);
-      totalLoaded++;
-    });
-    setCount();
-    if (grid.children.length < 8) loadMore();
-  }
+  return {
+    id: p.id,
+    sub: p.subreddit,
+    title: p.title || '',
+    author: p.author,
+    img: fixUrl(img),
+    permalink: `https://www.reddit.com${p.permalink}`,
+    nsfw: !!p.over_18
+  };
+}
 
-  /*** Loading ***/
-  async function loadMore(){
-    btn.disabled = true;
-    setCount();
-
-    // If there’s an override, use it first
-    const ov = (overrideEl.value||'').trim();
-    let newItems = [];
-    try {
-      if (ov){
-        if (ov.toLowerCase().startsWith('reddit=')){
-          const subs = ov.split('=')[1].split(',').map(s=>s.replace(/^r\//,'').trim()).filter(Boolean);
-          newItems = await collectFromSubs(subs, nsfwToggle.checked);
-        } else {
-          // treat as a search query
-          newItems = await searchReddit(ov, nsfwToggle.checked);
-        }
-      } else {
-        const baseSubs = nsfwToggle.checked ? DEFAULT_SFW.concat(EXTRA_NSFW) : DEFAULT_SFW;
-        newItems = await collectFromSubs(shuffle(baseSubs).slice(0, 6), nsfwToggle.checked);
-      }
-    } catch(err){
-      console.warn(err);
-    }
-
-    // top up the pool, filter out ids we’ve rated before (optional)
-    const seen = new Set();
-    const batch = newItems.filter(x=>{
-      if (seen.has(x.id)) return false;
-      seen.add(x.id);
-      return true;
-    });
-
-    if (batch.length === 0){
-      console.info(`[${nowStamp()}] No fresh image posts. Try again or different subs.`);
-      setCount();
-      btn.disabled = false;
-      return;
-    }
-
-    render(batch.slice(0, 12));
-    pool.push(...batch.slice(12));
-    btn.disabled = false;
-  }
-
-  /*** Reddit fetchers ***/
-  async function collectFromSubs(subs, allowNSFW){
-    const out = [];
-    for (const sub of subs){
-      const url = `https://www.reddit.com/r/${encodeURIComponent(sub)}/top.json?t=week&limit=50`;
-      const data = await fetch(url, {cache:'no-store'}).then(r=>r.json());
+async function collectFromSubs(subs, allowNSFW){
+  const out = [];
+  for (const s of subs){
+    try{
+      const data = await fetchRedditJson(`https://www.reddit.com/r/${encodeURIComponent(s)}/top.json?t=week&limit=50`);
       const posts = (data.data?.children||[])
-        .map(n => n.data)
-        .filter(p => p && (allowNSFW || !p.over_18))
-        .map(p => postToItem(p))
-        .filter(Boolean);
+        .map(n=>n.data)
+        .filter(p => allowNSFW || !p.over_18)
+        .map(postToItem).filter(Boolean);
       out.push(...posts);
+      await sleep(120); // gentle
+    }catch(e){
+      showSnack(`r/${s}: ${e.message}`, true);
+      console.warn('Sub fail', s, e);
     }
-    return shuffle(out);
   }
+  return shuffle(out);
+}
 
-  async function searchReddit(q, allowNSFW){
-    const url = `https://www.reddit.com/search.json?q=${encodeURIComponent(q)}&type=link&sort=top&t=month&limit=50`;
-    const data = await fetch(url, {cache:'no-store'}).then(r=>r.json());
-    const posts = (data.data?.children||[])
+async function searchReddit(q, allowNSFW){
+  try{
+    const data = await fetchRedditJson(`https://www.reddit.com/search.json?q=${encodeURIComponent(q)}&type=link&sort=top&t=month&limit=50`);
+    return (data.data?.children||[])
       .map(n=>n.data)
-      .filter(p => p && (allowNSFW || !p.over_18))
-      .map(p => postToItem(p))
-      .filter(Boolean);
-    return shuffle(posts);
+      .filter(p => allowNSFW || !p.over_18)
+      .map(postToItem).filter(Boolean);
+  }catch(e){
+    showSnack(`Search: ${e.message}`, true);
+    return [];
+  }
+}
+
+/* ------------------ render & interactions ------------------ */
+function cardTemplate(item){
+  const el = document.createElement('article');
+  el.className = 'card';
+  el.dataset.id = item.id;
+
+  el.innerHTML = `
+    <div class="frame">
+      <img alt="">
+    </div>
+    <div class="meta">
+      <h3 class="title">${escapeHTML(item.title || '—')}</h3>
+      <p class="subby">r/${escapeHTML(item.sub)} · by u/${escapeHTML(item.author||'—')}</p>
+      <div class="bar">
+        <div class="rate" role="group" aria-label="Rate">
+          ${[1,2,3,4,5].map(i=>`<button class="star" data-v="${i}" title="${i}">★</button>`).join('')}
+        </div>
+        <div class="act">
+          <a class="pill" href="${item.permalink}" target="_blank" rel="noopener">Comments</a>
+          <button class="pill ok keep">Keep</button>
+          <button class="pill warn nuke">Dismiss</button>
+        </div>
+      </div>
+    </div>
+    <div class="swipe">⇦  swipe  ⇨</div>
+  `;
+
+  const img = el.querySelector('img');
+  img.src = item.img;
+  img.loading = "lazy";
+  img.decoding = "async";
+
+  // rating
+  const stars = [...el.querySelectorAll('.star')];
+  const setRating = (n)=>{
+    stars.forEach(s => s.classList.toggle('on', Number(s.dataset.v) <= n));
+  };
+  stars.forEach(s=>{
+    s.addEventListener('click', ()=>{
+      const v = Number(s.dataset.v);
+      setRating(v);
+      // store rating
+      const key = `rate:${item.id}`;
+      localStorage.setItem(key, String(v));
+    });
+  });
+  const saved = Number(localStorage.getItem(`rate:${item.id}`)||0);
+  if (saved) setRating(saved);
+
+  // button actions
+  el.querySelector('.nuke').addEventListener('click', ()=>dismissCard(el, 'left'));
+  el.querySelector('.keep').addEventListener('click', ()=>dismissCard(el, 'right'));
+
+  // swipe
+  addSwipe(el);
+
+  return el;
+}
+
+function escapeHTML(s=''){return s.replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]))}
+
+function addSwipe(el){
+  let sx=0, sy=0, dx=0, active=false;
+  const start = (e)=>{
+    const t = e.touches? e.touches[0] : e;
+    sx = t.clientX; sy = t.clientY; dx = 0; active=true;
+    el.classList.add('swiping');
+  };
+  const move = (e)=>{
+    if(!active) return;
+    const t = e.touches? e.touches[0] : e;
+    dx = t.clientX - sx;
+    // translate
+    el.style.transform = `translateX(${dx}px) rotate(${dx*0.02}deg)`;
+    el.style.opacity = String(Math.max(0.35, 1 - Math.abs(dx)/600));
+  };
+  const end = ()=>{
+    if(!active) return;
+    el.classList.remove('swiping');
+    const threshold = 90;
+    if (dx > threshold) dismissCard(el,'right');
+    else if (dx < -threshold) dismissCard(el,'left');
+    else {
+      el.style.transform='translateX(0)';
+      el.style.opacity='1';
+    }
+    active=false; dx=0;
+  };
+  el.addEventListener('touchstart', start, {passive:true});
+  el.addEventListener('touchmove', move, {passive:true});
+  el.addEventListener('touchend', end);
+  el.addEventListener('mousedown', start);
+  window.addEventListener('mousemove', move);
+  window.addEventListener('mouseup', end);
+}
+
+function dismissCard(el, dir){
+  const id = el.dataset.id;
+  const idx = shown.findIndex(x=>x.id===id);
+  if (idx>-1){
+    const [item] = shown.splice(idx,1);
+    undoStack.push({item, html:el.outerHTML, at: idx});
+    undoBtn.hidden = false;
+  }
+  el.style.transition = 'transform .25s ease, opacity .25s ease';
+  el.style.transform = `translateX(${dir==='right'?'+':'-'}120%) rotate(${dir==='right'?10:-10}deg)`;
+  el.style.opacity = '0';
+  setTimeout(()=> el.remove(), 260);
+  setBadge();
+}
+
+undoBtn.addEventListener('click', ()=>{
+  const a = undoStack.pop();
+  if (!a){ undoBtn.hidden = true; return; }
+  shown.splice(a.at, 0, a.item);
+  const node = document.createElement('div'); node.innerHTML = a.html.trim();
+  const el = node.firstElementChild;
+  // Rebind interactions
+  const rebuilt = cardTemplate(a.item);
+  grid.insertBefore(rebuilt, grid.children[a.at] || null);
+  if (undoStack.length===0) undoBtn.hidden = true;
+  setBadge();
+});
+
+/* ------------------ orchestrate ------------------ */
+async function loadMore(){
+  btnMore.disabled = true;
+  showSnack('Loading…');
+  // first, if pool is empty, refill
+  if (pool.length === 0){
+    const ov = (override.value||'').trim();
+    if (/^reddit=/.test(ov)){
+      const subs = ov.replace(/^reddit=/,'').split(',').map(s=>s.replace(/^r\//,'').trim()).filter(Boolean);
+      pool = await collectFromSubs(subs, allowNSFW);
+    }else if (ov){
+      pool = await searchReddit(ov, allowNSFW);
+    }else{
+      pool = await collectFromSubs(DEFAULT_SUBS, allowNSFW);
+    }
   }
 
-  function postToItem(p){
-    // pick an image url
-    let img = null;
-
-    // galleries
-    if (p.is_gallery && p.media_metadata){
-      const first = Object.values(p.media_metadata)[0];
-      if (first && first.s?.u) img = fixUrl(first.s.u);
-    }
-
-    // preview
-    if (!img && p.preview?.images?.[0]?.source?.url){
-      img = fixUrl(p.preview.images[0].source.url);
-    }
-
-    // direct images
-    if (!img && /\.(jpg|jpeg|png|gif|webp)$/i.test(p.url||'')){
-      img = p.url;
-    }
-
-    // i.redd.it or i.imgur fallback
-    if (!img && /i\.redd\.it|i\.imgur\.com/.test(p.url||'')){
-      img = p.url;
-    }
-
-    if (!img) return null;
-
-    return {
-      id: p.id,
-      sub: p.subreddit,
-      title: p.title || '',
-      author: p.author,
-      img,
-      permalink: `https://www.reddit.com${p.permalink}`
-    };
+  if (pool.length === 0){
+    showSnack('No fresh image posts found. Try Load more again or different subs.', true);
+    btnMore.disabled = false;
+    setBadge();
+    return;
   }
 
-  const fixUrl = u => u.replace(/&amp;/g,'&');
+  const batch = pool.splice(0, PAGE_SIZE);
+  shown.push(...batch);
+  for (const item of batch){
+    grid.appendChild(cardTemplate(item));
+  }
+  setBadge();
+  snack.hidden = true;
+  btnMore.disabled = false;
+}
 
-  /*** Wire up ***/
-  btn.addEventListener('click', loadMore);
-  nsfwToggle.addEventListener('change', ()=>{
-    // don’t clear existing cards; new batches will follow the toggle
-  });
+btnMore.addEventListener('click', loadMore);
+nsfw.addEventListener('change', ()=>{
+  allowNSFW = nsfw.checked;
+  // clear to force a new fetch with setting applied
+  pool.length = 0; shown.length = 0; grid.innerHTML = '';
+  setBadge();
+  showSnack(`NSFW ${allowNSFW? 'enabled':'disabled'}. Tap Load more.`);
+});
 
-  // keyboard quick rating (1–5 applies to last card)
-  document.addEventListener('keydown', e=>{
-    const n = Number(e.key);
-    if (n>=1 && n<=5) {
-      const last = grid.lastElementChild;
-      if (!last) return;
-      last.querySelectorAll('.stars button')[n-1]?.click();
-    }
-  });
-
-  setCount();
-})();
+// init
+setBadge();
 </script>
 </body>
 </html>
