@@ -2,229 +2,245 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Scroll Wall · SFW Models</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Scroll Wall • Demo (no API)</title>
 <style>
   :root{
-    --bg:#0e0f12; --ink:#e9eaf0; --ink-d:#aeb3c3;
-    --accent:#ff77a9; --star:#ffd166;
-    --card:#2a2f39; --panel:#20232b; --shadow:0 10px 30px rgba(0,0,0,.35);
+    --bg: #0d0f12;
+    --bg2:#14171c;
+    --ink:#f3f4f6;
+    --muted:#9aa4b2;
+    --accent:#ff68a0;
+    --panel:#232a33;
+    --polaroid:#272f3a;
+    --polaroid-edge:#1a1f26;
+    --cardGlow: rgba(255,104,160,.25);
+    --star:#ffd15a;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
-    margin:0; color:var(--ink);
+    margin:0;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif;
+    color:var(--ink);
     background:
-      radial-gradient(1200px 600px at 20% -10%,#15171d 0%,transparent 60%),
-      radial-gradient(900px 400px at 100% 0%,#101218 0%,transparent 70%),
-      linear-gradient(180deg,#0d0f14 0%,#0c0d12 100%);
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial;
+      radial-gradient(1200px 600px at -10% -10%,#1f2430,transparent 60%),
+      radial-gradient(1000px 500px at 110% -10%,#1a2130,transparent 55%),
+      radial-gradient(1200px 600px at 50% 120%,#12161d,transparent 60%),
+      linear-gradient(#0c0f14,#0d0f12);
+    background-attachment: fixed;
   }
-  header{padding:26px 18px 8px}
-  h1{margin:0 0 6px; font-size:clamp(26px,5.4vw,42px)}
-  .subtitle{margin:0 0 14px; color:var(--ink-d); font-weight:600}
+  header{
+    padding:28px 20px 10px;
+    position:sticky; top:0; z-index:10;
+    backdrop-filter: blur(10px);
+    background:linear-gradient(180deg, rgba(13,15,18,.9), rgba(13,15,18,.55) 60%, transparent);
+  }
+  h1{margin:0 0 6px;font-size:clamp(26px,5vw,40px);letter-spacing:.5px}
+  .subtitle{color:var(--muted);font-weight:600}
+
   .controls{
-    display:flex; gap:10px; flex-wrap:wrap; align-items:center;
-    margin:0 18px 8px; padding:10px 12px; border-radius:14px;
-    background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.15));
-    border:1px solid rgba(255,255,255,.06); box-shadow:var(--shadow)
+    margin:16px 0 6px; padding:14px; border-radius:18px;
+    background:linear-gradient(180deg, rgba(35,42,51,.8), rgba(35,42,51,.55));
+    box-shadow: 0 1px 0 #000 inset, 0 6px 24px rgba(0,0,0,.35);
+    display:flex; gap:12px; align-items:center; flex-wrap:wrap;
   }
-  button{
-    appearance:none; border:0; color:#111; background:var(--accent);
-    font-weight:800; padding:10px 16px; border-radius:12px; letter-spacing:.2px; cursor:pointer
+  .btn{
+    background:var(--accent); color:#111; font-weight:800;
+    padding:12px 18px; border:none; border-radius:16px; cursor:pointer;
+    box-shadow: 0 8px 24px var(--cardGlow);
   }
-  button:disabled{opacity:.6; cursor:not-allowed}
-  .pill{padding:8px 12px; border-radius:999px; background:var(--panel); color:var(--ink); font-weight:700; border:1px solid rgba(255,255,255,.06)}
-  .grid{columns:1; column-gap:14px; padding:14px 14px 90px}
-  @media(min-width:740px){.grid{columns:2}}
-  @media(min-width:1040px){.grid{columns:3}}
+  .pill{
+    padding:10px 14px; border-radius:14px; background:#1b212a; color:var(--ink);
+    display:flex; align-items:center; gap:10px;
+  }
+  .pill input[type="checkbox"]{width:18px;height:18px; accent-color:var(--accent)}
+  .pill input[type="text"]{
+    width:min(520px,80vw); background:transparent; border:none; outline:none; color:#cfd6df;
+  }
+
+  /* Grid */
+  .grid{
+    columns: 1; column-gap:16px; padding:10px 16px 60px;
+  }
+  @media (min-width:700px){ .grid{ columns:2; } }
+  @media (min-width:1100px){ .grid{ columns:3; } }
+
+  /* Polaroid card */
   .card{
-    break-inside:avoid; display:block; background:var(--card); border-radius:18px;
-    box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.04);
-    border:1px solid rgba(255,255,255,.06); margin:0 6px 14px; overflow:hidden; position:relative
+    break-inside: avoid; margin:12px 0; position:relative;
+    display:block; text-decoration:none; color:inherit;
+    border-radius:20px; padding:14px 14px 70px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.0) 35%),
+      linear-gradient(180deg, var(--polaroid), var(--polaroid-edge));
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.04) inset,
+      0 10px 30px rgba(0,0,0,.5),
+      0 0 0 1px rgba(255,255,255,.04);
   }
-  .pol-top{padding:10px 14px 0; background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,0) 30%)}
-  .title{font-weight:800; letter-spacing:.2px; font-size:15px}
-  .sub{color:var(--ink-d); font-size:12px; margin-top:2px}
-  .thumb{width:100%; display:block; background:#14161c; aspect-ratio:4/3; object-fit:cover}
-  .skel{background:linear-gradient(90deg,#2a2e36 25%,#323743 37%,#2a2e36 63%); background-size:400% 100%; animation:shimmer 1.2s infinite}
-  @keyframes shimmer{0%{background-position:0 0}100%{background-position:100% 0}}
-  .pol-btm{padding:12px; background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.18)); display:flex; align-items:center; justify-content:space-between; gap:10px}
-  .meta{font-size:12px; color:var(--ink-d); display:flex; gap:10px; align-items:center}
-  .badge{font-weight:800; font-size:12px; color:#111; background:#63e6be; padding:6px 10px; border-radius:999px}
-  .stars{display:flex; gap:4px}
-  .star{width:22px; height:22px; cursor:pointer; filter:drop-shadow(0 1px 0 rgba(0,0,0,.6)); opacity:.85}
-  .star svg{width:100%; height:100%}
-  .star.filled svg path{fill:var(--star)}
-  #status{position:fixed;left:12px;right:12px;bottom:12px;padding:10px 12px;border-radius:12px;background:#15171b;color:#cfd3dc;font:12px/1.4 ui-sans-serif;box-shadow:0 8px 30px rgba(0,0,0,.35);z-index:9999;display:none;white-space:pre-wrap;border:1px solid #394452}
-  .empty{color:var(--ink-d); text-align:center; padding:40px 16px 90px}
+  .card:hover{ box-shadow: 0 10px 30px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.06); }
+  .thumb{
+    width:100%; border-radius:14px; display:block; background:#0f1318;
+    aspect-ratio: 4 / 5; object-fit: cover;
+    box-shadow: 0 6px 20px rgba(0,0,0,.5);
+  }
+  .meta{margin:10px 4px 0; display:flex; justify-content:space-between; align-items:center; gap:10px}
+  .title{font-weight:700; font-size:16px; line-height:1.25}
+  .tag{color:var(--muted); font-size:13px}
+  .rate{
+    position:absolute; left:0; right:0; bottom:0;
+    padding:10px 14px 14px; display:flex; justify-content:space-between; align-items:center;
+    background:linear-gradient(180deg, transparent, rgba(0,0,0,.25) 30%, rgba(0,0,0,.45));
+    border-radius:0 0 20px 20px;
+  }
+  .star{font-size:22px; cursor:pointer; color:#555}
+  .star.active{ color:var(--star); text-shadow:0 0 14px rgba(255,209,90,.35); }
+  .score{color:var(--muted); font-weight:700}
+
+  .empty{ color:var(--muted); text-align:center; padding:24px 0 40px; }
+  .counter{ font-weight:800; padding:8px 12px; background:#1116; border-radius:12px; }
+
+  /* subtle scrollbars for desktop */
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:#2a323d;border-radius:8px}
 </style>
 </head>
 <body>
   <header>
     <h1>Scroll Wall</h1>
-    <p class="subtitle">SFW models & fashion (Reddit • Top this week). Rate with ⭐</p>
+    <div class="subtitle">Demo with built-in posts (no API). Rate with ⭐</div>
+
+    <div class="controls">
+      <button id="btnMore" class="btn">Load more</button>
+      <span id="counter" class="counter">0/0</span>
+      <label class="pill"><input id="nsfwToggle" type="checkbox" checked disabled>
+        <span>Allow NSFW (n/a in demo)</span></label>
+      <label class="pill" title="Not used in demo">
+        <span style="opacity:.7">Override:&nbsp;?</span>
+        <input id="overrideBox" type="text" placeholder="This demo ignores overrides" disabled>
+      </label>
+    </div>
   </header>
 
-  <div class="controls">
-    <button id="more">Load more</button>
-    <span class="pill" id="count">0/0</span>
-    <span class="pill">Override: <code>?reddit=r/FashionModels,r/ModelPhotography</code></span>
-  </div>
-
-  <main id="grid" class="grid"></main>
-  <p id="empty" class="empty" style="display:none">Nothing yet — tap <b>Load more</b>.</p>
-  <div id="status"></div>
+  <main class="grid" id="grid"></main>
+  <div id="empty" class="empty">Nothing yet — tap <b>Load more</b>.</div>
 
 <script>
-(() => {
-  // --- Config (SFW-only subs) ---
-  const DEFAULT_SUBS = [
-    'FashionModels','ModelPhotography','RedCarpetFashion',
-    'OldSchoolCool','StreetFashion','CelebFashion','itookapicture'
-  ];
-  const BATCH = 24;
-  const BASE = 'https://r.jina.ai/http://www.reddit.com'; // CORS-friendly mirror
-  const countEl = document.getElementById('count');
-  const moreBtn = document.getElementById('more');
-  const grid = document.getElementById('grid');
-  const empty = document.getElementById('empty');
-  const status = document.getElementById('status');
+/* ========= DEMO DATA (no network) =========
+   Using Picsum placeholder images (safe) to simulate posts.
+   Each object = one “Reddit-like” post.
+*/
+const demoPosts = (() => {
+  // A couple helper arrays to make believable titles/tags
+  const topics = ["Editorial", "Runway", "Portrait", "Studio Light", "Street Fashion", "Lookbook", "Beauty", "Film Grain", "Monochrome", "Backstage"];
+  const names  = ["Ava", "Maya", "Zoe", "Luna", "Nova", "Isla", "Mila", "Rose", "Ivy", "Aria", "Skye", "Mira"];
+  const subs   = ["r/FashionModels","r/ModelPhotography","r/Streetwear","r/MakeupAddiction","r/femalefashionadvice"];
 
-  // ratings in localStorage
-  const RATINGS_KEY = 'sw_sfw_ratings_v1';
-  const ratings = loadRatings();
-
-  let shown = 0, total = 0;
-  const seen = new Set();
-  const afterMap = new Map();
-
-  function showStatus(msg, err=false){
-    status.style.display='block';
-    status.style.borderColor = err ? '#ff5c7a' : '#394452';
-    status.textContent = '['+new Date().toLocaleTimeString()+'] ' + msg;
-  }
-  function loadRatings(){ try{return JSON.parse(localStorage.getItem(RATINGS_KEY)||'{}')}catch{return{}} }
-  function saveRatings(){ localStorage.setItem(RATINGS_KEY, JSON.stringify(ratings)); }
-  function fmtCount(){ countEl.textContent = `${shown}/${total}`; }
-  function q(key){ return new URLSearchParams(location.search).get(key) || ''; }
-  function parseOverride(){
-    const p = q('reddit'); if(!p) return null;
-    return p.split(',').map(s=>s.trim().replace(/^r\//i,'').replace(/^\//,'')).filter(Boolean);
-  }
-  function cleanUrl(u){ return (u||'').replace(/&amp;/g,'&'); }
-  function isImg(u){ return /\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(u); }
-
-  async function fetchSub(sub){
-    const state = afterMap.get(sub);
-    const after = state?.token ? `&after=${encodeURIComponent(state.token)}` : '';
-    const url = `${BASE}/r/${sub}/top.json?t=week&limit=50&raw_json=1${after}`;
-    showStatus('Fetching ' + sub);
-    const res = await fetch(url, { cache:'no-store' });
-    const txt = await res.text(); // mirror returns text
-    const data = JSON.parse(txt);
-    afterMap.set(sub, { token: data?.data?.after || null });
-    return (data?.data?.children || []);
-  }
-
-  function extractImage(p){
-    const d = p.data;
-    // ignore NSFW by design (SFW-only build)
-    if (d.over_18) return null;
-    const preview = d.preview?.images?.[0]?.source?.url;
-    const direct  = d.url_overridden_by_dest || d.url || '';
-    const candidate = cleanUrl(preview || direct);
-    if (candidate && (isImg(candidate) || candidate.startsWith('https://i.redd.it/'))) return candidate;
-    return null;
-  }
-
-  function makeStars(id){
-    const wrap = document.createElement('div'); wrap.className='stars';
-    const cur = Number(ratings[id]||0);
-    for(let i=1;i<=5;i++){
-      const b = document.createElement('button'); b.className='star' + (i<=cur ? ' filled' : '');
-      b.title = `${i} star${i>1?'s':''}`;
-      b.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.29 6.95 1.01-5.02 4.89 1.19 6.93L12 18.9l-6.21 3.26 1.19-6.93L1.96 9.3l6.95-1.01L12 2z" fill="rgba(255,255,255,.18)"/></svg>`;
-      b.addEventListener('click', ()=>{
-        ratings[id] = (ratings[id]===i) ? 0 : i;
-        saveRatings();
-        [...wrap.children].forEach((el,idx)=> el.classList.toggle('filled', idx < (ratings[id]||0)));
-      });
-      wrap.appendChild(b);
-    }
-    return wrap;
-  }
-
-  function cardFromPost(p){
-    const d = p.data;
-    const img = extractImage(p);
-    if(!img) return null;
-    if(seen.has(d.id)) return null;
-    seen.add(d.id);
-
-    const el = document.createElement('article');
-    el.className = 'card';
-    el.innerHTML = `
-      <div class="pol-top">
-        <div class="title">${(d.title||'').slice(0,120)}</div>
-        <div class="sub">r/${d.subreddit} • u/${d.author}</div>
-      </div>
-      <img class="thumb skel" alt="${(d.title||'').replace(/"/g,'&quot;')}" />
-      <div class="pol-btm">
-        <div class="meta"><span class="badge">TOP</span><span>❤ ${d.ups ?? 0}</span></div>
-        <div class="stars"></div>
-      </div>
-    `;
-    const imgEl = el.querySelector('.thumb');
-    imgEl.addEventListener('load', ()=> imgEl.classList.remove('skel'), { once:true });
-    imgEl.src = img;
-
-    el.querySelector('.stars').replaceWith(makeStars(d.id));
-    return el;
-  }
-
-  async function loadBatch(){
-    moreBtn.disabled = true;
-    empty.style.display = 'none';
-    const subs = parseOverride() || DEFAULT_SUBS;
-
-    // pick a few subs to fetch to build one batch
-    const picks = [];
-    while (picks.length < Math.min(5, subs.length)) {
-      const s = subs[picks.length]; // simple round-robin
-      picks.push(s);
-    }
-
-    let added = 0, fetchedCount = 0;
-    for (const sub of picks){
-      try{
-        const posts = await fetchSub(sub);
-        fetchedCount += posts.length;
-        for (const post of posts){
-          const card = cardFromPost(post);
-          if(!card) continue;
-          grid.appendChild(card);
-          shown++; added++;
-          if(added >= BATCH) break;
-        }
-      } catch (e){
-        showStatus(`Error fetching ${sub}: ${e.message}`, true);
-      }
-      if(added >= BATCH) break;
-    }
-
-    // update counters (rough)
-    total = Math.max(total, shown + Math.max(0, fetchedCount - added));
-    fmtCount();
-    if (shown === 0) empty.style.display = 'block';
-    moreBtn.disabled = false;
-  }
-
-  // kick off
-  moreBtn.addEventListener('click', loadBatch);
-  fmtCount();
-  loadBatch(); // first batch
+  // Build 60 items with stable Picsum IDs (4:5 portrait crop)
+  const ids = Array.from({length: 60}, (_,i)=> 100 + i);
+  return ids.map((id,idx)=>({
+    id: 'demo_'+id,
+    title: `${names[idx % names.length]} — ${topics[idx % topics.length]}`,
+    image: `https://picsum.photos/id/${id}/800/1000`,   // 4:5 portrait
+    thumb: `https://picsum.photos/id/${id}/400/500`,    // smaller
+    sourceUrl: `https://picsum.photos/id/${id}`,
+    subreddit: subs[idx % subs.length],
+    nsfw:false
+  }));
 })();
+
+/* ========= STATE ========= */
+const state = {
+  cursor: 0,
+  pageSize: 9,
+  data: demoPosts,       // In real build this would be fetched
+  ratings: loadRatings() // {id: score}
+};
+
+function loadRatings(){
+  try{
+    return JSON.parse(localStorage.getItem('scrollwall_ratings')||'{}');
+  }catch{ return {}; }
+}
+function saveRatings(){
+  localStorage.setItem('scrollwall_ratings', JSON.stringify(state.ratings));
+}
+
+/* ========= RENDER ========= */
+const grid   = document.getElementById('grid');
+const empty  = document.getElementById('empty');
+const counter= document.getElementById('counter');
+const btnMore= document.getElementById('btnMore');
+
+function updateCounter(){
+  counter.textContent = `${Math.min(state.cursor, state.data.length)}/${state.data.length}`;
+}
+
+function cardTemplate(p){
+  const score = state.ratings[p.id] ?? 0;
+  const stars = [1,2,3,4,5].map(n =>
+    `<span class="star ${n<=score?'active':''}" data-id="${p.id}" data-score="${n}">★</span>`
+  ).join('');
+  return `
+  <a class="card" href="${p.sourceUrl}" target="_blank" rel="noopener">
+    <img class="thumb" src="${p.thumb}" alt="${p.title}">
+    <div class="meta">
+      <div>
+        <div class="title">${p.title}</div>
+        <div class="tag">${p.subreddit}</div>
+      </div>
+    </div>
+    <div class="rate">
+      <div>${stars}</div>
+      <div class="score" id="score-${p.id}">${score.toFixed(1)}</div>
+    </div>
+  </a>`;
+}
+
+function renderMore(){
+  const start = state.cursor;
+  const end   = Math.min(start + state.pageSize, state.data.length);
+  const slice = state.data.slice(start, end);
+  if (slice.length===0) return;
+
+  empty.style.display = 'none';
+  const html = slice.map(cardTemplate).join('');
+  const wrap = document.createElement('div');
+  wrap.innerHTML = html;
+  // Append nodes so images can load progressively
+  [...wrap.children].forEach(n => grid.appendChild(n));
+
+  state.cursor = end;
+  updateCounter();
+}
+
+function handleRating(e){
+  const t = e.target;
+  if(!t.classList.contains('star')) return;
+  const id = t.getAttribute('data-id');
+  const val= Number(t.getAttribute('data-score')) || 0;
+
+  state.ratings[id] = val;
+  saveRatings();
+
+  // Update stars in that card only
+  const card = t.closest('.card');
+  card.querySelectorAll('.star').forEach(s=>{
+    const n = Number(s.getAttribute('data-score'));
+    s.classList.toggle('active', n<=val);
+  });
+  const scoreEl = card.querySelector(`#score-${id}`);
+  if(scoreEl) scoreEl.textContent = val.toFixed(1);
+}
+
+/* ========= HOOK UP ========= */
+btnMore.addEventListener('click', renderMore);
+grid.addEventListener('click', handleRating);
+updateCounter();
+
+/* Optional: auto-load first page for a nicer first impression */
+renderMore();
 </script>
 </body>
 </html>
