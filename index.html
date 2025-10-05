@@ -1,246 +1,357 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Scroll Wall • Demo (no API)</title>
+<title>Scroll Wall — Models, Influencers & Actors (Reddit)</title>
 <style>
   :root{
-    --bg: #0d0f12;
-    --bg2:#14171c;
-    --ink:#f3f4f6;
-    --muted:#9aa4b2;
-    --accent:#ff68a0;
-    --panel:#232a33;
-    --polaroid:#272f3a;
-    --polaroid-edge:#1a1f26;
-    --cardGlow: rgba(255,104,160,.25);
-    --star:#ffd15a;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0;
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif;
-    color:var(--ink);
-    background:
-      radial-gradient(1200px 600px at -10% -10%,#1f2430,transparent 60%),
-      radial-gradient(1000px 500px at 110% -10%,#1a2130,transparent 55%),
-      radial-gradient(1200px 600px at 50% 120%,#12161d,transparent 60%),
-      linear-gradient(#0c0f14,#0d0f12);
-    background-attachment: fixed;
-  }
-  header{
-    padding:28px 20px 10px;
-    position:sticky; top:0; z-index:10;
-    backdrop-filter: blur(10px);
-    background:linear-gradient(180deg, rgba(13,15,18,.9), rgba(13,15,18,.55) 60%, transparent);
-  }
-  h1{margin:0 0 6px;font-size:clamp(26px,5vw,40px);letter-spacing:.5px}
-  .subtitle{color:var(--muted);font-weight:600}
+    --bg:#0e1116;
+    --bg2:#121722;
+    --ink:#eef2f7;
+    --muted:#a9b0bd;
+    --accent:#ff6fa5;
+    --accent-2:#87d6ff;
+    --card:#1b1f2a;
+    --card-ink:#f2f5fb;
+    --shadow: 0 10px 30px rgba(0,0,0,.35);
 
-  .controls{
-    margin:16px 0 6px; padding:14px; border-radius:18px;
-    background:linear-gradient(180deg, rgba(35,42,51,.8), rgba(35,42,51,.55));
-    box-shadow: 0 1px 0 #000 inset, 0 6px 24px rgba(0,0,0,.35);
-    display:flex; gap:12px; align-items:center; flex-wrap:wrap;
+    --polaroid:#161a24;
+    --polaroid-edge:#0a0d14;
+    --tape:#ffd3e0;
+
+    --radius: 18px;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; height:100%; background:
+      radial-gradient(1200px 600px at 20% -10%, #1b2233 0%, rgba(27,34,51,0) 60%),
+      radial-gradient(800px 500px at 110% 10%, #13243a 0%, rgba(19,36,58,0) 55%),
+      linear-gradient(#0b0e14,#0e1116 35%, #0d1118 100%);
+      color:var(--ink); font: 16px/1.45 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+      -webkit-font-smoothing:antialiased; }
+  a{ color:var(--accent-2); text-decoration:none; }
+  h1{ font-size: clamp(28px, 5.8vw, 46px); margin: 22px 0 6px; letter-spacing:.4px; }
+  .sub{ color:var(--muted); font-weight:600; margin-bottom:18px; }
+  .wrap{ max-width:1100px; margin:0 auto; padding:22px 18px 80px; }
+
+  /* Controls */
+  .panel{
+    background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+    border:1px solid rgba(255,255,255,.06);
+    border-radius: 22px;
+    padding: 16px;
+    display:flex; flex-wrap:wrap; gap:14px; align-items:center;
+    box-shadow: var(--shadow);
   }
   .btn{
-    background:var(--accent); color:#111; font-weight:800;
-    padding:12px 18px; border:none; border-radius:16px; cursor:pointer;
-    box-shadow: 0 8px 24px var(--cardGlow);
+    appearance:none; border:0; cursor:pointer;
+    background:linear-gradient(180deg, #ff98be, #ff6fa5);
+    color:#121316; font-weight:800; letter-spacing:.2px;
+    padding:12px 18px; border-radius:14px; box-shadow: 0 8px 24px rgba(255,111,165,.35);
   }
-  .pill{
-    padding:10px 14px; border-radius:14px; background:#1b212a; color:var(--ink);
-    display:flex; align-items:center; gap:10px;
+  .count{ font-weight:800; padding:10px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.1); color:var(--muted); }
+  .field{
+    flex:1 1 320px; display:flex; align-items:center; gap:10px;
+    background: rgba(255,255,255,.03);
+    border:1px solid rgba(255,255,255,.06);
+    padding: 12px 14px; border-radius:14px; min-height:48px;
   }
-  .pill input[type="checkbox"]{width:18px;height:18px; accent-color:var(--accent)}
-  .pill input[type="text"]{
-    width:min(520px,80vw); background:transparent; border:none; outline:none; color:#cfd6df;
+  .field label{ color:var(--muted); font-weight:700; }
+  .field input{
+    flex:1; min-width:120px; background:transparent; border:0; outline:0;
+    color:var(--ink); font-weight:600;
   }
+  .note{ color:var(--muted); margin:18px 4px 10px; font-weight:600; }
 
   /* Grid */
   .grid{
-    columns: 1; column-gap:16px; padding:10px 16px 60px;
+    margin-top:16px;
+    display:grid; gap:16px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   }
-  @media (min-width:700px){ .grid{ columns:2; } }
-  @media (min-width:1100px){ .grid{ columns:3; } }
 
-  /* Polaroid card */
+  /* Polaroid card look */
   .card{
-    break-inside: avoid; margin:12px 0; position:relative;
-    display:block; text-decoration:none; color:inherit;
-    border-radius:20px; padding:14px 14px 70px;
-    background:
-      linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.0) 35%),
-      linear-gradient(180deg, var(--polaroid), var(--polaroid-edge));
-    box-shadow:
-      0 1px 0 rgba(255,255,255,.04) inset,
-      0 10px 30px rgba(0,0,0,.5),
-      0 0 0 1px rgba(255,255,255,.04);
+    position:relative; background: var(--polaroid);
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow:hidden;
+    transform: translateZ(0);
   }
-  .card:hover{ box-shadow: 0 10px 30px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.06); }
+  .card:before{
+    content:"";
+    position:absolute; inset:0;
+    background: linear-gradient(180deg, rgba(255,255,255,.07), transparent 120px);
+    pointer-events:none;
+  }
+  .tape{
+    position:absolute; left:22px; right:22px; top:10px; height:20px;
+    background: repeating-linear-gradient(90deg, var(--tape), var(--tape) 10px, #ffc2d6 10px, #ffc2d6 20px);
+    opacity:.7; filter: drop-shadow(0 6px 10px rgba(0,0,0,.35));
+    transform: rotate(-.6deg);
+    border-radius:3px;
+  }
   .thumb{
-    width:100%; border-radius:14px; display:block; background:#0f1318;
-    aspect-ratio: 4 / 5; object-fit: cover;
-    box-shadow: 0 6px 20px rgba(0,0,0,.5);
+    width:100%; aspect-ratio: 4/3; object-fit:cover; display:block;
+    background:#0a0d14;
   }
-  .meta{margin:10px 4px 0; display:flex; justify-content:space-between; align-items:center; gap:10px}
-  .title{font-weight:700; font-size:16px; line-height:1.25}
-  .tag{color:var(--muted); font-size:13px}
+  .meta{
+    padding:12px 14px 10px; display:flex; flex-direction:column; gap:8px;
+  }
+  .title{ font-weight:800; line-height:1.25; }
+  .subline{ color:var(--muted); font-size:13px; display:flex; gap:12px; flex-wrap:wrap; }
   .rate{
-    position:absolute; left:0; right:0; bottom:0;
-    padding:10px 14px 14px; display:flex; justify-content:space-between; align-items:center;
-    background:linear-gradient(180deg, transparent, rgba(0,0,0,.25) 30%, rgba(0,0,0,.45));
-    border-radius:0 0 20px 20px;
+    display:flex; align-items:center; gap:6px; margin-top:2px;
   }
-  .star{font-size:22px; cursor:pointer; color:#555}
-  .star.active{ color:var(--star); text-shadow:0 0 14px rgba(255,209,90,.35); }
-  .score{color:var(--muted); font-weight:700}
+  .star{ cursor:pointer; font-size:20px; color:#7a8596; }
+  .star.on{ color:#ffd86b; text-shadow: 0 0 10px rgba(255,216,107,.35); }
+  .perma{ color:var(--accent-2); font-weight:700; }
 
-  .empty{ color:var(--muted); text-align:center; padding:24px 0 40px; }
-  .counter{ font-weight:800; padding:8px 12px; background:#1116; border-radius:12px; }
+  /* Error box */
+  .err{
+    margin-top:16px; padding:12px 14px; border-radius:12px;
+    border:1px solid rgba(255,104,104,.3);
+    background: linear-gradient(180deg, rgba(255,104,104,.14), rgba(255,104,104,.08));
+    color:#ffb6b6; font-weight:700; white-space:pre-wrap;
+  }
 
-  /* subtle scrollbars for desktop */
-  ::-webkit-scrollbar{width:10px;height:10px}
-  ::-webkit-scrollbar-thumb{background:#2a323d;border-radius:8px}
+  /* Small helpers */
+  .hide{ display:none; }
+  .center{ text-align:center; color:var(--muted); font-weight:700; margin-top:18px; }
 </style>
 </head>
 <body>
-  <header>
+  <div class="wrap">
     <h1>Scroll Wall</h1>
-    <div class="subtitle">Demo with built-in posts (no API). Rate with ⭐</div>
+    <div class="sub">SFW models • influencers • actors (Reddit). Rate with ⭐</div>
 
-    <div class="controls">
-      <button id="btnMore" class="btn">Load more</button>
-      <span id="counter" class="counter">0/0</span>
-      <label class="pill"><input id="nsfwToggle" type="checkbox" checked disabled>
-        <span>Allow NSFW (n/a in demo)</span></label>
-      <label class="pill" title="Not used in demo">
-        <span style="opacity:.7">Override:&nbsp;?</span>
-        <input id="overrideBox" type="text" placeholder="This demo ignores overrides" disabled>
-      </label>
-    </div>
-  </header>
-
-  <main class="grid" id="grid"></main>
-  <div id="empty" class="empty">Nothing yet — tap <b>Load more</b>.</div>
-
-<script>
-/* ========= DEMO DATA (no network) =========
-   Using Picsum placeholder images (safe) to simulate posts.
-   Each object = one “Reddit-like” post.
-*/
-const demoPosts = (() => {
-  // A couple helper arrays to make believable titles/tags
-  const topics = ["Editorial", "Runway", "Portrait", "Studio Light", "Street Fashion", "Lookbook", "Beauty", "Film Grain", "Monochrome", "Backstage"];
-  const names  = ["Ava", "Maya", "Zoe", "Luna", "Nova", "Isla", "Mila", "Rose", "Ivy", "Aria", "Skye", "Mira"];
-  const subs   = ["r/FashionModels","r/ModelPhotography","r/Streetwear","r/MakeupAddiction","r/femalefashionadvice"];
-
-  // Build 60 items with stable Picsum IDs (4:5 portrait crop)
-  const ids = Array.from({length: 60}, (_,i)=> 100 + i);
-  return ids.map((id,idx)=>({
-    id: 'demo_'+id,
-    title: `${names[idx % names.length]} — ${topics[idx % topics.length]}`,
-    image: `https://picsum.photos/id/${id}/800/1000`,   // 4:5 portrait
-    thumb: `https://picsum.photos/id/${id}/400/500`,    // smaller
-    sourceUrl: `https://picsum.photos/id/${id}`,
-    subreddit: subs[idx % subs.length],
-    nsfw:false
-  }));
-})();
-
-/* ========= STATE ========= */
-const state = {
-  cursor: 0,
-  pageSize: 9,
-  data: demoPosts,       // In real build this would be fetched
-  ratings: loadRatings() // {id: score}
-};
-
-function loadRatings(){
-  try{
-    return JSON.parse(localStorage.getItem('scrollwall_ratings')||'{}');
-  }catch{ return {}; }
-}
-function saveRatings(){
-  localStorage.setItem('scrollwall_ratings', JSON.stringify(state.ratings));
-}
-
-/* ========= RENDER ========= */
-const grid   = document.getElementById('grid');
-const empty  = document.getElementById('empty');
-const counter= document.getElementById('counter');
-const btnMore= document.getElementById('btnMore');
-
-function updateCounter(){
-  counter.textContent = `${Math.min(state.cursor, state.data.length)}/${state.data.length}`;
-}
-
-function cardTemplate(p){
-  const score = state.ratings[p.id] ?? 0;
-  const stars = [1,2,3,4,5].map(n =>
-    `<span class="star ${n<=score?'active':''}" data-id="${p.id}" data-score="${n}">★</span>`
-  ).join('');
-  return `
-  <a class="card" href="${p.sourceUrl}" target="_blank" rel="noopener">
-    <img class="thumb" src="${p.thumb}" alt="${p.title}">
-    <div class="meta">
-      <div>
-        <div class="title">${p.title}</div>
-        <div class="tag">${p.subreddit}</div>
+    <div class="panel">
+      <button class="btn" id="loadBtn">Load more</button>
+      <div class="count" id="count">0/0</div>
+      <div class="field" title="Type: reddit=r/Sub1,r/Sub2">
+        <label for="override">Override:</label>
+        <input id="override" placeholder="e.g. reddit=r/FashionModels,r/Celebs" />
       </div>
     </div>
-    <div class="rate">
-      <div>${stars}</div>
-      <div class="score" id="score-${p.id}">${score.toFixed(1)}</div>
+
+    <div id="err" class="err hide"></div>
+
+    <div id="grid" class="grid"></div>
+    <div id="empty" class="center">Nothing yet — tap <b>Load more</b>.</div>
+  </div>
+
+<script>
+/* ------------------------------ Config ------------------------------ */
+const DEFAULT_SUBS = [
+  // Models / fashion / photography
+  'FashionModels','ModelPhotography','FashionPhotography','StreetFashion','Runway','Lookbook',
+  // Beauty / general SFW influencer content
+  'Beauty','MakeupAddiction','SkincareAddiction',
+  // Celebs / actors (SFW)
+  'Celebs','ClassicCelebs','OldSchoolCool',
+  // Extra fashion feeds
+  'femalefashionadvice','malefashionadvice','Streetwear','fashion'
+];
+
+const PAGE_SIZE_PER_SUB = 12; // we filter to images; real yield per sub will be lower
+const COUNT_EL   = document.getElementById('count');
+const GRID       = document.getElementById('grid');
+const ERR_BOX    = document.getElementById('err');
+const EMPTY_EL   = document.getElementById('empty');
+const LOAD_BTN   = document.getElementById('loadBtn');
+const OVERRIDE   = document.getElementById('override');
+
+let afterMap = {};       // pagination token per sub
+let shown = 0;           // total cards currently shown
+let fetched = 0;         // total fetched across batches
+
+/* ------------------------------ Utils ------------------------------ */
+const sleep = (ms)=> new Promise(r=>setTimeout(r,ms));
+const shuffle = (arr)=>{
+  for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+  return arr;
+};
+
+function parseOverride(input){
+  // allow "reddit=r/SubA,r/SubB"
+  if(!input || !input.trim()) return null;
+  const m = input.trim().match(/^reddit\s*=\s*(.+)$/i);
+  if(!m) return null;
+  const parts = m[1].split(',').map(s=>s.trim().replace(/^r\//i,'')).filter(Boolean);
+  return parts.length ? parts : null;
+}
+
+/* ------------------------------ Ratings (localStorage) ------------------------------ */
+const RATE_KEY = 'scrollwall_ratings_v1';
+function loadRatings(){
+  try{ return JSON.parse(localStorage.getItem(RATE_KEY)) || {}; }catch{ return {}; }
+}
+function saveRatings(r){ localStorage.setItem(RATE_KEY, JSON.stringify(r)); }
+let RATINGS = loadRatings(); // { postId: 1..5 }
+
+function setRating(id, value){
+  RATINGS[id] = value;
+  saveRatings(RATINGS);
+}
+
+/* ------------------------------ Reddit fetch ------------------------------ */
+async function fetchRedditBatch(subs, afterMapIn = {}) {
+  const items = [];
+  const newAfter = {...afterMapIn};
+
+  for (const sub of subs) {
+    const after = newAfter[sub] ? `&after=${encodeURIComponent(newAfter[sub])}` : '';
+    const url = `https://api.reddit.com/r/${sub}/top?t=week&limit=25${after}`;
+
+    try {
+      const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+      if (!res.ok) {
+        pushErr(`[${new Date().toLocaleTimeString()}] HTTP ${res.status} for r/${sub}`);
+        continue;
+      }
+
+      const json = await res.json(); // may throw if HTML; api.reddit.com should be JSON
+      newAfter[sub] = json?.data?.after || null;
+
+      for (const c of (json?.data?.children ?? [])) {
+        const d = c.data;
+        if (!d) continue;
+
+        // SFW only
+        if (d.over_18) continue;
+
+        // Try to get an image URL
+        let img = (d.preview?.images?.[0]?.source?.url) || d.url_overridden_by_dest || '';
+        img = img.replace(/&amp;/g, '&');
+
+        // Accept only clear image file extensions
+        if (!/\.(jpe?g|png|gif|webp)$/i.test(img)) continue;
+
+        items.push({
+          id: d.id,
+          title: d.title,
+          author: d.author,
+          subreddit: d.subreddit,
+          score: d.score,
+          permalink: `https://reddit.com${d.permalink}`,
+          image: img
+        });
+      }
+    } catch (e) {
+      pushErr(`[${new Date().toLocaleTimeString()}] Error fetching r/${sub}: ${e.message}`);
+      continue;
+    }
+
+    // Be polite to the API
+    await sleep(120);
+  }
+
+  return { items, afterMap: newAfter };
+}
+
+/* ------------------------------ Rendering ------------------------------ */
+function starEl(id, index){
+  const rated = RATINGS[id] || 0;
+  const on = index <= rated ? 'on' : '';
+  return `<span class="star ${on}" data-id="${id}" data-val="${index}" aria-label="${index} star">★</span>`;
+}
+
+function cardTemplate(item){
+  const rated = RATINGS[item.id] || 0;
+  return `
+  <article class="card" data-id="${item.id}">
+    <span class="tape"></span>
+    <img class="thumb" alt="${escapeHtml(item.title)}" loading="lazy" src="${item.image}">
+    <div class="meta">
+      <div class="title">${escapeHtml(item.title)}</div>
+      <div class="subline">
+        <span>r/${item.subreddit}</span> •
+        <span>▲ ${item.score.toLocaleString()}</span> •
+        <a class="perma" href="${item.permalink}" target="_blank" rel="noopener">permalink</a>
+      </div>
+      <div class="rate" role="group" aria-label="Rate with stars">
+        ${starEl(item.id,1)}${starEl(item.id,2)}${starEl(item.id,3)}${starEl(item.id,4)}${starEl(item.id,5)}
+        <span style="color:var(--muted); font-weight:700; margin-left:6px;">${rated? `${rated}/5`: 'Tap to rate'}</span>
+      </div>
     </div>
-  </a>`;
+  </article>`;
 }
 
-function renderMore(){
-  const start = state.cursor;
-  const end   = Math.min(start + state.pageSize, state.data.length);
-  const slice = state.data.slice(start, end);
-  if (slice.length===0) return;
-
-  empty.style.display = 'none';
-  const html = slice.map(cardTemplate).join('');
-  const wrap = document.createElement('div');
-  wrap.innerHTML = html;
-  // Append nodes so images can load progressively
-  [...wrap.children].forEach(n => grid.appendChild(n));
-
-  state.cursor = end;
-  updateCounter();
+function render(items){
+  if (!items.length) return;
+  const html = items.map(cardTemplate).join('');
+  GRID.insertAdjacentHTML('beforeend', html);
+  shown += items.length;
+  fetched += items.length;
+  updateCount();
+  EMPTY_EL.classList.add('hide');
 }
 
-function handleRating(e){
-  const t = e.target;
-  if(!t.classList.contains('star')) return;
-  const id = t.getAttribute('data-id');
-  const val= Number(t.getAttribute('data-score')) || 0;
+function updateCount(){
+  COUNT_EL.textContent = `${shown}/${fetched}`;
+}
 
-  state.ratings[id] = val;
-  saveRatings();
+function pushErr(msg){
+  ERR_BOX.classList.remove('hide');
+  ERR_BOX.textContent = msg;
+}
 
-  // Update stars in that card only
-  const card = t.closest('.card');
-  card.querySelectorAll('.star').forEach(s=>{
-    const n = Number(s.getAttribute('data-score'));
-    s.classList.toggle('active', n<=val);
+function clearErr(){
+  ERR_BOX.classList.add('hide');
+  ERR_BOX.textContent = '';
+}
+
+function escapeHtml(s=''){
+  return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+/* ------------------------------ Events ------------------------------ */
+GRID.addEventListener('click', (e)=>{
+  const star = e.target.closest('.star');
+  if(!star) return;
+  const id = star.dataset.id;
+  const val = Number(star.dataset.val || 0);
+  if(!id || !val) return;
+
+  setRating(id, val);
+
+  // Update the row of stars & label
+  const card = star.closest('.card');
+  if(!card) return;
+  card.querySelectorAll('.star').forEach(el=>{
+    el.classList.toggle('on', Number(el.dataset.val) <= val);
   });
-  const scoreEl = card.querySelector(`#score-${id}`);
-  if(scoreEl) scoreEl.textContent = val.toFixed(1);
-}
+  const label = card.querySelector('.rate span:last-child');
+  if(label) label.textContent = `${val}/5`;
+});
 
-/* ========= HOOK UP ========= */
-btnMore.addEventListener('click', renderMore);
-grid.addEventListener('click', handleRating);
-updateCounter();
+LOAD_BTN.addEventListener('click', async ()=>{
+  clearErr();
 
-/* Optional: auto-load first page for a nicer first impression */
-renderMore();
+  // figure out which subs to use
+  let subs = parseOverride(OVERRIDE.value) || DEFAULT_SUBS.slice();
+  subs = shuffle(subs).slice(0, 6); // query a handful each click to keep it snappy
+
+  try{
+    const { items, afterMap: nextAfter } = await fetchRedditBatch(subs, afterMap);
+    afterMap = nextAfter;
+
+    // keep only a handful per click to avoid huge bursts
+    const limited = shuffle(items).slice(0, PAGE_SIZE_PER_SUB);
+    if(!limited.length){
+      pushErr(`[${new Date().toLocaleTimeString()}] No fresh image posts found. Try Load more again or different subs.`);
+      return;
+    }
+    render(limited);
+  }catch(e){
+    pushErr(`[${new Date().toLocaleTimeString()}] Unexpected error: ${e.message}`);
+  }
+});
+
+/* ------------------------------ Boot ------------------------------ */
+updateCount();
 </script>
 </body>
 </html>
