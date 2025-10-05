@@ -6,120 +6,42 @@
 <title>Scroll Wall — Models, Influencers & Actors (Reddit)</title>
 <style>
   :root{
-    --bg:#0e1116;
-    --bg2:#121722;
-    --ink:#eef2f7;
-    --muted:#a9b0bd;
-    --accent:#ff6fa5;
-    --accent-2:#87d6ff;
-    --card:#1b1f2a;
-    --card-ink:#f2f5fb;
-    --shadow: 0 10px 30px rgba(0,0,0,.35);
-
-    --polaroid:#161a24;
-    --polaroid-edge:#0a0d14;
-    --tape:#ffd3e0;
-
-    --radius: 18px;
+    --bg:#0e1116; --bg2:#121722; --ink:#eef2f7; --muted:#a9b0bd;
+    --accent:#ff6fa5; --accent2:#87d6ff; --polaroid:#161a24; --tape:#ffd3e0;
+    --radius:18px; --shadow:0 10px 30px rgba(0,0,0,.35);
   }
-
-  *{ box-sizing:border-box; }
-  html,body{ margin:0; height:100%; background:
-      radial-gradient(1200px 600px at 20% -10%, #1b2233 0%, rgba(27,34,51,0) 60%),
-      radial-gradient(800px 500px at 110% 10%, #13243a 0%, rgba(19,36,58,0) 55%),
-      linear-gradient(#0b0e14,#0e1116 35%, #0d1118 100%);
-      color:var(--ink); font: 16px/1.45 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
-      -webkit-font-smoothing:antialiased; }
-  a{ color:var(--accent-2); text-decoration:none; }
-  h1{ font-size: clamp(28px, 5.8vw, 46px); margin: 22px 0 6px; letter-spacing:.4px; }
-  .sub{ color:var(--muted); font-weight:600; margin-bottom:18px; }
-  .wrap{ max-width:1100px; margin:0 auto; padding:22px 18px 80px; }
-
-  /* Controls */
-  .panel{
-    background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
-    border:1px solid rgba(255,255,255,.06);
-    border-radius: 22px;
-    padding: 16px;
-    display:flex; flex-wrap:wrap; gap:14px; align-items:center;
-    box-shadow: var(--shadow);
-  }
-  .btn{
-    appearance:none; border:0; cursor:pointer;
-    background:linear-gradient(180deg, #ff98be, #ff6fa5);
-    color:#121316; font-weight:800; letter-spacing:.2px;
-    padding:12px 18px; border-radius:14px; box-shadow: 0 8px 24px rgba(255,111,165,.35);
-  }
-  .count{ font-weight:800; padding:10px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.1); color:var(--muted); }
-  .field{
-    flex:1 1 320px; display:flex; align-items:center; gap:10px;
-    background: rgba(255,255,255,.03);
-    border:1px solid rgba(255,255,255,.06);
-    padding: 12px 14px; border-radius:14px; min-height:48px;
-  }
-  .field label{ color:var(--muted); font-weight:700; }
-  .field input{
-    flex:1; min-width:120px; background:transparent; border:0; outline:0;
-    color:var(--ink); font-weight:600;
-  }
-  .note{ color:var(--muted); margin:18px 4px 10px; font-weight:600; }
-
-  /* Grid */
-  .grid{
-    margin-top:16px;
-    display:grid; gap:16px;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  }
-
-  /* Polaroid card look */
-  .card{
-    position:relative; background: var(--polaroid);
-    border: 1px solid rgba(255,255,255,.06);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow:hidden;
-    transform: translateZ(0);
-  }
-  .card:before{
-    content:"";
-    position:absolute; inset:0;
-    background: linear-gradient(180deg, rgba(255,255,255,.07), transparent 120px);
-    pointer-events:none;
-  }
-  .tape{
-    position:absolute; left:22px; right:22px; top:10px; height:20px;
-    background: repeating-linear-gradient(90deg, var(--tape), var(--tape) 10px, #ffc2d6 10px, #ffc2d6 20px);
-    opacity:.7; filter: drop-shadow(0 6px 10px rgba(0,0,0,.35));
-    transform: rotate(-.6deg);
-    border-radius:3px;
-  }
-  .thumb{
-    width:100%; aspect-ratio: 4/3; object-fit:cover; display:block;
-    background:#0a0d14;
-  }
-  .meta{
-    padding:12px 14px 10px; display:flex; flex-direction:column; gap:8px;
-  }
-  .title{ font-weight:800; line-height:1.25; }
-  .subline{ color:var(--muted); font-size:13px; display:flex; gap:12px; flex-wrap:wrap; }
-  .rate{
-    display:flex; align-items:center; gap:6px; margin-top:2px;
-  }
-  .star{ cursor:pointer; font-size:20px; color:#7a8596; }
-  .star.on{ color:#ffd86b; text-shadow: 0 0 10px rgba(255,216,107,.35); }
-  .perma{ color:var(--accent-2); font-weight:700; }
-
-  /* Error box */
-  .err{
-    margin-top:16px; padding:12px 14px; border-radius:12px;
-    border:1px solid rgba(255,104,104,.3);
-    background: linear-gradient(180deg, rgba(255,104,104,.14), rgba(255,104,104,.08));
-    color:#ffb6b6; font-weight:700; white-space:pre-wrap;
-  }
-
-  /* Small helpers */
-  .hide{ display:none; }
-  .center{ text-align:center; color:var(--muted); font-weight:700; margin-top:18px; }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:
+    radial-gradient(1200px 600px at 20% -10%, #1b2233 0%, rgba(27,34,51,0) 60%),
+    radial-gradient(800px 500px at 110% 10%, #13243a 0%, rgba(19,36,58,0) 55%),
+    linear-gradient(#0b0e14,#0e1116 35%, #0d1118 100%);
+    color:var(--ink);font:16px/1.45 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+  h1{font-size:clamp(28px,5.8vw,46px);margin:22px 0 6px}
+  .sub{color:var(--muted);font-weight:600;margin-bottom:18px}
+  .wrap{max-width:1100px;margin:0 auto;padding:22px 18px 80px}
+  .panel{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));
+    border:1px solid rgba(255,255,255,.06);border-radius:22px;padding:16px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;box-shadow:var(--shadow)}
+  .btn{appearance:none;border:0;cursor:pointer;background:linear-gradient(180deg,#ff98be,#ff6fa5);color:#121316;font-weight:800;letter-spacing:.2px;padding:12px 18px;border-radius:14px;box-shadow:0 8px 24px rgba(255,111,165,.35)}
+  .count{font-weight:800;padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.1);color:var(--muted)}
+  .toggle{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:rgba(255,255,255,.03);font-weight:700;color:var(--muted)}
+  .field{flex:1 1 320px;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);padding:12px 14px;border-radius:14px;min-height:48px}
+  .field label{color:var(--muted);font-weight:700}
+  .field input{flex:1;min-width:120px;background:transparent;border:0;outline:0;color:var(--ink);font-weight:600}
+  .grid{margin-top:16px;display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+  .card{position:relative;background:var(--polaroid);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+  .card:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.07),transparent 120px);pointer-events:none}
+  .tape{position:absolute;left:22px;right:22px;top:10px;height:20px;background:repeating-linear-gradient(90deg,var(--tape),var(--tape) 10px,#ffc2d6 10px,#ffc2d6 20px);opacity:.7;filter:drop-shadow(0 6px 10px rgba(0,0,0,.35));transform:rotate(-.6deg);border-radius:3px}
+  .thumb{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:#0a0d14}
+  .meta{padding:12px 14px 10px;display:flex;flex-direction:column;gap:8px}
+  .title{font-weight:800;line-height:1.25}
+  .subline{color:var(--muted);font-size:13px;display:flex;gap:12px;flex-wrap:wrap}
+  .rate{display:flex;align-items:center;gap:6px;margin-top:2px}
+  .star{cursor:pointer;font-size:20px;color:#7a8596}
+  .star.on{color:#ffd86b;text-shadow:0 0 10px rgba(255,216,107,.35)}
+  .perma{color:var(--accent2);font-weight:700}
+  .err{margin-top:16px;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,104,104,.3);background:linear-gradient(180deg,rgba(255,104,104,.14),rgba(255,104,104,.08));color:#ffb6b6;font-weight:700;white-space:pre-wrap}
+  .hide{display:none}
+  .center{text-align:center;color:var(--muted);font-weight:700;margin-top:18px}
 </style>
 </head>
 <body>
@@ -130,14 +52,14 @@
     <div class="panel">
       <button class="btn" id="loadBtn">Load more</button>
       <div class="count" id="count">0/0</div>
-      <div class="field" title="Type: reddit=r/Sub1,r/Sub2">
+      <label class="toggle"><input type="checkbox" id="nsfw"> Allow NSFW</label>
+      <div class="field" title="Use: reddit=r/Sub1,r/Sub2">
         <label for="override">Override:</label>
-        <input id="override" placeholder="e.g. reddit=r/FashionModels,r/Celebs" />
+        <input id="override" placeholder="e.g. reddit=r/FashionModels,r/EmilyRatajkowski" />
       </div>
     </div>
 
     <div id="err" class="err hide"></div>
-
     <div id="grid" class="grid"></div>
     <div id="empty" class="center">Nothing yet — tap <b>Load more</b>.</div>
   </div>
@@ -145,210 +67,126 @@
 <script>
 /* ------------------------------ Config ------------------------------ */
 const DEFAULT_SUBS = [
-  // Models / fashion / photography
   'FashionModels','ModelPhotography','FashionPhotography','StreetFashion','Runway','Lookbook',
-  // Beauty / general SFW influencer content
   'Beauty','MakeupAddiction','SkincareAddiction',
-  // Celebs / actors (SFW)
   'Celebs','ClassicCelebs','OldSchoolCool',
-  // Extra fashion feeds
   'femalefashionadvice','malefashionadvice','Streetwear','fashion'
 ];
 
-const PAGE_SIZE_PER_SUB = 12; // we filter to images; real yield per sub will be lower
-const COUNT_EL   = document.getElementById('count');
-const GRID       = document.getElementById('grid');
-const ERR_BOX    = document.getElementById('err');
-const EMPTY_EL   = document.getElementById('empty');
-const LOAD_BTN   = document.getElementById('loadBtn');
-const OVERRIDE   = document.getElementById('override');
+const PAGE_SIZE = 12;
+const GRID = document.getElementById('grid');
+const COUNT = document.getElementById('count');
+const ERR   = document.getElementById('err');
+const EMPTY = document.getElementById('empty');
+const LOAD  = document.getElementById('loadBtn');
+const NSFW  = document.getElementById('nsfw');
+const OV    = document.getElementById('override');
 
-let afterMap = {};       // pagination token per sub
-let shown = 0;           // total cards currently shown
-let fetched = 0;         // total fetched across batches
+let afterMap = {};
+let shown = 0, fetched = 0;
 
-/* ------------------------------ Utils ------------------------------ */
-const sleep = (ms)=> new Promise(r=>setTimeout(r,ms));
-const shuffle = (arr)=>{
-  for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
-  return arr;
-};
+/* ------------------------------ Helpers ------------------------------ */
+const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
+const shuffle = a=>{ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; };
+const escapeHtml = s => (s||"").replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
 
-function parseOverride(input){
-  // allow "reddit=r/SubA,r/SubB"
-  if(!input || !input.trim()) return null;
-  const m = input.trim().match(/^reddit\s*=\s*(.+)$/i);
+function parseOverride(v){
+  if(!v || !v.trim()) return null;
+  const m = v.trim().match(/^reddit\s*=\s*(.+)$/i);
   if(!m) return null;
-  const parts = m[1].split(',').map(s=>s.trim().replace(/^r\//i,'')).filter(Boolean);
-  return parts.length ? parts : null;
+  return m[1].split(',').map(s=>s.trim().replace(/^r\//i,'')).filter(Boolean);
 }
+function pushErr(msg){ ERR.classList.remove('hide'); ERR.textContent = msg; }
+function clearErr(){ ERR.classList.add('hide'); ERR.textContent=''; }
+function updateCount(){ COUNT.textContent = `${shown}/${fetched}`; }
 
-/* ------------------------------ Ratings (localStorage) ------------------------------ */
-const RATE_KEY = 'scrollwall_ratings_v1';
-function loadRatings(){
-  try{ return JSON.parse(localStorage.getItem(RATE_KEY)) || {}; }catch{ return {}; }
-}
-function saveRatings(r){ localStorage.setItem(RATE_KEY, JSON.stringify(r)); }
-let RATINGS = loadRatings(); // { postId: 1..5 }
+/* ------------------------------ Ratings ------------------------------ */
+const RATE_KEY='scrollwall_ratings_v1';
+const RATINGS = (()=>{ try{return JSON.parse(localStorage.getItem(RATE_KEY))||{}}catch{return {}} })();
+const saveRatings = ()=> localStorage.setItem(RATE_KEY, JSON.stringify(RATINGS));
 
-function setRating(id, value){
-  RATINGS[id] = value;
-  saveRatings(RATINGS);
-}
-
-/* ------------------------------ Reddit fetch ------------------------------ */
-async function fetchRedditBatch(subs, afterMapIn = {}) {
+/* ------------------------------ Fetch ------------------------------ */
+async function fetchFromSub(sub, allowNSFW){
+  const after = afterMap[sub] ? `&after=${encodeURIComponent(afterMap[sub])}` : '';
+  const url = `https://api.reddit.com/r/${sub}/top?t=week&limit=25${after}`;
   const items = [];
-  const newAfter = {...afterMapIn};
 
-  for (const sub of subs) {
-    const after = newAfter[sub] ? `&after=${encodeURIComponent(newAfter[sub])}` : '';
-    const url = `https://api.reddit.com/r/${sub}/top?t=week&limit=25${after}`;
+  const res = await fetch(url, {headers:{'Accept':'application/json'}});
+  if(!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  afterMap[sub] = json?.data?.after || null;
 
-    try {
-      const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-      if (!res.ok) {
-        pushErr(`[${new Date().toLocaleTimeString()}] HTTP ${res.status} for r/${sub}`);
-        continue;
-      }
+  for(const c of (json?.data?.children ?? [])){
+    const d = c.data; if(!d) continue;
 
-      const json = await res.json(); // may throw if HTML; api.reddit.com should be JSON
-      newAfter[sub] = json?.data?.after || null;
+    // NSFW filter toggled by checkbox:
+    if (!allowNSFW && d.over_18) continue;
 
-      for (const c of (json?.data?.children ?? [])) {
-        const d = c.data;
-        if (!d) continue;
+    let img = (d.preview?.images?.[0]?.source?.url) || d.url_overridden_by_dest || '';
+    img = img.replace(/&amp;/g,'&');
+    if(!/\.(jpe?g|png|gif|webp)$/i.test(img)) continue;
 
-        // SFW only
-        if (d.over_18) continue;
+    items.push({
+      id:d.id, title:d.title, author:d.author, subreddit:d.subreddit,
+      score:d.score, permalink:`https://reddit.com${d.permalink}`, image:img, over18:d.over_18
+    });
+  }
+  return items;
+}
 
-        // Try to get an image URL
-        let img = (d.preview?.images?.[0]?.source?.url) || d.url_overridden_by_dest || '';
-        img = img.replace(/&amp;/g, '&');
+async function loadBatch(){
+  clearErr();
+  let subs = parseOverride(OV.value) || DEFAULT_SUBS.slice();
+  subs = shuffle(subs).slice(0,6);
 
-        // Accept only clear image file extensions
-        if (!/\.(jpe?g|png|gif|webp)$/i.test(img)) continue;
-
-        items.push({
-          id: d.id,
-          title: d.title,
-          author: d.author,
-          subreddit: d.subreddit,
-          score: d.score,
-          permalink: `https://reddit.com${d.permalink}`,
-          image: img
-        });
-      }
-    } catch (e) {
-      pushErr(`[${new Date().toLocaleTimeString()}] Error fetching r/${sub}: ${e.message}`);
-      continue;
+  const allowNSFW = NSFW.checked;
+  const results = [];
+  for(const sub of subs){
+    try{
+      const part = await fetchFromSub(sub, allowNSFW);
+      results.push(...part);
+    }catch(e){
+      pushErr(`[${new Date().toLocaleTimeString()}] Error r/${sub}: ${e.message}`);
     }
-
-    // Be polite to the API
     await sleep(120);
   }
-
-  return { items, afterMap: newAfter };
+  const final = shuffle(results).slice(0, PAGE_SIZE);
+  fetched += final.length; render(final);
 }
 
-/* ------------------------------ Rendering ------------------------------ */
-function starEl(id, index){
-  const rated = RATINGS[id] || 0;
-  const on = index <= rated ? 'on' : '';
-  return `<span class="star ${on}" data-id="${id}" data-val="${index}" aria-label="${index} star">★</span>`;
-}
-
-function cardTemplate(item){
-  const rated = RATINGS[item.id] || 0;
-  return `
-  <article class="card" data-id="${item.id}">
+/* ------------------------------ Render ------------------------------ */
+function star(id,n){ const on=(RATINGS[id]||0)>=n?'on':''; return `<span class="star ${on}" data-id="${id}" data-val="${n}">★</span>`; }
+function card(it){
+  const rated = RATINGS[it.id]||0;
+  return `<article class="card" data-id="${it.id}">
     <span class="tape"></span>
-    <img class="thumb" alt="${escapeHtml(item.title)}" loading="lazy" src="${item.image}">
+    <img class="thumb" alt="${escapeHtml(it.title)}" loading="lazy" src="${it.image}">
     <div class="meta">
-      <div class="title">${escapeHtml(item.title)}</div>
-      <div class="subline">
-        <span>r/${item.subreddit}</span> •
-        <span>▲ ${item.score.toLocaleString()}</span> •
-        <a class="perma" href="${item.permalink}" target="_blank" rel="noopener">permalink</a>
-      </div>
-      <div class="rate" role="group" aria-label="Rate with stars">
-        ${starEl(item.id,1)}${starEl(item.id,2)}${starEl(item.id,3)}${starEl(item.id,4)}${starEl(item.id,5)}
-        <span style="color:var(--muted); font-weight:700; margin-left:6px;">${rated? `${rated}/5`: 'Tap to rate'}</span>
+      <div class="title">${escapeHtml(it.title)}</div>
+      <div class="subline"><span>${it.over18?'NSFW • ':''}r/${it.subreddit}</span> • <span>▲ ${it.score.toLocaleString()}</span> •
+        <a class="perma" href="${it.permalink}" target="_blank" rel="noopener">permalink</a></div>
+      <div class="rate" role="group">${star(it.id,1)}${star(it.id,2)}${star(it.id,3)}${star(it.id,4)}${star(it.id,5)}
+        <span style="color:var(--muted);font-weight:700;margin-left:6px;">${rated?`${rated}/5`:'Tap to rate'}</span>
       </div>
     </div>
   </article>`;
 }
-
 function render(items){
-  if (!items.length) return;
-  const html = items.map(cardTemplate).join('');
-  GRID.insertAdjacentHTML('beforeend', html);
-  shown += items.length;
-  fetched += items.length;
-  updateCount();
-  EMPTY_EL.classList.add('hide');
+  if(!items.length){ pushErr(`[${new Date().toLocaleTimeString()}] No fresh image posts found. Try Load more again or different subs.`); return; }
+  GRID.insertAdjacentHTML('beforeend', items.map(card).join(''));
+  shown += items.length; updateCount(); EMPTY.classList.add('hide');
 }
 
-function updateCount(){
-  COUNT_EL.textContent = `${shown}/${fetched}`;
-}
-
-function pushErr(msg){
-  ERR_BOX.classList.remove('hide');
-  ERR_BOX.textContent = msg;
-}
-
-function clearErr(){
-  ERR_BOX.classList.add('hide');
-  ERR_BOX.textContent = '';
-}
-
-function escapeHtml(s=''){
-  return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-}
-
-/* ------------------------------ Events ------------------------------ */
-GRID.addEventListener('click', (e)=>{
-  const star = e.target.closest('.star');
-  if(!star) return;
-  const id = star.dataset.id;
-  const val = Number(star.dataset.val || 0);
-  if(!id || !val) return;
-
-  setRating(id, val);
-
-  // Update the row of stars & label
-  const card = star.closest('.card');
-  if(!card) return;
-  card.querySelectorAll('.star').forEach(el=>{
-    el.classList.toggle('on', Number(el.dataset.val) <= val);
-  });
-  const label = card.querySelector('.rate span:last-child');
-  if(label) label.textContent = `${val}/5`;
+GRID.addEventListener('click', e=>{
+  const s = e.target.closest('.star'); if(!s) return;
+  const id=s.dataset.id, val=+s.dataset.val; if(!id||!val) return;
+  RATINGS[id]=val; saveRatings();
+  const card = s.closest('.card');
+  card.querySelectorAll('.star').forEach(el=>el.classList.toggle('on', +el.dataset.val<=val));
+  const label = card.querySelector('.rate span:last-child'); if(label) label.textContent = `${val}/5`;
 });
 
-LOAD_BTN.addEventListener('click', async ()=>{
-  clearErr();
-
-  // figure out which subs to use
-  let subs = parseOverride(OVERRIDE.value) || DEFAULT_SUBS.slice();
-  subs = shuffle(subs).slice(0, 6); // query a handful each click to keep it snappy
-
-  try{
-    const { items, afterMap: nextAfter } = await fetchRedditBatch(subs, afterMap);
-    afterMap = nextAfter;
-
-    // keep only a handful per click to avoid huge bursts
-    const limited = shuffle(items).slice(0, PAGE_SIZE_PER_SUB);
-    if(!limited.length){
-      pushErr(`[${new Date().toLocaleTimeString()}] No fresh image posts found. Try Load more again or different subs.`);
-      return;
-    }
-    render(limited);
-  }catch(e){
-    pushErr(`[${new Date().toLocaleTimeString()}] Unexpected error: ${e.message}`);
-  }
-});
+document.getElementById('loadBtn').addEventListener('click', loadBatch);
 
 /* ------------------------------ Boot ------------------------------ */
 updateCount();
