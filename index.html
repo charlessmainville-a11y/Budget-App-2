@@ -3,65 +3,199 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Scroll Wall · Reddit Celebs</title>
+<title>Scroll Wall · Models & Influencers</title>
 <style>
-  :root{--bg:#0f1013;--panel:#2f3136;--ink:#f5f5f5;--muted:#b9bcc4;--accent:#ff66aa;--radius:22px;--gap:18px;--shadow:0 8px 24px rgba(0,0,0,.25)}
+  :root{
+    --bg:#0d0f12;
+    --bg2:#14171c;
+    --ink:#f3f4f6;
+    --muted:#b6bbc5;
+    --accent:#ff6fb0;
+    --panel:#26282e;
+
+    --polaroid:#f7f3ea;         /* warm off-white frame */
+    --polaroid-edge:#d8d1c2;    /* edge/border shading */
+    --polaroid-tape:#e8dfcf;    /* caption strip */
+
+    --radius:22px;
+    --gap:18px;
+    --shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Inter,Arial,sans-serif}
-  header{position:sticky;top:0;z-index:10;padding:14px 16px;background:linear-gradient(180deg,rgba(15,16,19,.92),rgba(15,16,19,.7),rgba(15,16,19,0));backdrop-filter:saturate(1.2) blur(8px);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  header h1{margin:0;font-size:22px;font-weight:800}
-  header .hint{color:var(--muted);font-weight:600}
-  .wrap{max-width:1100px;margin:0 auto;padding:0 16px 80px}
-  .controls{display:flex;gap:10px;align-items:center;margin:8px 2px 12px;flex-wrap:wrap}
-  .btn{border:0;border-radius:12px;padding:10px 14px;font-weight:700;color:#0b0c0f;background:var(--accent);cursor:pointer;box-shadow:var(--shadow)}
+  html,body{height:100%}
+  body{
+    margin:0; color:var(--ink); font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Inter,Arial,sans-serif;
+
+    /* Future-rustic dark texture: layered gradients + subtle noise */
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #1b1e24 0%, transparent 60%),
+      radial-gradient(900px 500px at -10% 20%, #14171b 0%, transparent 60%),
+      radial-gradient(800px 500px at 110% 30%, #191c21 0%, transparent 60%),
+      linear-gradient(180deg, #0e1013, #14171b);
+  }
+  /* fine grain via CSS mask (SVG noise) */
+  body::before{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:-1; opacity:.12;
+    background-image:
+      url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'>\
+<filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='2' seed='7' type='fractalNoise'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='table' tableValues='0 0.8'/></feComponentTransfer></filter>\
+<rect width='100%' height='100%' filter='url(%23n)' fill='black'/></svg>");
+    mix-blend-mode: overlay;
+  }
+
+  header{
+    position:sticky; top:0; z-index:10;
+    padding:10px 14px;
+    background:linear-gradient(180deg, rgba(13,15,18,.95), rgba(13,15,18,.7), rgba(13,15,18,0));
+    backdrop-filter:saturate(1.15) blur(8px);
+    border-bottom:1px solid #1b1f25;
+  }
+  .wrap{max-width:1120px;margin:0 auto;padding:0 14px 90px}
+  .rowhead{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  h1{margin:0;font-size:20px;font-weight:800;letter-spacing:.2px}
+  .hint{color:var(--muted);font-weight:600}
+
+  .controls{display:flex;gap:10px;align-items:center;margin:12px 0 8px;flex-wrap:wrap}
+  .btn{
+    border:0;border-radius:12px;padding:10px 14px;font-weight:700;
+    color:#0b0c0f;background:var(--accent);cursor:pointer;box-shadow:var(--shadow)
+  }
   .btn[disabled]{opacity:.5;cursor:not-allowed}
+  .pill{background:#1e2127;border:1px solid #323843;color:#cfd6e3;padding:6px 10px;border-radius:999px;font-size:12px}
+  label.switch{display:inline-flex;gap:8px;align-items:center;font-size:13px;color:var(--muted);user-select:none}
+
+  /* Grid */
   .grid{display:grid;gap:var(--gap);grid-template-columns:repeat(1,minmax(0,1fr))}
-  @media(min-width:520px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-  @media(min-width:880px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-  .card{background:var(--panel);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);min-height:180px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
-  .title{font-size:15px;font-weight:800}
-  .meta{color:var(--muted);font-size:12px}
-  .card img{width:100%;height:auto;border-radius:14px;background:#3a3b3f;display:block}
+  @media(min-width:540px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(min-width:920px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+  /* Polaroid Card */
+  .card{
+    display:flex;flex-direction:column;gap:10px;overflow:hidden;
+    /* Polaroid frame effect */
+    background:
+      linear-gradient(180deg, #ffffff 0, #faf7f0 40%, #f6efe3 100%);
+    background-color: var(--polaroid);
+    border-radius: 14px;
+    box-shadow:
+      0 18px 40px rgba(0,0,0,.35),
+      inset 0 0 0 1px #e7e0d3,
+      inset 0 -26px 0 0 var(--polaroid-tape); /* caption strip area */
+    padding: 12px 12px 54px; /* bottom padding for caption strip */
+    position:relative;
+    transform: rotate(-.4deg); /* slight tilt for analog vibe */
+  }
+  .card::before{
+    /* edge vignette */
+    content:""; position:absolute; inset:0; border-radius:14px;
+    box-shadow: inset 0 0 0 2px rgba(0,0,0,.04), inset 0 0 60px rgba(0,0,0,.12);
+    pointer-events:none;
+  }
+  .photo{
+    border-radius:10px; overflow:hidden; background:#d9d6cf; position:relative;
+    box-shadow: 0 3px 10px rgba(0,0,0,.18);
+  }
+  .photo img{
+    width:100%; height:auto; display:block;
+    transform: translateZ(0);
+  }
+  .title{
+    position:absolute; left:14px; right:14px; bottom:12px;
+    height:36px; display:flex; align-items:center; justify-content:space-between;
+    font-weight:800; font-size:13px; color:#2b2f36;
+    letter-spacing:.2px;
+  }
+  .meta{opacity:.7; font-weight:600; font-size:11px}
+  .rank{
+    position:absolute; left:14px; right:14px; bottom:12px;
+    height:36px; display:flex; align-items:center; gap:10px; justify-content:flex-end;
+    pointer-events:auto;
+  }
+  .stars{display:inline-flex;gap:2px}
+  .star{font-size:18px;cursor:pointer;filter:drop-shadow(0 1px 0 rgba(0,0,0,.2))}
+  .star.dim{opacity:.35}
+  .score{font-size:11px;color:#34383f;font-weight:700;margin-left:6px}
+
+  h2{font-size:16px;margin:22px 0 8px}
   #sentinel{height:1px}
-  footer{color:var(--muted);text-align:center;margin-top:18px}
+  #topRow{margin-top:6px}
 </style>
 </head>
 <body>
-<header class="wrap">
-  <h1>Scroll Wall</h1>
-  <span class="hint">Default: celeb/public figure subs · override with ?reddit=…</span>
+<header>
+  <div class="wrap rowhead">
+    <h1>Scroll Wall</h1>
+    <span class="hint">Models & niche influencers (Reddit) · Rate with ★</span>
+  </div>
 </header>
 
 <main class="wrap">
   <div class="controls">
     <button id="moreBtn" class="btn">Load more</button>
-    <span id="status" style="color:var(--muted);font-weight:600"></span>
+    <span id="status" class="pill">0/0</span>
+    <label class="switch">
+      <input id="nsfwToggle" type="checkbox" checked />
+      <span>Allow NSFW</span>
+    </label>
+    <span class="pill">Override: ?reddit=r/FashionModels,r/ModelPhotography</span>
   </div>
+
+  <section id="topRow"></section>
   <section id="grid" class="grid" aria-live="polite"></section>
   <div id="sentinel" aria-hidden="true"></div>
-  <footer id="endMsg"></footer>
 </main>
 
 <script>
 /* ---------- Config ---------- */
+/* Curated list ~20; mix of general model/fashion + specific public figures/influencers.
+   Note: some may not always be active; failures are silently skipped. */
 const DEFAULT_SUBS = [
-  'r/Celebs',
-  'r/RedCarpetFashion',
-  'r/OldSchoolCool',
   'r/ModelPhotography',
-  'r/LadiesOfScience'
-]; 
+  'r/FashionModels',
+  'r/Models',
+  'r/RedCarpetFashion',
+  'r/Runway',
+  'r/StreetFashion',
+  'r/OldSchoolCool',
+
+  /* Specific public figures / models / influencers */
+  'r/CharliDAmelio',
+  'r/EmilyRatajkowski',
+  'r/BellaHadid',
+  'r/KendallJenner',
+  'r/GigiHadid',
+  'r/HaileyBieber',
+  'r/AddisonRae',
+  'r/SommerRay',
+  'r/AdrianaLima',
+  'r/CandiceSwanepoel',
+  'r/AlessandraAmbrosio',
+
+  /* Risqué-leaning fashion contexts */
+  'r/lingerie',
+  'r/bikinis'
+];
+
 const BATCH = 18;
 
 /* ---------- State ---------- */
-const grid = document.getElementById('grid');
-const btn  = document.getElementById('moreBtn');
-const sent = document.getElementById('sentinel');
-const status = document.getElementById('status');
-const endMsg = document.getElementById('endMsg');
+const grid  = document.getElementById('grid');
+const topRow= document.getElementById('topRow');
+const btn   = document.getElementById('moreBtn');
+const sent  = document.getElementById('sentinel');
+const status= document.getElementById('status');
+const nsfwToggle = document.getElementById('nsfwToggle');
 
-let items = [];   // {title, desc, img, url}
+let items = [];   // {id,url,title,desc,img,over18}
 let cursor = 0;
+
+/* Ratings (local per device) */
+const RATINGS_KEY = 'scrollwall-polaroid-ratings-v1';
+function loadRatings(){ try{ return JSON.parse(localStorage.getItem(RATINGS_KEY)||'{}'); }catch{ return {}; } }
+function saveRatings(obj){ localStorage.setItem(RATINGS_KEY, JSON.stringify(obj)); }
+let ratings = loadRatings(); // { id: {r:1..5, t:timestamp} }
 
 /* ---------- Helpers ---------- */
 function q(key){ return new URLSearchParams(location.search).get(key) || ''; }
@@ -69,33 +203,139 @@ function sanitize(s=''){ return String(s).replace(/[<>]/g, m => ({'<':'&lt;','>'
 function isImgUrl(u=''){ return /\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(u); }
 function uniqBy(arr, keyFn){ const m=new Set(); return arr.filter(x=>{const k=keyFn(x); if(m.has(k)) return false; m.add(k); return true;}); }
 
+/* ---------- Rating UI ---------- */
+function starSVG(filled){
+  return `<svg class="star ${filled?'':'dim'}" width="20" height="20" viewBox="0 0 24 24" fill="${filled?'#ffd166':'#00000040'}" xmlns="http://www.w3.org/2000/svg"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`;
+}
+
+function ratingWidget(id){
+  const current = ratings[id]?.r || 0;
+  const wrap = document.createElement('div');
+  wrap.className = 'rank';
+
+  const left = document.createElement('div');
+  left.className = 'title';
+  left.innerHTML = `<span style="font-weight:800;font-size:12px;opacity:.75">Your rating</span>`;
+
+  const right = document.createElement('div');
+  right.style.display = 'flex';
+  right.style.alignItems = 'center';
+  right.style.gap = '6px';
+
+  const stars = document.createElement('div'); stars.className='stars';
+  for(let i=1;i<=5;i++){
+    const s = document.createElement('span');
+    s.innerHTML = starSVG(i<=current);
+    s.style.lineHeight='0';
+    s.title = `${i} star${i>1?'s':''}`;
+    s.addEventListener('click', ()=>{
+      ratings[id] = { r:i, t:Date.now() };
+      saveRatings(ratings);
+      // re-render stars
+      while(stars.firstChild) stars.removeChild(stars.firstChild);
+      for(let k=1;k<=5;k++){
+        const sn = document.createElement('span');
+        sn.innerHTML = starSVG(k<=i);
+        sn.style.lineHeight='0';
+        sn.addEventListener('click', ()=>{}); // handled above
+        stars.appendChild(sn);
+      }
+      score.textContent = `${i}/5`;
+      refreshTopRated();
+    }, {passive:true});
+    stars.appendChild(s);
+  }
+
+  const score = document.createElement('span');
+  score.className='score';
+  score.textContent = current ? `${current}/5` : '—';
+
+  right.appendChild(stars);
+  right.appendChild(score);
+
+  // place over caption strip
+  wrap.style.justifyContent = 'space-between';
+  wrap.appendChild(left);
+  wrap.appendChild(right);
+  return wrap;
+}
+
 /* ---------- Render ---------- */
 function cardEl(item, i){
-  const a = document.createElement('a');
-  a.className = 'card';
-  a.href = item.url; a.target = '_blank'; a.rel = 'noopener';
-  a.innerHTML = `
-    <div class="title">${sanitize(item.title || ('Item ' + (i+1)))}</div>
-    <div class="meta">${sanitize(item.desc || '')}</div>
-    ${item.img ? `<img loading="lazy" alt="${sanitize(item.title||'')}" src="${item.img}">`
-               : ``}
-  `;
-  return a;
+  const outer = document.createElement('article');
+  outer.className = 'card';
+  outer.style.transform = `rotate(${(Math.random()*0.8 - 0.4).toFixed(2)}deg)`; // slight random tilt
+
+  const photo = document.createElement('a');
+  photo.className = 'photo';
+  photo.href = item.url; photo.target = '_blank'; photo.rel = 'noopener';
+  photo.innerHTML = item.img ? `<img loading="lazy" alt="${sanitize(item.title||'')}" src="${item.img}">` : '';
+  outer.appendChild(photo);
+
+  // meta over photo (top-left)
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  meta.style.position = 'absolute';
+  meta.style.left = '16px';
+  meta.style.top = '14px';
+  meta.style.background = 'rgba(255,255,255,.65)';
+  meta.style.color = '#1c2026';
+  meta.style.padding = '3px 8px';
+  meta.style.borderRadius = '8px';
+  meta.style.fontWeight = '700';
+  meta.style.fontSize = '10px';
+  meta.textContent = (item.desc || '').slice(0,60);
+  outer.appendChild(meta);
+
+  // rating strip at bottom
+  const r = ratingWidget(item.id);
+  outer.appendChild(r);
+
+  return outer;
 }
 
 function loadMore(){
-  if (cursor >= items.length) return;
-  const stop = Math.min(cursor + BATCH, items.length);
-  for (let i = cursor; i < stop; i++) grid.appendChild(cardEl(items[i], i));
-  cursor = stop;
-  status.textContent = `${cursor}/${items.length}`;
+  const allowNSFW = nsfwToggle.checked;
+  let rendered = 0;
+  while (cursor < items.length && rendered < BATCH){
+    const it = items[cursor++];
+    if (!allowNSFW && it.over18) continue;
+    grid.appendChild(cardEl(it, cursor-1));
+    rendered++;
+  }
+  status.textContent = `${Math.min(cursor, items.length)}/${items.length}`;
   if (cursor >= items.length){
     observer.disconnect();
     sent?.remove();
     btn.disabled = true;
     btn.textContent = 'All loaded';
-    endMsg.textContent = '• end •';
   }
+}
+
+/* ---------- Top Rated row ---------- */
+function refreshTopRated(){
+  const entries = Object.entries(ratings)
+    .map(([id, val]) => ({ id, r: val.r, t: val.t }))
+    .sort((a,b)=> b.r - a.r || b.t - a.t)
+    .slice(0, 9);
+
+  const byId = new Map(items.map(x=>[x.id,x]));
+  const chosen = entries.map(e => byId.get(e.id)).filter(Boolean);
+
+  if (chosen.length === 0){
+    topRow.innerHTML = '';
+    return;
+  }
+
+  const row = document.createElement('div');
+  row.innerHTML = `<h2>⭐ Top Rated (yours)</h2>`;
+  const subgrid = document.createElement('div');
+  subgrid.className = 'grid';
+  chosen.forEach((it, i) => subgrid.appendChild(cardEl(it, i)));
+  row.appendChild(subgrid);
+
+  topRow.innerHTML = '';
+  topRow.appendChild(row);
 }
 
 /* ---------- Reddit fetch ---------- */
@@ -109,19 +349,20 @@ async function fetchReddit(subsCSV){
       if (!r.ok) continue;
       const data = await r.json();
       const posts = (data?.data?.children || []).map(c => c.data).filter(Boolean);
-      const mapped = posts
-        .map(p => {
+      const mapped = posts.map(p => {
           const preview = p.preview?.images?.[0]?.source?.url;
           const direct  = p.url_overridden_by_dest || p.url || '';
           const img = (preview || direct).replace(/&amp;/g,'&');
           return {
+            id: p.permalink,
+            url: `https://www.reddit.com${p.permalink}`,
             title: p.title,
             desc: `u/${p.author} • ${p.subreddit}`,
             img: isImgUrl(img) ? img : '',
-            url: `https://www.reddit.com${p.permalink}`
+            over18: !!p.over_18
           };
         })
-        .filter(x => x.img); 
+        .filter(x => x.img);
       out = out.concat(mapped);
     } catch {}
   }
@@ -134,16 +375,23 @@ const observer = new IntersectionObserver(
   { root:null, rootMargin:'1400px 0px', threshold:0.01 }
 );
 btn.addEventListener('click', loadMore);
+nsfwToggle.addEventListener('change', ()=>{
+  grid.innerHTML=''; cursor=0; btn.disabled=false; btn.textContent='Load more';
+  observer.observe(sent); loadMore();
+});
 
 (async () => {
   const param = q('reddit') || DEFAULT_SUBS.join(',');
   items = await fetchReddit(param);
+
   if (!items || items.length === 0){
-    items = Array.from({length: 30}, (_,i)=>({ title:`Item ${i+1}`, desc:'(demo)' }));
+    items = Array.from({length: 24}, (_,i)=>({ id:'demo'+i, url:'#', title:`Item ${i+1}`, desc:'(demo)', img:'', over18:false }));
   }
+
   status.textContent = `0/${items.length}`;
   observer.observe(sent);
-  loadMore(); loadMore();
+  loadMore(); loadMore();   // prime
+  refreshTopRated();
 })();
 </script>
 </body>
