@@ -1,280 +1,430 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Celeb Wall — v2.8.3</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Celeb Wall — v2.8.1-stable</title>
 <style>
   :root{
-    --bg:#0c0f14; --glass:#141922cc; --glass-strong:#141922f2;
-    --border:rgba(255,255,255,.08); --text:#e8eef6; --muted:#9fb0c4;
-    --good:#1cc5b7; --bad:#ea4c5a; --radius:18px; --radius-sm:14px;
-    --shadow:0 10px 35px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.02);
+    --bg: #0c0f14;
+    --glass: rgba(255,255,255,.06);
+    --glass-2: rgba(255,255,255,.12);
+    --ink: #dfe6f3;
+    --ink-dim:#aeb7c6;
+    --ink-sub:#8a93a3;
+    --pill-shadow: 0 8px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.04);
+    --gradA: linear-gradient(135deg,#B3A6FF 0%, #8ED1F5 50%, #F7A7C1 100%);
+    --gradLike: linear-gradient(135deg,#29c6b7 0%,#53e1d3 100%);
+    --gradNope: linear-gradient(135deg,#ff5a76 0%,#ff8aa0 100%);
+    --btnGrad: linear-gradient(135deg,#8aa7ff 0%,#b694ff 60%,#ff9ac6 100%);
+    --glass-blur: blur(14px);
+    --card-radius: 20px;
   }
+  *{box-sizing:border-box}
   html,body{height:100%}
   body{
-    margin:0; color:var(--text);
-    font:500 16px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Inter,Roboto,Arial;
-    background:
-      radial-gradient(1200px 500px at 30% -10%, rgba(151,124,255,.12), transparent 60%),
-      radial-gradient(900px 600px at 100% 0%, rgba(255,140,180,.10), transparent 60%),
-      linear-gradient(180deg,#0b0e13,#0b0e13 40%,#0a0d12 100%);
-    background-color:var(--bg);
+    margin:0;
+    font-family: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    color:var(--ink);
+    background: radial-gradient(1200px 600px at 10% -10%,#1b2231 0%,transparent 60%),
+                radial-gradient(1200px 600px at 110% -10%,#271a27 0%,transparent 60%),
+                var(--bg);
+    background-attachment: fixed;
   }
-  .wrap{max-width:980px;margin:22px auto;padding:0 16px}
-  .grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin-bottom:18px}
-  .pill{background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.04));
-        border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);
-        padding:18px 16px;text-align:center}
-  .pill .k{display:block;color:var(--muted);font-size:14px;letter-spacing:.1em}
-  .pill .v{display:block;font-weight:800;font-size:32px;margin-top:2px}
-  .progress{margin:10px 0 8px;padding-right:6px}
-  .bar{height:10px;border-radius:999px;background:rgba(255,255,255,.08);
-       position:relative;overflow:hidden;border:1px solid var(--border)}
-  .bar::before{content:"";position:absolute;inset:0 auto 0 0;width:var(--pct,3%);
-       background:linear-gradient(90deg,#ff9ac0,#a3b4ff,#6ec6ff);border-radius:999px;transition:width .25s}
-  .pRow{display:flex;justify-content:space-between;color:var(--muted);margin-top:8px}
-  .center{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin:22px 0}
-  .btn{background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.04));
-       border:1px solid var(--border);color:var(--text);padding:14px 18px;border-radius:20px;
-       box-shadow:var(--shadow);cursor:pointer;min-width:140px;text-align:center;transition:transform .08s}
-  .btn:active{transform:translateY(1px)}
-  .btn.primary{background:
-    radial-gradient(120% 160% at 20% -20%, rgba(255,160,220,.25), transparent 40%),
-    linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05))}
-  .btn.alt{background:
-    radial-gradient(120% 160% at 20% -20%, rgba(150,190,255,.20), transparent 40%),
-    linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05))}
-  .cards{display:grid;grid-template-columns:1fr;gap:22px;margin:26px auto 80px;max-width:980px;padding:0 16px}
-  .card{background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.04));
-        border:1px solid var(--border);border-radius:24px;box-shadow:var(--shadow);overflow:hidden}
-  .card-hd{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:14px 16px 8px;color:var(--muted);font-size:14px}
-  .card-hd .name{margin:0;font-size:18px;color:var(--text)}
-  .media{position:relative;background:#0b0f14}
-  .media img,.media video{display:block;width:100%;height:auto;max-height:76vh;object-fit:cover;background:#0b0f14}
-  .actions{display:flex;gap:12px;padding:14px;justify-content:space-between;align-items:center;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.06))}
-  .btn.like{background:linear-gradient(180deg, rgba(28,197,183,.25), rgba(28,197,183,.18));border-color:rgba(28,197,183,.35)}
-  .btn.dismiss{background:linear-gradient(180deg, rgba(234,76,90,.25), rgba(234,76,90,.18));border-color:rgba(234,76,90,.35)}
-  .btn.open{min-width:96px}
-  .modal{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.5);z-index:30}
-  .modal.show{display:grid}
-  .sheet{width:min(820px,calc(100vw - 28px));max-height:78vh;overflow:auto;background:var(--glass-strong);
-         border:1px solid var(--border);border-radius:22px;box-shadow:var(--shadow)}
-  .sheet .hd{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;position:sticky;top:0;backdrop-filter:blur(8px);background:rgba(20,25,34,.9)}
-  .sheet h3{margin:0}
-  pre#log{padding:18px;margin:0;font:600 14px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#dfe7f4;white-space:pre-wrap}
-  .close{background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.08));border:1px solid var(--border);color:var(--text);
-         border-radius:999px;padding:10px 14px;cursor:pointer}
-  @media (min-width:700px){.cards{grid-template-columns:1fr 1fr}}
-  @media (min-width:1024px){.cards{grid-template-columns:1fr 1fr 1fr}}
+  .page{max-width:900px;margin:0 auto;padding:20px 14px 80px}
+  header{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-items:stretch}
+  .pill{
+    border-radius:16px;
+    background:var(--glass);
+    box-shadow:var(--pill-shadow);
+    padding:18px 16px;
+    text-align:center;
+    backdrop-filter:var(--glass-blur);
+  }
+  .pill .k{display:block;font-weight:700;letter-spacing:.06em;color:var(--ink-dim)}
+  .pill .v{display:block;font-size:34px;font-weight:900;letter-spacing:.02em}
+  .meter-wrap{margin:22px 0 10px}
+  .meter{
+    height:12px;border-radius:12px;background:rgba(255,255,255,.06);overflow:hidden;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .meter > i{
+    display:block;height:100%;width:0%;
+    background: var(--gradA);
+    transition: width .25s ease;
+  }
+  .stage{display:flex;justify-content:space-between;gap:10px;color:var(--ink-sub);font-weight:800}
+  .toolbar{
+    margin:20px 0 6px;display:grid;grid-template-columns:1fr 1fr;gap:14px
+  }
+  .btn{
+    border:none;border-radius:16px;padding:18px 18px;font-size:20px;font-weight:800;
+    color:var(--ink);background:var(--glass);box-shadow:var(--pill-shadow);backdrop-filter:var(--glass-blur);
+    cursor:pointer;transition:transform .04s ease, filter .2s ease, background .2s ease;
+  }
+  .btn:active{transform:translateY(1px) scale(.99)}
+  .btn.primary{background:var(--glass-2)}
+  .btn.grad{background:var(--btnGrad)}
+  .btn.full{grid-column:1 / -1}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  /* Cards */
+  .cards{display:grid;gap:24px;margin-top:18px}
+  .card{
+    border-radius:var(--card-radius);
+    background: rgba(255,255,255,.04);
+    box-shadow: 0 14px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.05);
+    overflow:hidden; position:relative; backdrop-filter: var(--glass-blur);
+  }
+  .titleBar{
+    position:absolute;left:0;right:0;top:0;padding:14px 16px;
+    display:flex;justify-content:space-between;gap:8px;align-items:center;
+    background:linear-gradient(180deg,rgba(0,0,0,.45),rgba(0,0,0,0));
+    color:#fff;font-weight:900;letter-spacing:.02em;text-shadow:0 1px 0 rgba(0,0,0,.5);
+  }
+  .media{width:100%;display:block;background:#0a0d12;min-height:260px;object-fit:cover}
+  .cardFooter{
+    display:flex;justify-content:space-between;gap:12px;padding:14px;background:rgba(0,0,0,.28)
+  }
+  .act{
+    flex:1;border:none;border-radius:14px;padding:14px 16px;font-size:18px;font-weight:900;color:#0b1114;
+    cursor:pointer;background:var(--glass);backdrop-filter:var(--glass-blur);
+  }
+  .act.like{background:var(--gradLike)}
+  .act.nope{background:var(--gradNope)}
+  .source{font-weight:800;color:var(--ink-sub)}
+  /* Modal */
+  .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.45);backdrop-filter: blur(6px);z-index:40}
+  .modal.show{display:flex}
+  .sheet{
+    width:min(800px,92vw);max-height:86vh;overflow:auto;border-radius:20px;padding:16px 16px 8px;
+    background:rgba(20,22,28,.92);box-shadow:0 20px 60px rgba(0,0,0,.6)
+  }
+  .sheet .hd{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+  .close{border:none;border-radius:14px;background:var(--btnGrad);padding:10px 16px;color:#fff;font-weight:900;cursor:pointer}
+  pre{white-space:pre-wrap;font-size:15px;line-height:1.5em;color:#cfe2ff}
+  /* Helpers */
+  .muted{color:var(--ink-sub)}
+  .hide{display:none!important}
+  .row{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  .badge{background:rgba(255,255,255,.08);padding:6px 10px;border-radius:999px;font-weight:800}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="grid4">
-    <div class="pill"><span class="k">BUILD</span><span class="v" id="build">v2.8.3</span></div>
-    <div class="pill"><span class="k">SHOWN</span><span class="v" id="shownCount">0</span></div>
-    <div class="pill"><span class="k">POOL</span><span class="v" id="poolCount">0</span></div>
-    <div class="pill"><span class="k">TOTAL</span><span class="v" id="totalCount">0</span></div>
-  </div>
+  <div class="page">
+    <header>
+      <div class="pill"><span class="k">BUILD</span><span class="v" id="build">v2.8.1</span></div>
+      <div class="pill"><span class="k">SHOWN</span><span class="v" id="shown">0</span></div>
+      <div class="pill"><span class="k">POOL</span><span class="v" id="pool">0</span></div>
+      <div class="pill"><span class="k">TOTAL</span><span class="v" id="total">0</span></div>
+    </header>
 
-  <div class="progress">
-    <div class="bar" id="progress"></div>
-    <div class="pRow"><div id="sourceLabel">r/celebs</div><div id="pLabel">Idle</div></div>
-  </div>
-
-  <div class="center">
-    <button id="btn-home" class="btn">Home</button>
-    <button id="btn-likes" class="btn">⭐ Likes <span id="likesCount" style="opacity:.65">0</span></button>
-  </div>
-  <div class="center">
-    <button id="btn-new" class="btn primary">New batch</button>
-    <button id="btn-shuffle" class="btn alt">Shuffle feed</button>
-  </div>
-  <div class="center">
-    <button id="btn-more" class="btn">Load more</button>
-    <button id="btn-sources" class="btn">r/celebs + more</button>
-  </div>
-  <div class="center">
-    <button id="btn-troubleshoot" class="btn">Troubleshoot</button>
-  </div>
-</div>
-
-<section id="cards" class="cards"></section>
-
-<div class="modal" id="modal">
-  <div class="sheet">
-    <div class="hd">
-      <h3>Troubleshoot</h3>
-      <button class="close" id="close">Close</button>
+    <div class="meter-wrap">
+      <div class="meter"><i id="bar"></i></div>
+      <div class="stage"><span id="stageL">Idle</span><span id="stageR">0%</span></div>
     </div>
-    <pre id="log"></pre>
+
+    <div class="toolbar">
+      <button class="btn" id="homeBtn">Home</button>
+      <button class="btn" id="likesBtn">⭐ Likes <span class="badge" id="likesCount">0</span></button>
+      <button class="btn grad" id="newBtn">New batch</button>
+      <button class="btn" id="shuffleBtn">Shuffle feed</button>
+      <button class="btn full" id="loadBtn">Load more</button>
+      <button class="btn full" id="sourcesBtn">r/celebs + more</button>
+      <button class="btn full" id="troubleBtn">Troubleshoot</button>
+    </div>
+
+    <section id="cards" class="cards"></section>
   </div>
-</div>
+
+  <!-- Troubleshoot -->
+  <div class="modal" id="modal">
+    <div class="sheet">
+      <div class="hd">
+        <div class="pill" style="padding:10px 14px;font-weight:900">Troubleshoot</div>
+        <button class="close" id="closeModal">Close</button>
+      </div>
+      <pre id="log"></pre>
+    </div>
+  </div>
 
 <script>
-/* ========= core ========= */
-const BUILD='v2.8.3';
-const PROXIES=[
-  (u)=>`https://r.jina.ai/http://${u}`,
-  (u)=>`https://r.jina.ai/http://${u}?_=${Date.now()}`,      // jitter param
-  (u)=>`https://r.jina.ai/http://${u.replace(/^www\./,'old.')}` // old.reddit trick
-];
-const SUBS=['Celebs','celebritylegs','BeautifulCelebrities','celebrityhotties','CelebPortraits','TheCelebArchive','CelebGWN','celebs','CelebrityArmpits'];
+(() => {
+  /*** CONFIG **************************************************************/
+  const BUILD = 'v2.8.1-stable';
+  const SUBS = [
+    'Celebs','celebrityhotties','BeautifulCelebrities','celebrity_armpits',
+    'celebritylegs','LadiesOfWrestling','ModelsofReddit','thecelebrityclub'
+  ];
+  const BATCH_SIZE = 3;       // subs to hit per pass
+  const ITEMS_PER_FETCH = 25; // per sub request
+  const BASE = 'https://r.jina.ai/http://www.reddit.com';
+  const PROGRESS_STEPS = ['Queueing','Requesting','Parsing','Filtering','Ready'];
+  const IMAGE_OK = ['.jpg','.jpeg','.png','.gif','.gifv','.webp'];
 
-const cards=document.getElementById('cards');
-const btnNew=document.getElementById('btn-new');
-const btnMore=document.getElementById('btn-more');
-const btnShuffle=document.getElementById('btn-shuffle');
-const btnTrouble=document.getElementById('btn-troubleshoot');
-const modal=document.getElementById('modal');
-const closeModal=document.getElementById('close');
-const labelSource=document.getElementById('sourceLabel');
-const likesChip=document.getElementById('likesCount');
-const bar=document.getElementById('progress');
-const pLabel=document.getElementById('pLabel');
-const logEl=document.getElementById('log');
+  /*** STATE ***************************************************************/
+  const state = {
+    mode: 'home',          // 'home' | 'likes'
+    pool: [],              // unseen cards
+    shown: 0,
+    total: 0,
+    likes: loadLikes(),    // [{id,url,title,sub}]
+    dismissed: loadDismissed(), // Set of post ids
+    fetching: false,
+    backoffMs: 1200,       // exponential backoff base
+    subCursor: {},         // sub -> after
+    rotating: 0            // start index for sub batch
+  };
 
-let POOL=[], SHOWN=0;
-let LIKES=JSON.parse(localStorage.getItem('likes-v1')||'[]');
-likesChip.textContent=LIKES.length;
+  /*** DOM *****************************************************************/
+  const $cards = qs('#cards');
+  const $shown = qs('#shown');
+  const $pool = qs('#pool');
+  const $total = qs('#total');
+  const $build = qs('#build');
+  const $bar = qs('#bar');
+  const $stageL = qs('#stageL');
+  const $stageR = qs('#stageR');
+  const $likesCount = qs('#likesCount');
+  const $modal = qs('#modal'), $log = qs('#log');
 
-const wait=(ms)=>new Promise(r=>setTimeout(r,ms));
-const bump=(id,v)=>{const el=document.getElementById(id); if(el) el.textContent=String(v);};
-function counters(){bump('poolCount',POOL.length);bump('shownCount',SHOWN);bump('totalCount',POOL.length+SHOWN);}
-function prog(p,txt){ bar.style.setProperty('--pct',Math.max(3,Math.min(100,p))+'%'); pLabel.textContent=txt||''; }
-function logLine(s){ logEl.textContent=`[${new Date().toLocaleTimeString()}] ${s}\n`+logEl.textContent; }
+  $build.textContent = BUILD;
+  $likesCount.textContent = state.likes.length;
 
-/* resilient fetch with proxy rotation + backoff */
-async function fetchJSONThroughProxies(path,{retries=4, baseDelay=1200}={}){
-  let attempt=0, lastErr;
-  while(attempt<=retries){
-    for(const pxy of PROXIES){
+  on('#homeBtn','click',() => { state.mode='home'; repaint(); });
+  on('#likesBtn','click',() => { state.mode='likes'; repaint(true); });
+  on('#newBtn','click',() => { resetAndFetch(); });
+  on('#shuffleBtn','click',() => { shuffle(state.pool); repaint(); toast('Shuffled'); });
+  on('#loadBtn','click',() => { ensurePool(12); });
+  on('#sourcesBtn','click',() => { toast('Sources: ' + SUBS.join(', ')); });
+  on('#troubleBtn','click',() => { $modal.classList.add('show'); });
+  on('#closeModal','click',() => { $modal.classList.remove('show'); });
+
+  /*** HELPERS *************************************************************/
+  function qs(s, el=document){ return el.querySelector(s); }
+  function on(sel,evt,fn){ qs(sel).addEventListener(evt,fn); }
+  function log(line){
+    const t = new Date().toLocaleTimeString();
+    $log.textContent += `\n[${t}] ${line}`;
+    $log.scrollTop = $log.scrollHeight;
+    console.debug(line);
+  }
+  function stage(i, pctText){
+    $stageL.textContent = PROGRESS_STEPS[i]||'Idle';
+    if (pctText!==undefined) $stageR.textContent = pctText;
+    $bar.style.width = pctText||'0%';
+  }
+  function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } }
+  function extOK(url){ const u = url.split('?')[0].toLowerCase(); return IMAGE_OK.some(e=>u.endsWith(e)); }
+  function fixGif(url){ return url.endsWith('.gifv') ? url.replace('.gifv','.mp4') : url; }
+  function saveLikes(a){ localStorage.setItem('cw_likes', JSON.stringify(a)); }
+  function loadLikes(){ try{ return JSON.parse(localStorage.getItem('cw_likes')||'[]'); }catch{ return []; } }
+  function saveDismissed(set){ localStorage.setItem('cw_nope', JSON.stringify([...set])); }
+  function loadDismissed(){ try{ return new Set(JSON.parse(localStorage.getItem('cw_nope')||'[]')); }catch{ return new Set(); } }
+  function toast(msg){ log(msg); }
+
+  function repaint(forceLikes=false){
+    $shown.textContent = String(state.shown);
+    $pool.textContent = String(state.pool.length);
+    $total.textContent = String(state.total);
+    $likesCount.textContent = state.likes.length;
+
+    $cards.innerHTML = '';
+    const list = (state.mode==='likes'||forceLikes) ? state.likes : state.pool;
+    list.forEach(addCard);
+  }
+
+  function addCard(item){
+    const card = document.createElement('article');
+    card.className = 'card';
+    card.dataset.id = item.id;
+
+    const titleBar = document.createElement('div');
+    titleBar.className='titleBar';
+    titleBar.innerHTML = `<div>${item.title || item.author || '—'}</div><div class="source">r/${item.sub}</div>`;
+
+    const media = document.createElement(item.url.endsWith('.mp4') ? 'video' : 'img');
+    media.className='media';
+    media.src = item.url;
+    if (media.tagName==='VIDEO'){ media.controls=true; media.loop=true; media.muted=true; media.playsInline=true; }
+
+    const foot = document.createElement('div'); foot.className='cardFooter';
+    const nope = document.createElement('button'); nope.className='act nope'; nope.textContent='Dismiss';
+    const like = document.createElement('button'); like.className='act like'; like.textContent='Like';
+    foot.append(nope, like);
+
+    nope.addEventListener('click', () => {
+      state.dismissed.add(item.id); saveDismissed(state.dismissed);
+      if (state.mode==='likes') { /* ignore on likes view */ } else {
+        state.pool = state.pool.filter(x=>x.id!==item.id);
+        repaint();
+      }
+    });
+    like.addEventListener('click', () => {
+      if (!state.likes.some(x=>x.id===item.id)){ state.likes.unshift(item); saveLikes(state.likes); }
+      state.pool = state.pool.filter(x=>x.id!==item.id);
+      repaint();
+    });
+
+    card.append(titleBar, media, foot);
+    $cards.append(card);
+  }
+
+  /*** FETCH LOGIC **********************************************************/
+  async function resetAndFetch(){
+    state.fetching=false;
+    state.pool.length=0;
+    state.shown=0;
+    state.total=0;
+    state.subCursor = {};
+    state.rotating = 0;
+    repaint();
+    await ensurePool(18);
+  }
+
+  async function ensurePool(minCount){
+    if (state.fetching) return;
+    if (state.pool.length>=minCount){ repaint(); return; }
+    state.fetching=true;
+
+    stage(0,'12%'); // Queueing
+    const startIdx = state.rotating;
+    const batch = [];
+    for (let i=0;i<BATCH_SIZE;i++){
+      batch.push(SUBS[(startIdx+i) % SUBS.length]);
+    }
+    state.rotating = (startIdx + BATCH_SIZE) % SUBS.length;
+    log('Building new batch… ('+ batch.join(', ') +')');
+
+    stage(1,'22%'); // Requesting
+
+    // Request serially with backoff to behave nicely
+    const found = [];
+    for (const sub of batch){
+      const items = await pullFromSub(sub).catch(e => { log(`× r/${sub}: ${e.message||e}`); return []; });
+      found.push(...items);
+      await sleep(450); // small spacing
+    }
+
+    stage(2,'55%'); // Parsing (already parsed, but keep the UX)
+
+    const filtered = found.filter(it => {
+      if (!it.url) return false;
+      if (!extOK(it.url)) return false;
+      if (state.dismissed.has(it.id)) return false;
+      if (state.likes.some(x=>x.id===it.id)) return false;
+      return true;
+    }).map(it => ({...it, url: fixGif(it.url)}));
+
+    stage(3,'78%'); // Filtering
+
+    state.pool.push(...filtered);
+    state.total += filtered.length;
+    state.shown += 0;
+    repaint();
+
+    stage(4,'100%'); // Ready
+    setTimeout(()=>stage(0,'0%'),500);
+
+    state.fetching=false;
+    if (state.pool.length < minCount) {
+      // recurse lightly to top-up
+      await sleep(600);
+      return ensurePool(minCount);
+    }
+  }
+
+  async function pullFromSub(sub){
+    // prefer images in last month, restrict subreddit
+    const params = new URLSearchParams({
+      q: '(url:.jpg OR url:.jpeg OR url:.png OR url:.gif OR url:.gifv OR site:i.redd.it)',
+      restrict_sr: 'on',
+      sort: 'top',
+      t: 'month',
+      limit: String(ITEMS_PER_FETCH),
+      after: state.subCursor[sub] || ''
+    });
+    const url = `${BASE}/r/${sub}/search.json?${params.toString()}`;
+
+    // polite user agent via jina proxy not needed, but keep delay/backoff on 429
+    const res = await safeFetch(url);
+
+    if (!res.ok) {
+      if (res.status===429){ throw new Error('HTTP 429'); }
+      throw new Error(`HTTP ${res.status}`);
+    }
+
+    const txt = await res.text();
+    let data;
+    try { data = JSON.parse(txt); }
+    catch(e){
+      // common when mirror returns HTML (e.g., blocked)
+      throw new Error('JSON Parse error');
+    }
+
+    const after = data?.data?.after || null;
+    state.subCursor[sub] = after;
+
+    const list = (data?.data?.children || []).map(n => {
+      const d = n.data || {};
+      return {
+        id: d.id,
+        url: d.url_overridden_by_dest || d.url || '',
+        title: d.title || d.author || '',
+        sub: d.subreddit || sub,
+        author: d.author || '',
+      };
+    });
+
+    log(`+ r/${sub}: ${list.length} items`);
+    return list;
+  }
+
+  async function safeFetch(url){
+    let tries = 0;
+    let wait = state.backoffMs;
+    while (true){
       try{
-        const url=pxy(path);
-        const res=await fetch(url,{cache:'no-store'});
-        if(res.status===429){ lastErr=new Error('HTTP 429'); logLine(`✖ rate-limited → backoff…`); throw lastErr; }
-        if(!res.ok){ lastErr=new Error(`HTTP ${res.status}`); throw lastErr; }
-        const txt=await res.text();
-        return JSON.parse(txt);
-      }catch(e){
-        lastErr=e;
+        const r = await fetch(url, { headers: { 'accept': 'application/json,text/plain,*/*' }});
+        // If 429, backoff
+        if (r.status===429){
+          tries++;
+          const until = Math.min(wait*(2**(tries-1)), 6000);
+          stage(1, `Backoff ${Math.ceil(until/1000)}s…`);
+          log(`429 on ${url} — backing off ${until}ms`);
+          await sleep(until);
+          continue;
+        }
+        // Sometimes proxies return text/html error with 200—detect
+        const ct = r.headers.get('content-type')||'';
+        if (!/json|javascript|plain/i.test(ct)) {
+          // still could be JSON as text/plain (OK), we’ll try parse later.
+          // If clearly HTML, treat as soft error:
+          if (/html/i.test(ct)) {
+            tries++;
+            const until = Math.min(wait*(2**(tries-1)), 5000);
+            log(`Non-JSON content-type (${ct}) — retry in ${until}ms`);
+            await sleep(until);
+            continue;
+          }
+        }
+        return r;
+      }catch(err){
+        tries++;
+        const until = Math.min(wait*(2**(tries-1)), 5000);
+        log(`Network error – retry in ${until}ms`);
+        await sleep(until);
+        if (tries>=3) throw err;
       }
     }
-    attempt++;
-    const jitter = Math.random()*400;
-    const backoff = Math.min(8000, baseDelay * Math.pow(1.8, attempt)) + jitter;
-    prog(20+attempt*5, `Backoff ${Math.round(backoff/1000)}s…`);
-    await wait(backoff);
-  }
-  throw lastErr || new Error('Failed all proxies');
-}
-
-function listingURL(sub,{sort='hot',t='week',limit=50}={}){return `www.reddit.com/r/${sub}/${sort}.json?raw_json=1&limit=${limit}&include_over_18=on&t=${t}`;}
-function searchURL(sub,q,{limit=50,sort='relevance',t='year'}={}){const qq=encodeURIComponent(`title:"${q}" AND (url:.jpg OR url:.png OR url:.gif OR is_video:true)`);return `www.reddit.com/r/${sub}/search.json?raw_json=1&restrict_sr=1&limit=${limit}&sort=${sort}&t=${t}&q=${qq}`;}
-
-function extractMedia(listing){
-  const out=[]; const kids=listing?.data?.children||[];
-  for(const k of kids){
-    const d=k.data||{};
-    const url=d.url_overridden_by_dest||d.url||'';
-    const img=/\.(jpg|jpeg|png)$/i.test(url);
-    const gif=/\.gif$/i.test(url);
-    const gifv=/\.gifv$/i.test(url);
-    const redVid=d.is_video && d.media?.reddit_video?.fallback_url;
-    let media=null,type=null;
-    if(img){media=url;type='img';}
-    else if(gif){media=url;type='gif';}
-    else if(gifv){media=url.replace(/\.gifv$/i,'.mp4');type='mp4';}
-    else if(redVid){media=d.media.reddit_video.fallback_url;type='mp4';}
-    else if(d.preview?.images?.[0]?.source?.url){media=d.preview.images[0].source.url.replace(/&amp;/g,'&');type='img';}
-    if(!media) continue;
-    out.push({id:d.id,title:d.title||'',author:d.author||'u/unknown',sub:d.subreddit_name_prefixed||`r/${d.subreddit}`,permalink:'https://www.reddit.com'+(d.permalink||''),media,type,nsfw:!!d.over_18});
-  }
-  return out;
-}
-
-async function fetchBatch({names=[],perName=6,backfill=60,sort='top'}={}){
-  const all=[]; const steps=names.length+1; let step=0;
-
-  for(const name of names){
-    step++; prog(Math.round((step/steps)*70), `Searching ${name}`);
-    let found=[];
-    for(const s of SUBS.slice(0,4)){
-      try{
-        const js=await fetchJSONThroughProxies(searchURL(s,name,{limit:perName*2,t:'year'}));
-        found.push(...extractMedia(js).slice(0,perName));
-      }catch(e){ logLine(`✖ ${s} (${name}): ${e.message}`); }
-      await wait(250+Math.random()*200); // polite delay
-    }
-    if(found.length){ all.push(...found); logLine(`📦 ${name}: +${found.length}`); }
-    else{ logLine(`${name}: none with media`); }
   }
 
-  prog(80,'Backfilling…');
-  for(const s of SUBS.slice(0,6)){
-    try{
-      const js=await fetchJSONThroughProxies(listingURL(s,{sort,limit:60}));
-      all.push(...extractMedia(js));
-    }catch(e){ logLine(`✖ ${s}: ${e.message}`); }
-    await wait(250+Math.random()*200);
-    if(all.length>=names.length*perName+backfill) break;
-  }
+  function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
-  const seen=new Set();
-  return all.filter(x=>{if(seen.has(x.media)) return false; seen.add(x.media); return true;});
-}
+  /*** BOOT ****************************************************************/
+  // Prime with one batch
+  resetAndFetch();
 
-/* render */
-function renderOne(item){
-  const el=document.createElement('article'); el.className='card';
-  el.innerHTML=`
-    <div class="card-hd"><h3 class="name">${item.title||'Untitled'}</h3><span class="sub">${item.sub}</span></div>
-    <div class="media">${item.type==='mp4'
-      ? `<video playsinline muted loop controls src="${item.media}"></video>`
-      : `<img loading="lazy" src="${item.media}" alt="">`}</div>
-    <div class="actions">
-      <button class="btn dismiss">Dismiss</button>
-      <a class="btn open" href="${item.permalink}" target="_blank" rel="noopener">Open</a>
-      <button class="btn like">Like</button>
-    </div>`;
-  el.querySelector('.dismiss').onclick=()=>{el.remove();SHOWN++;counters();};
-  el.querySelector('.like').onclick=()=>{
-    LIKES.unshift(item); LIKES=LIKES.slice(0,500);
-    localStorage.setItem('likes-v1',JSON.stringify(LIKES));
-    likesChip.textContent=LIKES.length;
-    el.remove(); SHOWN++; counters();
-  };
-  cards.appendChild(el);
-}
-function renderSome(n=8){ for(let i=0;i<n&&POOL.length;i++){ renderOne(POOL.shift()); } counters(); }
-
-/* flows */
-async function buildNewBatch(){
-  try{
-    cards.innerHTML=''; SHOWN=0; counters();
-    prog(6,'Starting…'); labelSource.textContent='r/celebs + more';
-    const NAMES=['Kendall Jenner','Hailey Bieber','Madison Beer','Sabrina Carpenter','Alexandra Daddario','Dua Lipa','Gal Gadot','Sydney Sweeney','Selena Gomez','Irina Shayk','Hailee Steinfeld','Vanessa Hudgens'];
-    const items=await fetchBatch({names:NAMES,perName:4,backfill:70,sort:'hot'});
-    POOL = items;
-    logLine(`✅ Batch ready: ${POOL.length} items`);
-    prog(100,'Ready'); renderSome(10);
-  }catch(e){
-    logLine(`❌ Batch failed: ${e.message}`); prog(100,'Idle');
-  }
-}
-
-/* events */
-document.getElementById('build').textContent=BUILD;
-btnNew.onclick=buildNewBatch;
-btnMore.onclick=()=>renderSome(8);
-btnShuffle.onclick=()=>{ POOL.sort(()=>Math.random()-.5); renderSome(0); };
-btnTrouble.onclick=()=>modal.classList.add('show');
-closeModal.onclick=()=>modal.classList.remove('show');
-modal.addEventListener('click',(e)=>{ if(e.target===modal) modal.classList.remove('show'); });
-
-/* initial */
-prog(18,'Idle'); counters();
+})();
 </script>
 </body>
 </html>
