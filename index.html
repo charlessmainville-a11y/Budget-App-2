@@ -1,377 +1,381 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Scroll Wall</title>
 <style>
   :root{
-    --bg:#0a0f1a; --bg2:#0f1624; --ink:#e9eefc; --muted:#9fb0d0;
-    --accent:#ff6fa0; --chip:#223048; --chipInk:#d9e6ff;
-    --polaroid:#fff; --shadow:0 14px 40px rgba(0,0,0,.35),0 3px 8px rgba(0,0,0,.25);
+    --bg:#0b0f16; --bg2:#131a24; --ink:#e9f0ff; --muted:#98a6bd;
+    --accent:#ff6ea5; --chip:#243041; --ok:#3ddc97; --warn:#ff9f43;
+    --polaroid:#111720; --shadow:0 12px 30px rgba(0,0,0,.35);
   }
-  *{box-sizing:border-box}
-  html,body{margin:0;height:100%;background:radial-gradient(1200px 600px at 50% -200px,#142036 0%,#0b1220 60%,#0a0f1a 100%);color:var(--ink);font:16px/1.4 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
-  a{color:inherit;text-decoration:none}
-  .wrap{max-width:980px;margin:0 auto;padding:24px 14px 80px}
-  header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
-  h1{margin:0;font-size:40px;letter-spacing:.5px}
-  nav{display:flex;gap:8px;flex-wrap:wrap}
-  .btn{appearance:none;border:0;border-radius:14px;padding:12px 16px;font-weight:800;background:var(--accent);color:#111;box-shadow:var(--shadow);cursor:pointer}
-  .btn.secondary{background:#1f2b44;color:var(--ink);box-shadow:none;border:1px solid #2a3a5a}
-  .btn.ghost{background:transparent;border:1px solid #2a3a5a;color:var(--ink)}
-  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-  .counter{min-width:80px;text-align:center;border-radius:12px;padding:10px 12px;background:#13203a;border:1px solid #1d2c4c;font-weight:800}
-  .badge{font-size:12px;font-weight:900;padding:4px 8px;border-radius:999px;background:#1e2b47;color:#cfe0ff;border:1px solid #2a3a5a}
-  .tips{margin:10px 0 6px;color:var(--muted)}
-
+  html,body{margin:0;background:radial-gradient(1200px 600px at 50% -200px,#162032 0%,#0d1420 60%,#090d14 100%);color:var(--ink);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif}
+  .wrap{max-width:980px;margin:12px auto 80px;padding:12px}
+  /* top bar */
+  .nav{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:6px 0 10px}
+  .pill{background:#1a2331;border-radius:16px;padding:10px 16px;font-weight:700;box-shadow:var(--shadow);border:1px solid #223149;cursor:pointer;user-select:none}
+  .ghost{background:transparent;border-color:#334766;box-shadow:none}
+  .right{margin-left:auto}
+  /* controls */
+  .panel{background:var(--bg2);border:1px solid #203049;border-radius:18px;padding:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;box-shadow:var(--shadow)}
+  .cta{background:var(--accent);color:#09111b;font-weight:800;border:none;border-radius:16px;padding:14px 20px;cursor:pointer;box-shadow:0 8px 20px rgba(255,110,165,.35)}
+  .num{min-width:86px;text-align:center;background:#0d1521;border:1px solid #1f2c43;border-radius:14px;padding:12px 14px;font-weight:800}
+  .chip{background:var(--chip);border:1px solid #2a3b54;border-radius:14px;padding:10px 14px;font-weight:700}
+  .small{font-size:12px;color:var(--muted)}
   /* grid */
-  .grid{columns:1;column-gap:16px}
-  @media(min-width:640px){.grid{columns:2}}
-  @media(min-width:980px){.grid{columns:3}}
-
-  /* card */
-  .card{break-inside:avoid;display:block;margin:12px 0;padding:14px 14px 22px;background:var(--polaroid);color:#111;border-radius:14px;box-shadow:var(--shadow);transform:rotate(var(--rot,0deg));position:relative;transition:transform .18s ease,box-shadow .18s ease,opacity .25s ease}
-  .card:hover{box-shadow:0 18px 50px rgba(0,0,0,.45)}
-  .frame{width:100%;aspect-ratio:4/5;background:#ccc;border-radius:10px;overflow:hidden}
-  .frame img,.frame video{width:100%;height:100%;object-fit:cover;display:block}
-  .caption{margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:8px}
-  .chip{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:var(--chip);color:var(--chipInk);font-weight:700;letter-spacing:.2px}
-  .starBtn{position:absolute;left:12px;top:12px;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;border:none;cursor:pointer;background:rgba(255,255,255,.9);box-shadow:0 8px 16px rgba(0,0,0,.35);transform:scale(1);transition:transform .08s ease}
-  .starBtn:active{transform:scale(.9)}
-  .star{font-size:22px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.4))}
-  .likeBurst{position:absolute;inset:0;pointer-events:none}
-  .burstDot{position:absolute;width:8px;height:8px;border-radius:50%;background:#ffd74f;opacity:.9;transform:scale(0);animation:pop .6s ease forwards}
-  @keyframes pop{to{transform:translate(var(--tx),var(--ty)) scale(1);opacity:0}}
-
-  /* route containers */
-  .view{display:none}
-  .view.active{display:block}
-
-  /* subs manager */
-  .subGrid{display:grid;grid-template-columns:1fr;gap:10px}
-  @media(min-width:800px){.subGrid{grid-template-columns: 1.2fr .8fr}}
-  textarea{width:100%;min-height:380px;border-radius:12px;padding:12px;background:#0f182c;color:var(--ink);border:1px solid #2a3a5a;font:14px/1.35 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
-  .help{color:var(--muted);font-size:14px}
-  .listBox{background:#0f182c;border:1px solid #2a3a5a;border-radius:12px;padding:12px;max-height:420px;overflow:auto}
-  .pill{display:inline-block;padding:6px 10px;margin:6px;border-radius:999px;background:#1f2b44;border:1px solid #2a3a5a}
-
-  /* toast */
-  .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#2a1b1b;color:#ffdede;border:1px solid #613;border-radius:12px;padding:10px 14px;font-weight:700;display:none}
-  .toast.show{display:block}
+  .grid{margin-top:14px;display:grid;grid-template-columns:1fr;gap:16px}
+  @media(min-width:640px){.grid{grid-template-columns:1fr 1fr}}
+  /* Polaroid card */
+  .card{position:relative;overflow:hidden;border-radius:18px;background:var(--polaroid);
+        border:1px solid #1a2436;box-shadow:var(--shadow);touch-action:pan-y;transform:translateZ(0)}
+  .ph{aspect-ratio:1/1;display:block;width:100%;object-fit:cover;background:#0b1220}
+  .vid{width:100%;display:block;background:#000}
+  .bottom{position:absolute;left:0;right:0;bottom:0;padding:16px;background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.45) 40%, rgba(0,0,0,.75) 100%)}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .sub{background:#0f1726;border:1px solid #23324a;color:#d1dfff;border-radius:12px;padding:6px 10px;font-weight:700}
+  .star{margin-left:auto;font-size:22px;cursor:pointer;filter:drop-shadow(0 3px 6px rgba(0,0,0,.35))}
+  .star.liked{color:#ffd64d;transform:scale(1.08)}
+  /* swipe animations */
+  .likeFx, .nopeFx{position:absolute;top:14px;left:14px;padding:6px 10px;border-radius:10px;font-weight:900;letter-spacing:.08em}
+  .likeFx{background:rgba(61,220,151,.9);color:#062015}
+  .nopeFx{background:rgba(255,120,120,.92);color:#2e0707;left:auto;right:14px}
+  /* pages */
+  .hidden{display:none!important}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);
+         background:#2a1c1c;border:1px solid #5e3a3a;color:#ffcdc9;padding:10px 14px;border-radius:12px;box-shadow:var(--shadow);font-weight:700}
+  /* modal */
+  dialog{border:none;border-radius:16px;padding:0;background:#111a26;color:var(--ink);box-shadow:var(--shadow);max-width:640px;width:min(92vw,640px)}
+  dialog .box{padding:16px}
+  dialog::backdrop{background:rgba(0,0,0,.5)}
+  textarea, input{width:100%;background:#0d1521;border:1px solid #1f2c43;color:var(--ink);border-radius:12px;padding:12px;font-size:14px}
+  .rowend{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+  .mini{padding:10px 14px;border-radius:12px;background:#1a2331;border:1px solid #223149;font-weight:800;cursor:pointer}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>Scroll Wall</h1>
-    <nav>
-      <a class="btn secondary" href="#/">Home</a>
-      <a class="btn secondary" href="#/liked">Liked ⭐</a>
-      <a class="btn secondary" href="#/subs">Subreddits ⚙️</a>
-    </nav>
-  </header>
-
-  <!-- HOME -->
-  <section id="view-home" class="view active">
-    <div class="row" style="margin-bottom:12px">
-      <button id="loadBtn" class="btn">Load more</button>
-      <div id="count" class="counter">0/0</div>
-      <button id="shuffleBtn" class="btn ghost">Shuffle 🔀</button>
+  <div class="wrap">
+    <!-- top nav -->
+    <div class="nav">
+      <button class="pill ghost" data-nav="home">Home</button>
+      <button class="pill" data-nav="liked">Liked ⭐</button>
+      <button class="pill" data-nav="subs">Subreddits ⚙️</button>
+      <div class="right small" id="status"></div>
     </div>
-    <div class="tips">Tap ⭐ to like. Swipe right = like, left = dismiss. Videos/GIFs auto-play.</div>
-    <div id="grid" class="grid"></div>
-  </section>
 
-  <!-- LIKED PAGE -->
-  <section id="view-liked" class="view">
-    <div class="row" style="margin-bottom:12px">
-      <button id="exportLikes" class="btn ghost">Export JSON</button>
-      <button id="clearLikes" class="btn ghost" title="Remove all liked">Clear</button>
-    </div>
-    <div id="likedGrid" class="grid"></div>
-  </section>
+    <!-- home page -->
+    <section id="home">
+      <div class="panel">
+        <button id="newBtn" class="pill">New batch</button>
+        <button id="loadBtn" class="cta">Load more</button>
+        <div id="counter" class="num">0/0</div>
+        <button id="shuffleBtn" class="pill">Shuffle 🔀</button>
+        <button id="troubleBtn" class="pill ghost">Troubleshoot 🩺</button>
+      </div>
+      <div id="grid" class="grid"></div>
+    </section>
 
-  <!-- SUBREDDITS MANAGER -->
-  <section id="view-subs" class="view">
-    <h2 style="margin:6px 0 10px">Manage subs (one per line)</h2>
-    <div class="subGrid">
-      <div>
-        <textarea id="subsArea" spellcheck="false" placeholder="r/EmilyRatajkowski
-r/AlexisRen
-r/MadisonBeer
-..."></textarea>
-        <div class="row" style="margin-top:10px">
-          <button id="saveSubs" class="btn">Save</button>
-          <button id="resetSubs" class="btn ghost">Reset to defaults</button>
-          <button id="shuffleNow" class="btn ghost">New batch now</button>
-          <button id="exportSubs" class="btn ghost">Export list</button>
+    <!-- liked page -->
+    <section id="liked" class="hidden">
+      <div class="panel">
+        <div class="chip">Liked ⭐</div>
+        <button id="exportBtn" class="pill">Export JSON</button>
+        <button id="clearLikesBtn" class="pill ghost">Clear</button>
+      </div>
+      <div id="likedGrid" class="grid"></div>
+    </section>
+
+    <!-- subreddits page -->
+    <section id="subs" class="hidden">
+      <div class="panel"><div class="chip">Edit subreddits (one per line, use r/Name)</div></div>
+      <dialog id="subHelp"><div class="box small">Tip: keep it to people-only subs for best results.</div></dialog>
+      <div class="panel">
+        <textarea id="subsText" rows="12" spellcheck="false"></textarea>
+        <div class="rowend">
+          <button id="resetSubs" class="mini">Reset to defaults</button>
+          <button id="saveSubs" class="mini">Save</button>
+          <button id="saveAndBuild" class="cta">Save & New batch</button>
         </div>
-        <p class="help">Edits are saved to your device (localStorage). New batches use this list immediately.</p>
       </div>
-      <div>
-        <div class="listBox" id="subsPreview"></div>
-      </div>
-    </div>
-  </section>
-</div>
+    </section>
 
-<div id="toast" class="toast"></div>
+    <!-- troubleshoot modal -->
+    <dialog id="diag">
+      <div class="box">
+        <div style="font-weight:800;margin-bottom:8px">Troubleshoot</div>
+        <pre id="diagText" class="small" style="white-space:pre-wrap"></pre>
+        <div class="rowend"><button class="mini" id="diagClose">Close</button></div>
+      </div>
+    </dialog>
+  </div>
+
+  <div id="toast" class="toast hidden">…</div>
 
 <script>
-/* =================== STORAGE KEYS ==================== */
-const KEY_LIKES = 'scrollwall_likes';
-const KEY_SUBS  = 'scrollwall_subs';
+/* ------------ storage & constants ------------ */
+const LS = {
+  liked: 'sw_liked_v1',
+  subs:  'sw_subs_v1'
+};
+const FETCH_BASE = 'https://r.jina.ai/http://www.reddit.com';
+const BATCH_SIZE = 12;
 
-/* =================== DEFAULT SUBS ==================== */
-const DEFAULT_WOMEN = [
-  'r/EmilyRatajkowski','r/AlexisRen','r/MadisonBeer','r/DuaLipa','r/EmmaWatson',
-  'r/AnaDeArmas','r/SydneySweeney','r/EizaGonzalez','r/SabrinaCarpenter','r/Zendaya',
-  'r/TaylorHill','r/BarbaraPalvin','r/AlexandraDaddario','r/MargotRobbie','r/GalGadot',
-  'r/EmmaStone','r/HaileeSteinfeld','r/CamilaMorrone','r/CharliDAmelio','r/AddisonRae',
-  'r/HaileyBieber','r/LilyCollins','r/AnyaTaylorJoy','r/JennaOrtega','r/ElizabethOlsen',
-  'r/FlorencePugh','r/ArianaGrande','r/KylieJenner','r/KendallJenner','r/BellaHadid',
-  'r/GigiHadid','r/KaiaGerber','r/LanaDelRey','r/MeganFox','r/DojaCat','r/OliviaRodrigo',
-  'r/LeaElui','r/SommerRay','r/KatherineLangford','r/AlexandraShipp','r/SofiaVergara',
-  'r/SalmaHayek','r/EmmaMackey','r/LilyJames','r/AnaCheri','r/AlishaLehmann',
-  'r/Anyastaylorjoy','r/winterAESPA','r/MadelynCline','r/SydneyMayCrouch','r/AlixEarle'
-];
-
-/* =================== SETTINGS ==================== */
-const USE_MIRROR = true; // more reliable on mobile
-const FETCH_BASE = USE_MIRROR ? 'https://r.jina.ai/http://www.reddit.com'
-                              : 'https://www.reddit.com';
-const BATCH_SIZE = 10;
-const MAX_CARDS  = 150;
-
-/* =================== STATE ==================== */
-let pool = [];
-let shown = 0;
+let subs = loadSubs();
+let DEFAULT_WOMEN = getDefaultWomen();
+let pool = [];          // pending posts
+let shown = [];         // already rendered (ids)
+let likes = loadLikes();
 let lastError = null;
-let liked = loadLikes();
-let subs  = loadSubs();      // array of "r/Name"
 
-const grid = qs('#grid');
-const likedGrid = qs('#likedGrid');
-const loadBtn = qs('#loadBtn');
-const shuffleBtn = qs('#shuffleBtn');
-const countEl = qs('#count');
-const toast = qs('#toast');
+/* ------------ elements ------------ */
+const grid = $('#grid'), likedGrid = $('#likedGrid');
+const loadBtn = $('#loadBtn'), shuffleBtn = $('#shuffleBtn'), newBtn = $('#newBtn');
+const troubleBtn = $('#troubleBtn'), diag = $('#diag'), diagText = $('#diagText'), diagClose = $('#diagClose');
+const counter = $('#counter'), statusEl = $('#status');
+const subsText = $('#subsText'), saveSubsBtn = $('#saveSubs'), resetSubsBtn = $('#resetSubs'), saveAndBuildBtn = $('#saveAndBuild');
 
-/* =================== ROUTER ==================== */
-function setRoute(){
-  const hash = location.hash || '#/';
-  qsa('.view').forEach(v => v.classList.remove('active'));
-  if (hash.startsWith('#/liked')) {
-    qs('#view-liked').classList.add('active'); renderLiked();
-  } else if (hash.startsWith('#/subs')) {
-    qs('#view-subs').classList.add('active'); renderSubsManager();
-  } else {
-    qs('#view-home').classList.add('active');
-  }
+/* ------------ nav ------------ */
+$all('[data-nav]').forEach(b=>b.onclick=()=>show(b.dataset.nav));
+function show(name){
+  ['home','liked','subs'].forEach(id => $('#'+id).classList.toggle('hidden', id!==name));
+  if(name==='liked') renderLiked();
+  if(name==='subs'){ subsText.value = (subs&&subs.length?subs:DEFAULT_WOMEN).join('\n'); }
 }
-window.addEventListener('hashchange', setRoute);
-setRoute();
 
-/* =================== HOME PAGE ==================== */
-window.addEventListener('load', async () => {
-  await buildBatch();
-  appendFromPool(BATCH_SIZE);
-  observeScroll();
-});
+/* ------------ controls ------------ */
+newBtn.onclick = async ()=>{ await buildBatch(true); toast('Building a new batch…'); updateCounter(); };
+loadBtn.onclick = async ()=>{ if(pool.length < BATCH_SIZE) await buildBatch(true); appendFromPool(BATCH_SIZE); };
+shuffleBtn.onclick = async ()=>{ await buildBatch(true); appendFromPool(BATCH_SIZE); };
+troubleBtn.onclick = ()=> openDiag();
+diagClose.onclick = ()=> diag.close();
 
-loadBtn?.addEventListener('click', () => appendFromPool(BATCH_SIZE));
-shuffleBtn?.addEventListener('click', async () => {
-  await buildBatch(true);
-  appendFromPool(BATCH_SIZE);
-});
+saveSubsBtn.onclick = ()=>{ subs = textToSubs(subsText.value); saveSubs(subs); toast('Saved subreddits.'); };
+resetSubsBtn.onclick = ()=>{ subs = [...DEFAULT_WOMEN]; subsText.value = subs.join('\n'); toast('Reset to defaults.'); };
+saveAndBuildBtn.onclick = async ()=>{ subs = textToSubs(subsText.value); saveSubs(subs); await buildBatch(true); show('home'); appendFromPool(BATCH_SIZE); };
 
+/* ------------ initial ------------ */
+show('home');
+updateCounter();
+statusEl.textContent = `NSFW enabled • People-only list`;
+if (!pool.length) buildBatch(true).then(()=>appendFromPool(BATCH_SIZE));
+
+/* ------------ building & fetching ------------ */
 async function buildBatch(force=false){
-  if (!force && pool.length > 20) return;
-  pool = [];
-  const picks = shuffle([...subs]).slice(0, 16);
-  await Promise.all(picks.map(fetchSub));
-  // dedupe
+  if(!force && pool.length > 20) return;
+  pool = []; lastError = null;
+
+  // pick from saved subs, fall back to defaults
+  let src = (subs && subs.length) ? subs : DEFAULT_WOMEN;
+  // shuffle and take a generous slice
+  const picks = shuffle([...src]).slice(0, 24);
+
+  const results = await Promise.allSettled(picks.map(fetchSub));
+  // de-dupe by id
   const seen = new Set();
-  pool = pool.filter(p => !seen.has(p.id) && seen.add(p.id));
-  if (!pool.length) showToast('No fresh posts. Tap Load more again.');
+  pool = pool.filter(p=>!seen.has(p.id) && seen.add(p.id));
+  if(!pool.length){
+    toast(lastError ? `No fresh posts (last error: ${lastError}). Tap Load more or New batch.` : 'No fresh posts. Tap again.');
+  }
+  updateCounter();
 }
 
 async function fetchSub(sub){
   try{
     const name = sub.replace(/^r\//,'');
     const tries = [
-      `${FETCH_BASE}/r/${encodeURIComponent(name)}/top.json?limit=25&t=week&raw_json=1`,
-      `${FETCH_BASE}/r/${encodeURIComponent(name)}/hot.json?limit=25&raw_json=1`,
-      `${FETCH_BASE}/r/${encodeURIComponent(name)}/top.json?limit=25&t=day&raw_json=1`
+      `${FETCH_BASE}/r/${encodeURIComponent(name)}/hot.json?limit=30&raw_json=1`,
+      `${FETCH_BASE}/r/${encodeURIComponent(name)}/top.json?limit=30&t=week&raw_json=1`,
+      `${FETCH_BASE}/r/${encodeURIComponent(name)}/top.json?limit=30&t=day&raw_json=1`
     ];
-    for (const url of tries){
-      const r = await fetch(url,{headers:{'Accept':'application/json'}});
-      if (!r.ok){ lastError = `${name}: ${r.status}`; continue; }
+    for(const url of tries){
+      const r = await fetch(url, {headers:{'Accept':'application/json'}});
+      if(!r.ok){ lastError = `${name}: ${r.status}`; continue; }
       const json = await r.json();
       const items = (json.data?.children||[])
-        .map(n => n.data)
-        .filter(d => !d.stickied && !d.removed_by_category && !d.is_gallery)
+        .map(n=>n.data)
+        .filter(d => !d.stickied && !d.removed_by_category)
         .map(d => toPost(d, name))
         .filter(Boolean);
-      if (items.length){ pool.push(...items); return; }
+      if(items.length){ pool.push(...items); return; }
     }
   }catch(e){ lastError = e.message; }
 }
 
-function toPost(d, sub){
-  const isVid = !!(d.is_video && d.media?.reddit_video?.fallback_url);
-  let media = null;
-  if (isVid){
-    media = d.media.reddit_video.fallback_url;
-  }else{
-    media = d.url_overridden_by_dest || d.url || null;
-    if (!/\.(jpg|jpeg|png|gif|mp4|webm)$/i.test(media||'')) {
-      const p = d.preview?.images?.[0]?.source?.url?.replace(/&amp;/g,'&');
-      if (p) media = p;
-    }
-  }
-  if (!media) return null;
-  return { id:d.id, sub, media, isVideo: isVid || /\.(mp4|webm)$/i.test(media), over18: !!d.over_18 };
+function toPost(d, subName){
+  // people-first: avoid text/self posts & galleries
+  if (d.is_self || d.is_gallery) return null;
+  // media url
+  let mediaUrl = null, isVideo = false;
+  if (d.secure_media?.reddit_video?.fallback_url){ mediaUrl = d.secure_media.reddit_video.fallback_url; isVideo=true; }
+  else if (d.media?.reddit_video?.fallback_url){ mediaUrl = d.media.reddit_video.fallback_url; isVideo=true; }
+  else if (d.preview?.reddit_video_preview?.fallback_url){ mediaUrl = d.preview.reddit_video_preview.fallback_url; isVideo=true; }
+  else if (d.url_overridden_by_dest){ mediaUrl = d.url_overridden_by_dest; }
+  if(!mediaUrl) return null;
+
+  // filter obvious non-image/video destinations
+  if (!isVideo && !/\.(jpg|jpeg|png|gif|gifv|mp4|webm)$/i.test(mediaUrl)) return null;
+  // gifv -> mp4
+  mediaUrl = mediaUrl.replace(/\.gifv$/i,'.mp4');
+
+  return {
+    id: d.id,
+    sub: `r/${subName}`,
+    url: mediaUrl,
+    video: isVideo || /\.mp4$|\.webm$/i.test(mediaUrl),
+    nsfw: !!d.over_18
+  };
 }
 
+/* ------------ rendering ------------ */
 function appendFromPool(n){
-  if (!pool.length){ showToast('No fresh posts. Tap again.'); return; }
-  const take = pool.splice(0,n);
-  for (const p of take){
-    grid.appendChild(cardEl(p, true));
-    shown++;
+  if(!pool.length){ toast('Nothing new yet—try Shuffle or New batch.'); return; }
+  const take = [];
+  while (take.length < n && pool.length){
+    const p = pool.shift();
+    if (!shown.includes(p.id)) take.push(p);
   }
-  updateCount();
-  if (grid.childElementCount > MAX_CARDS){
-    for (let i=0;i<20;i++) grid.firstElementChild?.remove();
-  }
+  for(const p of take){ grid.appendChild(renderCard(p)); shown.push(p.id); }
+  updateCounter();
 }
 
-function cardEl(p, enableGestures=false){
-  const card = document.createElement('article');
-  card.className='card';
-  card.style.setProperty('--rot', `${(Math.random()*2-1.2).toFixed(2)}deg`);
-
-  const frame = el('div','frame');
-  if (p.isVideo){
-    const v=el('video');
-    v.src=p.media; v.muted=true; v.playsInline=true; v.autoplay=true; v.loop=true;
-    frame.appendChild(v);
+function renderCard(p){
+  const card = div('card');
+  let media;
+  if (p.video){
+    media = document.createElement('video');
+    media.className='vid';
+    media.src = p.url;
+    media.autoplay = true; media.muted = true; media.loop = true; media.playsInline = true;
   }else{
-    const img=el('img'); img.loading="lazy"; img.src=p.media; frame.appendChild(img);
+    media = document.createElement('img');
+    media.className='ph';
+    media.loading='lazy';
+    media.src = p.url;
   }
+  card.appendChild(media);
 
-  const star = el('button','starBtn'); star.setAttribute('aria-label','Like'); star.innerHTML='<span class="star">⭐</span>';
-  star.addEventListener('click',(e)=>{e.stopPropagation(); addLike(p, card);});
+  const bottom = div('bottom');
+  const row = div('row');
+  const sub = div('sub'); sub.textContent = p.sub;
+  const star = div('star'); star.textContent = '⭐';
+  if (isLiked(p)) star.classList.add('liked');
+  star.onclick = (e)=>{ e.stopPropagation(); toggleLike(p, star); };
+  row.append(sub, star);
+  bottom.append(row);
+  card.appendChild(bottom);
 
-  const cap = el('div','caption');
-  const chip = el('span','chip'); chip.textContent=`r/${p.sub}`;
-  const badge= el('span','badge'); badge.textContent = p.over18?'NSFW':'SFW';
-  cap.append(chip,badge);
-
-  const burst = el('div','likeBurst');
-
-  card.append(star,frame,cap,burst);
-
-  if (enableGestures){
-    let startX=0,dx=0;
-    card.addEventListener('pointerdown',e=>{startX=e.clientX;card.setPointerCapture(e.pointerId);});
-    card.addEventListener('pointermove',e=>{
-      if(!startX) return; dx=e.clientX-startX;
-      card.style.transform=`rotate(var(--rot)) translateX(${dx}px)`; card.style.opacity=String(Math.max(.4,1-Math.abs(dx)/300));
-    });
-    const done=()=>{ if(!startX) return;
-      const right=dx>80,left=dx<-80; card.style.opacity='1'; card.style.transform='rotate(var(--rot)) translateX(0)'; startX=0;dx=0;
-      if(right) addLike(p, card); else if(left) dismiss(card);
-    };
-    card.addEventListener('pointerup',done); card.addEventListener('pointercancel',done);
-  }
+  // swipe
+  enableSwipe(card, (dir)=>{
+    if (dir==='right'){ toggleLike(p, star, true); flash(card,'like'); }
+    if (dir==='left'){ flash(card,'nope'); }
+    // remove card after swipe
+    card.style.transition='transform .25s ease, opacity .25s ease';
+    card.style.opacity='0'; card.style.transform=`translateX(${dir==='right'? 80:-80}px) rotate(${dir==='right'?3:-3}deg)`;
+    setTimeout(()=> card.remove(), 220);
+  });
 
   return card;
 }
 
-function dismiss(card){ card.style.transform='translateY(8px) scale(.98)'; card.style.opacity='.0'; setTimeout(()=>card.remove(),120); }
-
-function addLike(p, card){
-  if(!liked.find(x=>x.id===p.id)){ liked.unshift(p); saveLikes(); }
-  animateLike(card); dismiss(card); renderLikedIfOpen();
+function renderLiked(){
+  likedGrid.innerHTML='';
+  const arr = loadLikes();
+  if (!arr.length){ likedGrid.innerHTML='<div class="small" style="opacity:.75">No likes yet.</div>'; return;}
+  for(const p of arr){ likedGrid.appendChild(renderCard(p)); }
 }
 
-function animateLike(card){
-  const burst=card.querySelector('.likeBurst'); burst.innerHTML='';
-  for(let i=0;i<18;i++){ const d=el('div','burstDot'); const a=(Math.PI*2)*Math.random(), r=(80+60*Math.random());
-    d.style.setProperty('--tx',`${Math.cos(a)*r}px`); d.style.setProperty('--ty',`${Math.sin(a)*r}px`);
-    d.style.left='50%'; d.style.top='50%'; burst.appendChild(d);
-  }
+/* ------------ swipe helpers ------------ */
+function enableSwipe(el, onDone){
+  let sx=0, sy=0, dx=0, dy=0, active=false;
+  const start = (e)=>{ active=true; sx=px(e.clientX||e.touches[0].clientX); sy=px(e.clientY||e.touches[0].clientY); el.style.willChange='transform'; };
+  const move  = (e)=>{ if(!active) return; dx=px((e.clientX||e.touches[0].clientX)-sx); dy=px((e.clientY||e.touches[0].clientY)-sy);
+    el.style.transform=`translate(${dx}px, ${dy*.25}px) rotate(${dx*.06}deg)`; };
+  const end   = ()=>{ if(!active) return; active=false; el.style.willChange='auto';
+    const thresh = Math.min(120, window.innerWidth*0.28);
+    if (dx>thresh) onDone('right'); else if (dx<-thresh) onDone('left'); else { el.style.transition='transform .18s ease'; el.style.transform='translate(0,0)'; setTimeout(()=>el.style.transition='', 180); }
+    dx=dy=0;
+  };
+  el.addEventListener('touchstart',start,{passive:true});
+  el.addEventListener('touchmove',move,{passive:true});
+  el.addEventListener('touchend',end);
+  el.addEventListener('mousedown',start);
+  window.addEventListener('mousemove',move);
+  window.addEventListener('mouseup',end);
+}
+function flash(el,kind){
+  const fx = div(kind==='like'?'likeFx':'nopeFx'); fx.textContent = kind==='like'?'LIKE':'NOPE'; el.appendChild(fx);
+  setTimeout(()=>{ fx.style.transition='opacity .25s ease, transform .25s ease'; fx.style.opacity='0'; fx.style.transform='translateY(-6px)'; },20);
+  setTimeout(()=>fx.remove(), 260);
 }
 
-function updateCount(){ const total=grid.childElementCount; countEl.textContent=`${Math.min(shown,total)}/${total}` }
-function observeScroll(){
-  let ticking=false;
-  window.addEventListener('scroll',()=>{
-    if(ticking) return; ticking=true;
-    requestAnimationFrame(async ()=>{
-      ticking=false;
-      const nearBottom=(innerHeight+scrollY)>(document.body.offsetHeight-800);
-      if(nearBottom){ if(pool.length<BATCH_SIZE) await buildBatch(); appendFromPool(BATCH_SIZE); }
-    });
-  });
+/* ------------ likes ------------ */
+function toggleLike(p, star, forceOn=false){
+  const arr = loadLikes();
+  const i = arr.findIndex(x=>x.id===p.id);
+  if (i>=0 && !forceOn){ arr.splice(i,1); star?.classList.remove('liked'); }
+  else { if(i<0) arr.unshift(p); star?.classList.add('liked'); }
+  localStorage.setItem(LS.liked, JSON.stringify(arr));
+  updateLikedBadge();
+}
+function isLiked(p){ return loadLikes().some(x=>x.id===p.id); }
+function loadLikes(){ try{ return JSON.parse(localStorage.getItem(LS.liked)||'[]'); }catch{ return []; } }
+function updateLikedBadge(){
+  const count = loadLikes().length;
+  $all('[data-nav="liked"]').forEach(b=> b.textContent = `Liked ⭐${count?` (${count})`:''}`);
+}
+$('#exportBtn')?.addEventListener('click',()=>{
+  const data = JSON.stringify(loadLikes(),null,2);
+  const url = URL.createObjectURL(new Blob([data],{type:'application/json'}));
+  const a = document.createElement('a'); a.href=url; a.download='liked.json'; a.click(); URL.revokeObjectURL(url);
+});
+$('#clearLikesBtn')?.addEventListener('click', ()=>{ if(confirm('Clear all likes?')){ localStorage.removeItem(LS.liked); renderLiked(); updateLikedBadge(); }});
+
+/* ------------ subs storage ------------ */
+function textToSubs(t){ return t.split(/\r?\n/).map(s=>s.trim()).filter(Boolean); }
+function saveSubs(list){ localStorage.setItem(LS.subs, JSON.stringify(list)); }
+function loadSubs(){ try{ return JSON.parse(localStorage.getItem(LS.subs)||'[]'); }catch{ return []; } }
+
+/* ------------ diagnostics ------------ */
+function openDiag(){
+  const ua = navigator.userAgent;
+  const body = [
+    `Online: ${navigator.onLine}`,
+    `UA: ${ua}`,
+    `Pool size: ${pool.length}, shown: ${shown.length}, likes: ${loadLikes().length}`,
+    `Last error: ${lastError||'(none)'}`
+  ].join('\n');
+  diagText.textContent = body;
+  diag.showModal();
 }
 
-/* =================== LIKED PAGE ==================== */
-function renderLiked(){ likedGrid.innerHTML=''; liked.forEach(p=> likedGrid.appendChild(cardEl(p,false))); }
-function renderLikedIfOpen(){ if (location.hash.startsWith('#/liked')) renderLiked(); }
-qs('#exportLikes')?.addEventListener('click',()=>{
-  const blob = new Blob([JSON.stringify(liked,null,2)],{type:'application/json'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='liked.json'; a.click();
-});
-qs('#clearLikes')?.addEventListener('click',()=>{
-  if(!confirm('Clear all liked?')) return; liked=[]; saveLikes(); renderLikedIfOpen();
-});
+/* ------------ utils ------------ */
+function $(q){ return document.querySelector(q); }
+function $all(q){ return Array.from(document.querySelectorAll(q)); }
+function div(c){ const e=document.createElement('div'); e.className=c; return e; }
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function px(v){ return typeof v==='number'?v:parseFloat(v)||0; }
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.remove('hidden'); clearTimeout(toast._k); toast._k=setTimeout(()=>t.classList.add('hidden'), 1800); }
+function updateCounter(){ counter.textContent = `${shown.length}/${shown.length+pool.length}`; }
 
-/* =================== SUBS PAGE ==================== */
-function renderSubsManager(){
-  const ta = qs('#subsArea'); ta.value = subs.join('\n');
-  previewSubs();
+/* ------------ default people-only sub list (trimmed; customize in Subreddits) ------------ */
+function getDefaultWomen(){
+  return [
+    'r/celebs', /* general celeb stream but people-only */
+    'r/EmilyRatajkowski','r/SydneySweeney','r/AlexisRen','r/SommerRay','r/MadisonBeer',
+    'r/DuaLipa','r/SelenaGomez','r/KendallJenner','r/KylieJenner','r/HaileyBaldwin',
+    'r/CharliDamelio','r/AddisonRae','r/LeaElui','r/EmmaMackey','r/AnyaTaylorJoy',
+    'r/AlexandraDaddario','r/ArianaGrande','r/MargotRobbie','r/FlorencePugh',
+    'r/ElizabethOlsen','r/JennaOrtega','r/SabrinaCarpenter','r/KaleyCuoco',
+    'r/NataliePortman','r/ScarlettJohansson','r/GalGadot','r/TaylorSwift',
+    'r/CamilaCabello','r/OliviaRodrigo','r/DojaCat','r/BillieEilish',
+    'r/Zendaya','r/MeganFox','r/EmilyBlunt','r/EmiliaClarke',
+    'r/AlexandraShipp','r/AnneHathaway','r/BrieLarson','r/CaraDelevingne',
+    'r/BarbaraPalvin','r/BellaHadid','r/GigiHadid','r/KateUpton',
+    'r/MeganTheeStallion','r/Halsey','r/MadelynCline','r/VictoriaJustice',
+    'r/SalmaHayek','r/PriyankaChopra','r/DeepikaPadukone','r/EmmaStone'
+  ];
 }
-function previewSubs(){
-  const box = qs('#subsPreview'); box.innerHTML='';
-  subs.forEach(s=>{const sp=el('span','pill'); sp.textContent=s; box.appendChild(sp);});
-}
-qs('#saveSubs')?.addEventListener('click',()=>{
-  const raw = qs('#subsArea').value.split('\n')
-    .map(s=>s.trim()).filter(Boolean)
-    .map(s=> s.startsWith('r/')?s:`r/${s.replace(/^r\//,'')}`);
-  subs = unique(raw);
-  saveSubs();
-  previewSubs();
-  showToast('Saved subs ✔️');
-});
-qs('#resetSubs')?.addEventListener('click',()=>{
-  subs=[...DEFAULT_WOMEN]; saveSubs(); qs('#subsArea').value=subs.join('\n'); previewSubs(); showToast('Reset to defaults');
-});
-qs('#shuffleNow')?.addEventListener('click', async ()=>{
-  location.hash = '#/'; await buildBatch(true); appendFromPool(BATCH_SIZE); showToast('New batch built');
-});
-qs('#exportSubs')?.addEventListener('click',()=>{
-  const blob=new Blob([subs.join('\n')],{type:'text/plain'}); const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob); a.download='subs.txt'; a.click();
-});
-
-/* =================== STORAGE UTILS ==================== */
-function saveLikes(){ localStorage.setItem(KEY_LIKES, JSON.stringify(liked.slice(0,300))); }
-function loadLikes(){ try{return JSON.parse(localStorage.getItem(KEY_LIKES)||'[]')}catch{return[]} }
-function saveSubs(){ localStorage.setItem(KEY_SUBS, JSON.stringify(subs)); }
-function loadSubs(){ try{const v=JSON.parse(localStorage.getItem(KEY_SUBS)||'null'); return Array.isArray(v)&&v.length?v: [...DEFAULT_WOMEN]; }catch{ return [...DEFAULT_WOMEN]; } }
-
-/* =================== HELPERS ==================== */
-function el(tag,cls){ const x=document.createElement(tag); if(cls) x.className=cls; return x; }
-function qs(s,root=document){ return root.querySelector(s) }
-function qsa(s,root=document){ return [...root.querySelectorAll(s)] }
-function showToast(msg){ toast.textContent=msg; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),2000); }
-function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]] } return a }
-function unique(arr){ return [...new Set(arr)] }
+updateLikedBadge();
 </script>
 </body>
 </html>
