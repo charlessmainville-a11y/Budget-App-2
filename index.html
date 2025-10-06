@@ -1,429 +1,430 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Scroll Wall — Models • Influencers • Actors</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Scroll Wall — Models • Influencers • Actors (Reddit)</title>
 <style>
   :root{
-    --bg:#0b0f14; --panel:#182230; --ink:#e9f0ff; --muted:#a6b3c7;
-    --card:#121821; --ring:#28384c; --accent:#6ea8ff; --hot:#ff6fa5;
-    --ok:#6ee7b7; --shadow:0 10px 30px rgba(0,0,0,.35); --r:18px;
+    --bg:#0c0f13; --ink:#ecf0f3; --muted:#a8b0bb; --card:#161b22; --edge:#262f3a;
+    --accent:#ff6ea6; --good:#56f1a2; --warn:#ffcd6b;
   }
-  *{box-sizing:border-box} html,body{margin:0;height:100%;
-    background:radial-gradient(1200px 400px at 50% -200px,#172030 0%,#0b0f14 60%);
-    color:var(--ink); font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
-  a{color:var(--accent);text-decoration:none}
-
-  .wrap{max-width:860px;margin:18px auto;padding:0 14px}
-  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-  .controls{background:linear-gradient(180deg,#111a24,#0f151e); border:1px solid #213044;
-    border-radius:22px;padding:16px;box-shadow:var(--shadow)}
-  .btn{border:0;border-radius:16px;padding:16px 18px;font-weight:800;
-    background:linear-gradient(180deg,#ff8fb2,#ff5a94);color:#0c0f14;box-shadow:var(--shadow);cursor:pointer}
-  .soft{padding:12px 14px;border-radius:14px;background:#101826;border:1px solid #253449;
-    color:#d7e7ff;font-weight:800;box-shadow:var(--shadow);cursor:pointer}
-  .pill{min-width:88px;text-align:center;border-radius:14px;padding:10px 12px;background:#0f1620;border:1px solid #29364a}
-  .input{flex:1;min-width:200px;border-radius:14px;background:#0f1620;border:1px solid #29364a;color:#e6f0ff;padding:12px 14px}
-  .switch{appearance:none;width:66px;height:36px;border-radius:20px;position:relative;outline:none;
-    border:1px solid #2a384e;background:#0c1320;cursor:pointer}
-  .switch::after{content:"";position:absolute;top:3px;left:4px;width:30px;height:30px;border-radius:50%;
-    background:#f0f5ff;transition:.18s}
-  .switch:checked{background:#123423;border-color:#1f4b31}
-  .switch:checked::after{transform:translateX(28px);background:#baf7d3}
-  .minor{color:var(--muted);font-size:14px;margin-top:8px}
-
-  .grid{display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px}
-  @media(min-width:720px){ .grid{grid-template-columns:1fr 1fr} }
-
-  .card{background:linear-gradient(180deg,#141c26,#0d131c);border:1px solid var(--ring);
-    border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);position:relative}
-  .media{position:relative;background:#0a0f15;display:flex;align-items:center;justify-content:center;aspect-ratio:4/3}
-  .media img,.media video{width:100%;height:100%;object-fit:contain;background:#0a0f15}
-  .media video{display:block}
-  .media::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 70%,rgba(8,12,18,.85))}
-
-  .meta{padding:14px}
-  .title{font-weight:900;font-size:20px;line-height:1.2;margin:0 0 6px}
-  .by{color:var(--muted);font-size:13px;margin-bottom:8px}
-  .tag{display:inline-block;border:1px solid #2a3950;color:#cfe3ff;padding:6px 10px;border-radius:12px;font-weight:800;margin-right:8px;background:#0f1722}
-  .rowfoot{display:flex;gap:10px;align-items:center;margin-top:8px}
-  .star,.dismiss{width:44px;height:44px;border-radius:50%;display:inline-grid;place-items:center;cursor:pointer}
-  .star{background:linear-gradient(180deg,#ffe08a,#ffc44b);color:#111;border:0}
-  .dismiss{background:#1d2430;border:1px solid #2a394d;color:#cbd6ea}
-  .linkbtn{padding:8px 12px;border-radius:12px;border:1px solid #2a394d;background:#131b27;color:#d5e8ff;font-weight:800}
-
-  .drag{touch-action:none} .flying{will-change:transform;transition:transform .18s ease,opacity .18s ease}
-
-  .modal{position:fixed;inset:0;display:none;align-items:flex-end;justify-content:center;
-    background:rgba(0,0,0,.4);backdrop-filter:saturate(120%) blur(2px);z-index:30}
-  .modal.show{display:flex}
-  .sheet{width:min(860px,100%);background:linear-gradient(180deg,#101726,#0e1420);
-    border-top-left-radius:20px;border-top-right-radius:20px;border:1px solid #223144;
-    box-shadow:0 -12px 40px rgba(0,0,0,.45);padding:16px}
-  .subgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-  @media(min-width:680px){ .subgrid{grid-template-columns:repeat(3,1fr)} }
-  .chk{display:flex;gap:10px;align-items:center;background:#0f1622;border:1px solid #263449;border-radius:12px;padding:10px 12px}
-  .close{padding:10px 12px;border-radius:12px;border:1px solid #2a394d;background:#141c28;color:#d7e8ff;font-weight:900}
-
-  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);max-width:86vw;background:#2a1a1a;border:1px solid #503232;color:#ffd6d6;padding:10px 12px;border-radius:12px;font-weight:800;box-shadow:var(--shadow);z-index:40;display:none}
-  .toast.show{display:block}
-
-  canvas.fx{position:fixed;pointer-events:none;inset:0;z-index:50}
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue";
+    color:var(--ink); background:radial-gradient(1200px 600px at 50% -200px, #1c2330 0%, #0c0f13 65%);
+  }
+  .wrap{max-width:980px;margin:28px auto;padding:0 16px 48px}
+  header{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  h1{margin:0;font-size:42px;letter-spacing:.5px}
+  .pill{border:1px solid var(--edge);background:#0e131a;border-radius:14px;padding:8px 12px}
+  .toolbar{margin:18px 0 10px;background:linear-gradient(#111723, #0d131b);border:1px solid var(--edge);border-radius:22px;padding:18px}
+  .toolbar .row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  button,.btn{
+    appearance:none;border:0;border-radius:16px;padding:16px 22px;font-weight:800;
+    background:var(--accent);color:#111;cursor:pointer;transition:.15s transform ease;
+  }
+  button:active{transform:translateY(1px) scale(.99)}
+  .btn-ghost{background:#0f1520;border:1px solid var(--edge);color:var(--ink)}
+  .counter{min-width:88px;text-align:center;padding:12px 16px;border-radius:14px;background:#0f1520;border:1px solid var(--edge);font-weight:800}
+  .toggle{display:flex;align-items:center;gap:10px;margin-left:auto}
+  .switch{position:relative;width:64px;height:36px;border-radius:20px;background:#182131;border:1px solid var(--edge);cursor:pointer}
+  .switch input{appearance:none;position:absolute;inset:0;opacity:0}
+  .knob{position:absolute;top:4px;left:4px;width:28px;height:28px;border-radius:14px;background:#93a3b8;transition:.18s all ease}
+  .switch input:checked + .knob{left:32px;background:var(--good)}
+  .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px;margin-top:18px}
+  .card{
+    grid-column:span 12;
+    background:linear-gradient(#151b24,#10161e);
+    border:1px solid var(--edge);border-radius:22px;overflow:hidden;position:relative;
+    box-shadow:0 10px 22px rgba(0,0,0,.35);
+    touch-action:pan-y;
+  }
+  @media(min-width:700px){ .card{grid-column:span 6} }
+  .media{position:relative;overflow:hidden;aspect-ratio:4/5;background:#0b0f14}
+  .media img, .media video{
+    width:100%;height:100%;object-fit:cover;display:block;
+  }
+  .meta{padding:16px 16px 14px;border-top:1px solid #111820}
+  .title{font-weight:900;font-size:22px;line-height:1.25;margin:0 0 10px}
+  .subtle{color:var(--muted);font-size:14px}
+  .row-buttons{display:flex;align-items:center;gap:10px;margin-top:12px}
+  .chip{padding:10px 14px;border-radius:12px;border:1px solid var(--edge);background:#0f1520;font-weight:700}
+  .like{margin-left:auto;font-size:22px;width:54px;height:44px;border-radius:12px;background:#111820;border:1px solid var(--edge);display:flex;align-items:center;justify-content:center}
+  .like.liked{background:linear-gradient(#ffe29a,#ffc96b);color:#221}
+  /* swipe feedback */
+  .badge{
+    position:absolute;top:12px;right:12px;padding:8px 10px;border-radius:10px;font-weight:900;
+    background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(10px);display:none;
+  }
+  .card.likeing .badge.like, .card.dismiss .badge.dismiss{display:block}
+  .badge.like{background:linear-gradient(180deg,#fff29f,#ffd776);color:#241}
+  .badge.dismiss{background:linear-gradient(180deg,#2a3342,#1a202c);color:#cbd5e1}
+  /* liked drawer */
+  dialog{border:1px solid var(--edge);background:#0f1520;border-radius:18px;color:var(--ink);padding:14px 14px 18px;max-width:980px;width:94%}
+  dialog::backdrop{background:rgba(0,0,0,.45)}
+  .drawer-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .drawer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-height:60vh;overflow:auto}
+  .drawer-grid img,.drawer-grid video{width:100%;height:140px;object-fit:cover;border-radius:10px;border:1px solid #1c2734;background:#0b0f14}
+  .tip{margin-top:10px;color:#b7c1cd}
+  /* toast */
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;background:#2a3342;color:#ffe1e1;border:1px solid #3b4757;padding:12px 14px;border-radius:12px;font-weight:800;display:none}
+  .show{display:block}
 </style>
 </head>
 <body>
-  <canvas class="fx" id="fx"></canvas>
-
   <div class="wrap">
-    <div class="controls">
+    <header>
+      <h1>Scroll Wall</h1>
+      <div class="pill">Models • Influencers • Actors (Reddit)</div>
+      <button class="btn-ghost" id="openLiked" style="margin-left:auto;">Liked ⭐</button>
+    </header>
+
+    <div class="toolbar">
       <div class="row">
-        <button id="load" class="btn">Load more</button>
-        <button id="shuffle" class="soft">Shuffle 🔀</button>
-        <div id="count" class="pill">0/0</div>
+        <button id="load">Load more</button>
+        <button id="shuffle" class="btn-ghost">Shuffle 🔀</button>
+        <div id="count" class="counter">0/0</div>
 
-        <label class="row" style="margin-left:auto;gap:8px;align-items:center">
-          <input id="peopleOnly" type="checkbox" class="switch"/>
-          <div style="font-weight:900">Only people</div>
+        <label class="toggle">
+          <span>Only people</span>
+          <span class="switch"><input id="peopleOnly" type="checkbox" checked><span class="knob"></span></span>
         </label>
-        <label class="row" style="gap:8px;align-items:center">
-          <input id="allowSfw" type="checkbox" class="switch"/>
-          <div style="font-weight:900">Allow SFW</div>
+
+        <label class="toggle">
+          <span>Allow SFW</span>
+          <span class="switch"><input id="allowSfw" type="checkbox" checked><span class="knob"></span></span>
         </label>
-        <label class="row" style="gap:8px;align-items:center">
-          <input id="nsfw" type="checkbox" class="switch"/>
-          <div style="font-weight:900">Allow NSFW</div>
+
+        <label class="toggle">
+          <span>Allow NSFW</span>
+          <span class="switch"><input id="nsfw" type="checkbox" checked><span class="knob"></span></span>
         </label>
       </div>
-
-      <div class="row" style="margin-top:10px">
-        <input id="override" class="input" placeholder="e.g. reddit=r/FashionModels,r/Celebs,r/InstagramModels"/>
-        <button id="filtersBtn" class="soft">Filters ⚙️</button>
-        <button id="likedBtn" class="soft">Liked ⭐</button>
-      </div>
-
-      <div class="minor" id="loadedNote"></div>
     </div>
 
     <div id="grid" class="grid"></div>
   </div>
 
-  <!-- Filters -->
-  <div id="filtersModal" class="modal">
-    <div class="sheet">
-      <h3>Pick subreddits</h3>
-      <div class="subgrid" id="filtersGrid"></div>
-      <div class="row" style="margin-top:12px">
-        <button id="filtersClear" class="close">Clear all</button>
-        <div style="flex:1"></div>
-        <button id="filtersClose" class="btn" style="padding:10px 14px">Save & Refresh</button>
-      </div>
+  <!-- Liked drawer -->
+  <dialog id="likedDlg">
+    <div class="drawer-head">
+      <strong style="font-size:18px">Liked ⭐</strong>
+      <div class="pill" id="likedCount">0</div>
+      <button id="exportLiked" class="btn-ghost" style="margin-left:auto;">Export JSON</button>
+      <button id="closeLiked" class="btn">Close</button>
     </div>
-  </div>
-
-  <!-- Liked -->
-  <div id="likedModal" class="modal">
-    <div class="sheet">
-      <h3>Liked ⭐</h3>
-      <div class="grid" id="likedGrid" style="max-height:60vh;overflow:auto"></div>
-      <div class="row" style="margin-top:12px">
-        <button id="undoBtn" class="soft">Undo last</button>
-        <div style="flex:1"></div>
-        <button id="exportBtn" class="soft">Export JSON</button>
-        <button id="likedClose" class="btn" style="padding:10px 14px">Close</button>
-      </div>
-    </div>
-  </div>
+    <div id="likedGrid" class="drawer-grid"></div>
+    <div class="tip">Tap any ⭐ in Liked to undo.</div>
+  </dialog>
 
   <div id="toast" class="toast"></div>
 
 <script>
-/* ===== Curated subs focused on people (not general scenes) ===== */
-const DEFAULT_SFW_SUBS = [
-  "Celebs","ModelPhotography","FashionModels","InstagramModels",
-  "ModelPics","MostBeautiful","RedCarpet","LadyBoners","Beauty"
+/* ----------------- curated sources (people only) ----------------- */
+const PEOPLE_SUBS = [
+  // celebs / general celebrity
+  "Celebs","CelebWorship","CelebsPics","RedCarpet","OldSchoolCelebs","BeautifulCelebrities",
+  // models (general)
+  "FashionModels","ModelPhotography","ModelPhotos","Glamour","Runway",
+  // influencers / social
+  "InstagramReality","InstaCelebs","TikTokCringe", // still people; we’ll filter images only
+  // specific names (SFW/mostly glamour) – some subs may be small/inactive
+  "EmilyRatajkowski","AlexandraDaddario","AnaDeArmas","MargotRobbie",
+  "SydneySweeney_","salmahayek","HaileeSteinfeld","GalGadot",
+  "Zendaya_","DuaLipa","MadelynCline","AlexisRen",
+  "BellaHadid","GigiHadid","HaileyBieber","CharliDAmelio",
+  "AddisonRae","SabrinaCarpenter","AlishaLehmann","LeaElui",
+  "KendallJenner","KylieJenner","EmiliaClarke","ElizabethOlsen",
+  "JennaOrtega_","alexandracooper","emmachamberlain","victoriassecret",
+  "BarRefaeli","KateUpton","CandiceSwanepoel","MirandaKerr",
+  "TaylorHill","JosephineSkriver","RomeeStrijd","SaraSampaio",
+  "BarbaraPalvin","KarlieKloss","AdrianaLima","LilyAldridge",
+  "BellaThorne","Halsey","CamilaMendes","MadisonBeer",
+  "NinaDobrev","RashmikaMandanna","AnyaTaylorJoy","FlorencePugh",
+  "ArianaGrande","SelenaGomez","OliviaRodrigo","MeganFox"
 ];
+// (Note: Some subs may be throttled/quiet; the loader cycles through the list.)
 
-/* ===== 20 people (models / influencers / actresses) ===== */
-const PEOPLE = [
-  "Charli D'Amelio","Dixie D'Amelio","Addison Rae","Emily Ratajkowski",
-  "Hailey Bieber","Kendall Jenner","Kylie Jenner","Gigi Hadid","Bella Hadid",
-  "Halsey","Madison Beer","Sommer Ray","Alexis Ren","Lea Elui",
-  "Zendaya","Dua Lipa","Megan Fox","Sydney Sweeney","Doja Cat","Madelyn Cline"
-];
+/* ----------------- basics ----------------- */
+const $ = sel => document.querySelector(sel);
+const grid = $("#grid");
+const likedDlg = $("#likedDlg");
+const likedGrid = $("#likedGrid");
+const toast = $("#toast");
 
-/* ===== Local storage for likes ===== */
-const store = {
-  liked: JSON.parse(localStorage.getItem("liked_v1")||"[]"),
-  pushLiked(x){ this.liked.unshift(x); localStorage.setItem("liked_v1",JSON.stringify(this.liked)); },
-  popLiked(){ const r=this.liked.shift(); localStorage.setItem("liked_v1",JSON.stringify(this.liked)); return r; }
-};
+let queue = [];    // items not yet shown
+let shown = 0;     // count of cards created
+let liked = JSON.parse(localStorage.getItem("liked_v2")||"[]");
 
-/* ===== State ===== */
-const state = {
-  allowNSFW: true,          // default ON
-  allowSFW:  false,         // default OFF
-  peopleOnly: false,        // default OFF
-  loaded: 0, total: 0,
-  enabledSubs: new Set(DEFAULT_SFW_SUBS),
-};
-const $ = s => document.querySelector(s);
-const grid = $("#grid"), likedGrid=$("#likedGrid"), toastEl=$("#toast");
+updateLikedBadge();
 
-/* ===== UI helpers ===== */
-function showToast(m,ms=2400){ toastEl.textContent=m; toastEl.classList.add("show"); clearTimeout(showToast._t); showToast._t=setTimeout(()=>toastEl.classList.remove("show"),ms); }
-function setCount(){ $("#count").textContent = `${state.loaded}/${state.total}`; }
-const shuffleArr = a => { for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
-
-/* ===== Reddit media picking (image + video/gif support) =====
-   We try, in order:
-   - secure_media.reddit_video.fallback_url (MP4)
-   - media.reddit_video.fallback_url
-   - preview.reddit_video_preview.fallback_url
-   - URL if ends with image ext
-   - imgur .gifv -> .mp4
-*/
-function pickMedia(d){
-  const vid =
-    d?.secure_media?.reddit_video?.fallback_url ||
-    d?.media?.reddit_video?.fallback_url ||
-    d?.preview?.reddit_video_preview?.fallback_url ||
-    null;
-
-  if(vid) return {type:"video", src: vid};
-
-  // image/gif URL
-  let u = d?.url_overridden_by_dest || d?.url || "";
-  if(/\.gifv(\?|$)/i.test(u)) u = u.replace(/\.gifv(\?|$)/i, ".mp4$1"); // imgur gifv -> mp4
-  if(/\.(mp4)(\?|$)/i.test(u)) return {type:"video", src: u};
-  if(/\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(u)) return {type:"image", src: u};
-
-  // preview image
-  const p = d?.preview?.images?.[0]?.source?.url?.replaceAll("&amp;","&");
-  if(p) return {type:"image", src: p};
-
-  return null;
+function showToast(msg, ms=2400){
+  toast.textContent = msg; toast.classList.add("show");
+  setTimeout(()=>toast.classList.remove("show"), ms);
 }
 
-/* ===== Fetchers ===== */
-async function fetchTop(sub, allowNSFW, allowSFW){
-  const url=`https://www.reddit.com/r/${sub}/top.json?raw_json=1&t=week&limit=50`;
-  try{
-    const r=await fetch(url,{mode:"cors"}); if(!r.ok) return [];
-    const j=await r.json(); const out=[];
-    for(const c of j.data?.children||[]){
-      const d=c.data;
-      if(d.over_18 && !allowNSFW) continue;
-      if(!d.over_18 && !allowSFW) continue;
-      const media=pickMedia(d); if(!media) continue;
-      out.push({ id:d.id, title:d.title, media, author:d.author, sub:d.subreddit, permalink:`https://reddit.com${d.permalink}`, nsfw:!!d.over_18 });
-    }
-    return out;
-  }catch{ return []; }
-}
-async function searchPeople(name, allowNSFW, allowSFW){
-  const url=`https://www.reddit.com/search.json?raw_json=1&q=${encodeURIComponent(name)}&sort=top&t=week&limit=50&type=link`;
-  try{
-    const r=await fetch(url,{mode:"cors"}); if(!r.ok) return [];
-    const j=await r.json(); const out=[];
-    for(const c of j.data?.children||[]){
-      const d=c.data;
-      if(d.over_18 && !allowNSFW) continue;
-      if(!d.over_18 && !allowSFW) continue;
-      const media=pickMedia(d); if(!media) continue;
-      out.push({ id:d.id, title:d.title, media, author:d.author, sub:d.subreddit, permalink:`https://reddit.com${d.permalink}`, nsfw:!!d.over_18 });
-    }
-    return out;
-  }catch{ return []; }
+/* ----------------- reddit fetch ----------------- */
+async function fetchFromSub(sub, opts){
+  const t = opts.nsfw ? "hot" : "top";
+  // use .json with CORS allowed
+  const url = `https://www.reddit.com/r/${sub}/${t}.json?limit=100&t=week`;
+  const res = await fetch(url);
+  if(!res.ok) throw new Error("HTTP "+res.status);
+  const data = await res.json();
+  const posts = data.data.children?.map(c=>c.data) || [];
+  return posts;
 }
 
-/* ===== Rendering ===== */
-function mediaHTML(m){
-  if(m.type==="video"){
-    // muted + playsinline enables mobile autoplay, user can unmute with controls
-    return `<video src="${m.src}" muted playsinline loop controls preload="metadata"></video>`;
-  }else{
-    return `<img src="${m.src}" alt="" loading="lazy">`;
+function asMedia(post){
+  // screen for images / videos; build unified item {title, sub, author, url | mp4, isVideo, nsfw}
+  const nsfw = !!(post.over_18 || post.whitelist_status==="promo_adult_nsfw");
+  const title = post.title || "";
+  const author = post.author || "u/unknown";
+  const sub = post.subreddit || "";
+  let isVideo = false, mp4=null, thumb=post.thumbnail;
+
+  // reddit hosted video
+  if(post.secure_media?.reddit_video?.fallback_url){
+    isVideo = true;
+    mp4 = post.secure_media.reddit_video.fallback_url.split("?")[0]; // strip query
   }
-}
-function cardHTML(item){
-  const tag = item.nsfw? `<span class="tag" style="border-color:#5a2a2a;background:#1a1111;color:#ffb3b3">NSFW</span>` : `<span class="tag">SFW</span>`;
-  return `
-  <div class="card drag flying" data-id="${item.id}">
-    <div class="media">${mediaHTML(item.media)}</div>
-    <div class="meta">
-      <h3 class="title">${item.title.replace(/[<>]/g,"")}</h3>
-      <div class="by">u/${item.author} • r/${item.sub}</div>
-      <div class="rowfoot">
-        <button class="star" title="Like">★</button>
-        <button class="dismiss" title="Dismiss">×</button>
-        <a class="linkbtn" href="${item.permalink}" target="_blank" rel="noopener">Reddit</a>
-        ${tag}
-      </div>
-    </div>
-  </div>`;
-}
-function renderFeed(items){
-  const f=document.createDocumentFragment();
-  items.forEach(it=>{
-    const d=document.createElement("div"); d.innerHTML=cardHTML(it);
-    const node=d.firstElementChild; attachCardHandlers(node,it); f.appendChild(node);
-  });
-  grid.appendChild(f);
+  // GIFs (Reddit preview with .mp4 variant)
+  else if(post.preview?.images?.[0]?.variants?.mp4?.source?.url){
+    isVideo = true;
+    mp4 = post.preview.images[0].variants.mp4.source.url.replace(/&amp;/g,"&");
+  }
+  // Imgur mp4/gif
+  else if(/\.(mp4|gif)$/i.test(post.url)){
+    isVideo = /\.mp4$/i.test(post.url);
+    mp4 = isVideo ? post.url : null;
+  }
+
+  // image
+  let img = null;
+  if(!isVideo){
+    if(post.url && /\.(jpe?g|png|webp)$/i.test(post.url)) img = post.url;
+    else if(post.preview?.images?.[0]?.source?.url)
+      img = post.preview.images[0].source.url.replace(/&amp;/g,"&");
+  }
+
+  if(!img && !mp4) return null;
+  return { id: post.id, title, author, sub, nsfw, isVideo, mp4, img };
 }
 
-/* ===== Liked ===== */
-function renderLiked(){
-  likedGrid.innerHTML="";
-  if(store.liked.length===0){ likedGrid.innerHTML=`<div class="minor">No likes yet.</div>`; return; }
-  const f=document.createDocumentFragment();
-  store.liked.forEach(it=>{
-    const d=document.createElement("div");
-    d.innerHTML=`
-      <div class="card">
-        <div class="media">${mediaHTML(it.media)}</div>
-        <div class="meta">
-          <h3 class="title">${it.title.replace(/[<>]/g,"")}</h3>
-          <div class="by">u/${it.author} • r/${it.sub}</div>
-          <div class="rowfoot">
-            <a class="linkbtn" href="${it.permalink}" target="_blank" rel="noopener">Reddit</a>
-            <button class="dismiss" title="Remove">−</button>
-            <span class="tag">${it.nsfw?"NSFW":"SFW"}</span>
-          </div>
-        </div>
-      </div>`;
-    const node=d.firstElementChild;
-    node.querySelector(".dismiss").addEventListener("click", ()=>{
-      store.liked = store.liked.filter(x=>x.id!==it.id);
-      localStorage.setItem("liked_v1",JSON.stringify(store.liked));
-      renderLiked();
-    });
-    f.appendChild(node);
-  });
-  likedGrid.appendChild(f);
+/* ----------------- loading logic ----------------- */
+function pickSubs(onlyPeople){
+  // if onlyPeople: use curated list; else still use it (you asked to focus on people only)
+  return [...PEOPLE_SUBS];
 }
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]} return a; }
 
-/* ===== FX (confetti/dust) ===== */
-const fx=$("#fx"), ctx=fx.getContext("2d");
-function sizeFx(){ fx.width=innerWidth; fx.height=innerHeight } addEventListener("resize",sizeFx); sizeFx();
-function confetti(x,y,n=26){ const p=[]; for(let i=0;i<n;i++) p.push({x,y,vx:(Math.random()*2-1)*4,vy:-Math.random()*4-2,life:40+Math.random()*20,c:`hsl(${Math.random()*360},90%,60%)`}); run(p);
-  function run(parts){ ctx.clearRect(0,0,fx.width,fx.height);
-    for(const s of parts){ ctx.fillStyle=s.c; ctx.fillRect(s.x,s.y,4,6); s.x+=s.vx; s.y+=s.vy; s.vy+=0.15; s.life--; }
-    const alive=parts.filter(s=>s.life>0); if(alive.length) requestAnimationFrame(()=>run(alive)); else ctx.clearRect(0,0,fx.width,fx.height);
-  } }
-function dust(x,y,n=16){ const p=[]; for(let i=0;i<n;i++) p.push({x,y,r:2+Math.random()*3,vx:(Math.random()*2-1)*2,vy:(Math.random()*2-1)*2,life:28+Math.random()*12});
-  (function run(parts){ ctx.clearRect(0,0,fx.width,fx.height); ctx.fillStyle="rgba(200,200,220,.5)";
-    for(const s of parts){ ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fill(); s.x+=s.vx; s.y+=s.vy; s.life--; s.r*=0.98; }
-    const alive=parts.filter(s=>s.life>0); if(alive.length) requestAnimationFrame(()=>run(alive)); else ctx.clearRect(0,0,fx.width,fx.height);
-  })(p);
-}
-
-/* ===== Swipe & actions ===== */
-function attachCardHandlers(node,item){
-  const star=node.querySelector(".star"), close=node.querySelector(".dismiss");
-  star.addEventListener("click",(e)=>{ store.pushLiked(item); const r=e.currentTarget.getBoundingClientRect(); confetti(r.left+r.width/2, r.top+scrollY); node.remove(); });
-  close.addEventListener("click",(e)=>{ const r=e.currentTarget.getBoundingClientRect(); dust(r.left+r.width/2, r.top+scrollY); node.remove(); });
-
-  // Touch swipe (horizontal) without hijacking page scroll
-  let sx=0, sy=0, dx=0, dragging=false;
-  node.addEventListener("touchstart",(ev)=>{ const t=ev.touches[0]; sx=t.clientX; sy=t.clientY; dx=0; dragging=true; node.classList.add("drag"); },{passive:true});
-  node.addEventListener("touchmove",(ev)=>{
-    if(!dragging) return; const t=ev.touches[0];
-    if(Math.abs(t.clientY-sy)>14) return; // let page scroll vertically
-    dx=t.clientX-sx;
-    node.style.transform=`translateX(${dx}px) rotate(${dx*0.03}deg)`; node.style.opacity=String(1-Math.min(Math.abs(dx)/220,0.35));
-  },{passive:true});
-  node.addEventListener("touchend",()=>{
-    node.classList.remove("drag");
-    if(Math.abs(dx)>120){ const r=node.getBoundingClientRect();
-      if(dx>0){ store.pushLiked(item); confetti(r.left+r.width/2, r.top+scrollY); } else { dust(r.left+r.width/2, r.top+scrollY); }
-      node.remove();
-    } else { node.style.transform=""; node.style.opacity=""; }
-    dragging=false; dx=0;
-  });
-}
-
-/* ===== Load batches ===== */
-async function loadBatch(shuffleSources=false){
+async function loadMore(){
   const allowNSFW = $("#nsfw").checked;
-  const allowSFW  = $("#allowSfw").checked;
+  let allowSFW = $("#allowSfw").checked;
   const onlyPeople = $("#peopleOnly").checked;
 
-  let sources=[];
-  const ov=$("#override").value.trim();
+  // people mode should keep SFW on by default
+  if(onlyPeople && !allowSFW) allowSFW = true;
 
-  if(ov.startsWith("reddit=")){
-    const subs=ov.split("=")[1].split(",").map(s=>s.replace(/^r\//,"").trim()).filter(Boolean);
-    sources = subs.map(s=>({type:"sub", value:s}));
-  }else if(onlyPeople){
-    sources = PEOPLE.map(n=>({type:"search", value:n}));
+  let subs = pickSubs(onlyPeople);
+  subs = shuffle(subs).slice(0, 6); // sample a few per click
+
+  let got = [];
+  for(const s of subs){
+    try{
+      const posts = await fetchFromSub(s, { nsfw: allowNSFW });
+      for(const p of posts){
+        const it = asMedia(p);
+        if(!it) continue;
+        if(!allowNSFW && it.nsfw) continue;
+        if(!$("#allowSfw").checked && !it.nsfw) continue;
+        // Avoid text/link posts, stick to images/videos only (already filtered by asMedia)
+        got.push(it);
+      }
+    }catch(e){ /* continue */ }
+  }
+  if(!got.length){ showToast("No fresh posts found. Try toggles or Load more again."); return; }
+
+  // push unseen into queue
+  const seen = new Set(queue.map(x=>x.id));
+  queue.push(...got.filter(x=>!seen.has(x.id)));
+  updateCounter();
+  pumpQueue(8); // render a few each click
+}
+
+function updateCounter(){
+  $("#count").textContent = `${shown}/${queue.length}`;
+}
+
+function pumpQueue(n=6){
+  for(let i=0;i<n;i++){
+    const item = queue.shift();
+    if(!item) break;
+    createCard(item);
+    shown++;
+  }
+  updateCounter();
+}
+
+$("#load").addEventListener("click", loadMore);
+$("#shuffle").addEventListener("click", ()=>{ queue = shuffle(queue); showToast("Shuffled"); });
+
+/* ----------------- card UI ----------------- */
+function createCard(it){
+  const card = document.createElement("article");
+  card.className = "card";
+  card.dataset.id = it.id;
+
+  // media
+  const media = document.createElement("div");
+  media.className = "media";
+
+  if(it.isVideo && it.mp4){
+    const v = document.createElement("video");
+    v.src = it.mp4;
+    v.autoplay = true; v.muted = true; v.loop = true; v.playsInline = true; v.controls = true;
+    // start as soon as ready
+    v.addEventListener("canplay", ()=> v.play().catch(()=>{}));
+    media.appendChild(v);
   }else{
-    for(const s of state.enabledSubs) sources.push({type:"sub", value:s});
-    PEOPLE.forEach(n=>sources.push({type:"search", value:n}));
+    const img = document.createElement("img");
+    img.src = it.img;
+    img.loading = "lazy";
+    media.appendChild(img);
   }
 
-  if(!sources.length){ showToast("No sources selected. Open Filters or toggle Only people."); return; }
-  if(shuffleSources) shuffleArr(sources);
+  // swipe helpers
+  const likeBadge = document.createElement("div"); likeBadge.className="badge like"; likeBadge.textContent="LIKE ⭐";
+  const dismissBadge = document.createElement("div"); dismissBadge.className="badge dismiss"; dismissBadge.textContent="DISMISS";
+  media.appendChild(likeBadge); media.appendChild(dismissBadge);
 
-  $("#loadedNote").textContent="Fetching…";
-  const results=await Promise.all(sources.map(s => s.type==="sub" ? fetchTop(s.value,allowNSFW,allowSFW) : searchPeople(s.value,allowNSFW,allowSFW)));
-  let flat=results.flat();
+  // meta
+  const meta = document.createElement("div"); meta.className="meta";
+  const title = document.createElement("h3"); title.className="title"; title.textContent = it.title || "(untitled)";
+  const subtle = document.createElement("div"); subtle.className="subtle"; subtle.textContent = `by u/${it.author} • r/${it.sub} ${it.nsfw?"• NSFW":"• SFW"}`;
 
-  // Dedup & randomize
-  const seen=new Set(), unique=[];
-  for(const it of flat){ if(seen.has(it.permalink)) continue; seen.add(it.permalink); unique.push(it); }
-  shuffleArr(unique);
+  const row = document.createElement("div"); row.className="row-buttons";
+  const subBtn = document.createElement("a"); subBtn.className="chip"; subBtn.href = `https://reddit.com/r/${it.sub}`; subBtn.target="_blank"; subBtn.textContent="Reddit";
+  const kind = document.createElement("span"); kind.className="chip"; kind.textContent = it.nsfw?"NSFW":"SFW";
+  const likeBtn = document.createElement("button"); likeBtn.className="like"; likeBtn.innerHTML="⭐";
 
-  if(unique.length===0){ showToast("No fresh posts found. Try toggles or Filters."); $("#loadedNote").textContent=""; return; }
+  likeBtn.addEventListener("click", ()=> toggleLike(card, it, likeBtn));
 
-  state.total+=unique.length; state.loaded+=unique.length; setCount();
-  $("#loadedNote").textContent=`Loaded ${state.total}.`;
-  renderFeed(unique);
+  row.append(subBtn, kind, likeBtn);
+  meta.append(title, subtle, row);
+
+  card.append(media, meta);
+  grid.appendChild(card);
+
+  enableSwipe(card, it, likeBtn);
 }
 
-async function loadMore(){ await loadBatch(false); }
-async function shuffleFeed(){ grid.innerHTML=""; state.loaded=0; state.total=0; setCount(); $("#loadedNote").textContent=""; await loadBatch(true); }
+function toggleLike(card, it, btn){
+  const idx = liked.findIndex(x=>x.id===it.id);
+  if(idx>=0){ liked.splice(idx,1); btn.classList.remove("liked"); }
+  else { liked.unshift(it); btn.classList.add("liked"); heartBurst(btn); }
+  localStorage.setItem("liked_v2", JSON.stringify(liked));
+  updateLikedBadge();
+}
 
-/* ===== Filters UI ===== */
-function buildFilters(){
-  const host=$("#filtersGrid"); host.innerHTML="";
-  const mk=(label,val,checked=true)=>{
-    const id="f_"+val; const wrap=document.createElement("label");
-    wrap.className="chk"; wrap.innerHTML=`<input id="${id}" type="checkbox" ${checked?"checked":""}/> <div>${label}</div>`;
-    wrap.querySelector("input").addEventListener("change",(e)=>{ if(e.target.checked) state.enabledSubs.add(val); else state.enabledSubs.delete(val); });
-    host.appendChild(wrap);
+function heartBurst(anchor){
+  const s = document.createElement("span");
+  s.textContent = "⭐"; s.style.position="absolute"; s.style.pointerEvents="none";
+  const r = anchor.getBoundingClientRect();
+  s.style.left = (r.left + r.width/2) + "px";
+  s.style.top  = (r.top - 8) + "px";
+  s.style.fontSize="22px"; s.style.transition="600ms all cubic-bezier(.2,.7,.2,1)";
+  document.body.appendChild(s);
+  requestAnimationFrame(()=>{
+    s.style.transform="translateY(-28px) scale(1.6)";
+    s.style.opacity=".0";
+  });
+  setTimeout(()=> s.remove(), 620);
+}
+
+function enableSwipe(card, it, likeBtn){
+  let startX=0, dx=0, dragging=false;
+
+  const onStart = e=>{
+    dragging=true; dx=0; startX = (e.touches?e.touches[0].clientX:e.clientX);
+    card.style.transition="none";
   };
-  DEFAULT_SFW_SUBS.forEach(s=>mk("r/"+s, s, state.enabledSubs.has(s)));
+  const onMove = e=>{
+    if(!dragging) return;
+    const x = (e.touches?e.touches[0].clientX:e.clientX);
+    dx = x - startX;
+    card.style.transform = `translateX(${dx}px) rotate(${dx/40}deg)`;
+    card.classList.toggle("likeing", dx>40);
+    card.classList.toggle("dismiss", dx<-40);
+  };
+  const onEnd = ()=>{
+    if(!dragging) return; dragging=false;
+    card.style.transition="";
+    if(dx>120){ // like
+      toggleLike(card, it, likeBtn);
+      card.style.transform=`translateX(120vw)`;
+      setTimeout(()=>card.remove(), 180);
+      return;
+    }
+    if(dx<-120){ // dismiss
+      card.style.transform=`translateX(-120vw)`;
+      setTimeout(()=>card.remove(), 180);
+      return;
+    }
+    // snap back
+    card.style.transform="";
+    card.classList.remove("likeing","dismiss");
+  };
+
+  card.addEventListener("touchstart", onStart, {passive:true});
+  card.addEventListener("touchmove", onMove, {passive:true});
+  card.addEventListener("touchend", onEnd);
+  card.addEventListener("mousedown", onStart);
+  window.addEventListener("mousemove", onMove);
+  window.addEventListener("mouseup", onEnd);
 }
-buildFilters();
 
-/* ===== Modals ===== */
-const filtersModal=$("#filtersModal"), likedModal=$("#likedModal");
-$("#filtersBtn").onclick=()=>{ buildFilters(); filtersModal.classList.add("show"); }
-$("#filtersClose").onclick=async ()=>{
-  filtersModal.classList.remove("show");
-  grid.innerHTML=""; state.loaded=0; state.total=0; setCount(); $("#loadedNote").textContent="";
-  await loadBatch(true);        // refresh immediately with new filter state
-};
-$("#filtersClear").onclick=()=>{ state.enabledSubs.clear(); buildFilters(); }
-filtersModal.addEventListener("click",(e)=>{ if(e.target===filtersModal) filtersModal.classList.remove("show"); });
+/* ----------------- liked drawer ----------------- */
+function updateLikedBadge(){
+  $("#openLiked").textContent = `Liked ⭐ (${liked.length})`;
+  $("#likedCount").textContent = liked.length;
+}
+$("#openLiked").addEventListener("click", ()=>{
+  likedGrid.innerHTML="";
+  liked.forEach(it=>{
+    const cell = document.createElement(it.isVideo?"video":"img");
+    if(it.isVideo){ cell.src = it.mp4; cell.muted=true; cell.loop=true; cell.autoplay=true; cell.playsInline=true; }
+    else { cell.src = it.img; }
+    const wrap = document.createElement("div"); wrap.style.position="relative";
+    const undo = document.createElement("button");
+    undo.textContent="⭐"; undo.className="like liked"; undo.style.position="absolute"; undo.style.right="6px"; undo.style.bottom="6px";
+    undo.addEventListener("click", ()=>{
+      liked = liked.filter(x=>x.id!==it.id);
+      localStorage.setItem("liked_v2", JSON.stringify(liked));
+      updateLikedBadge(); wrap.remove();
+    });
+    wrap.append(cell, undo);
+    likedGrid.appendChild(wrap);
+  });
+  likedDlg.showModal();
+});
+$("#closeLiked").addEventListener("click", ()=> likedDlg.close());
+$("#exportLiked").addEventListener("click", ()=>{
+  const blob = new Blob([JSON.stringify(liked,null,2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href=url; a.download="liked.json"; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+});
 
-$("#likedBtn").onclick=()=>{ renderLiked(); likedModal.classList.add("show"); }
-$("#likedClose").onclick=()=>likedModal.classList.remove("show");
-likedModal.addEventListener("click",(e)=>{ if(e.target===likedModal) likedModal.classList.remove("show"); });
-$("#undoBtn").onclick=()=>{ const last=store.popLiked(); if(last){ showToast("Undid last like"); renderLiked(); } else showToast("Nothing to undo"); };
-$("#exportBtn").onclick=()=>{
-  const blob=new Blob([JSON.stringify(store.liked,null,2)],{type:"application/json"});
-  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="liked.json"; a.click(); URL.revokeObjectURL(a.href);
-};
-
-/* ===== Init ===== */
-$("#nsfw").checked = true;      // NSFW ON by default
-$("#allowSfw").checked = false; // SFW OFF by default
-$("#peopleOnly").checked = false;
-setCount();
-$("#load").onclick=loadMore;
-$("#shuffle").onclick=shuffleFeed;
+/* ----------------- init ----------------- */
+document.addEventListener("DOMContentLoaded", ()=>{
+  // helpful mobile hint: video autoplay requires muted+playsInline (we set those)
+  // prime with a first batch
+  loadMore();
+});
 </script>
 </body>
 </html>
