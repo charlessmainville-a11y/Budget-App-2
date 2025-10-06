@@ -2,441 +2,376 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Celeb Wall • v2.7</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Celeb Wall — v2.8</title>
 <style>
   :root{
-    --bg:#0c0f14;
-    --glass:rgba(255,255,255,.08);
-    --glass-2:rgba(255,255,255,.12);
-    --text:#e9edf3;
-    --muted:#9aa4b2;
-    --accent:#8aa4ff;
-    --radius:18px;
-    --blur:16px;
+    --bg:#0e1116; --card:#141821e6; --glass:#1a1f29cc; --text:#e9eef6; --muted:#97a1b3;
+    --pill:#1c2230cc; --pillBorder:#2a3242; --good0:#2dd4bf; --bad0:#ef476f;
+    --grad1:#c084fc; --grad2:#60a5fa; --shadow:0 8px 28px rgba(0,0,0,.45);
+    --round:18px;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;padding:0;background:radial-gradient(1200px 700px at 50% -200px, #1b2030 0%, #0c0f14 60%), var(--bg); color:var(--text); font:16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Inter",Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  body{margin:0;background:radial-gradient(1200px 700px at 50% -20%,#1a2030 0%,#0e1116 70%),var(--bg);color:var(--text);font:500 16px/1.5 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto}
   a{color:inherit}
-  .wrap{max-width:820px;margin:0 auto;padding:14px 14px 120px}
-
+  .wrap{max-width:900px;margin:22px auto;padding:0 16px}
   /* dashboard */
-  .dash{position:sticky;top:0;z-index:20;padding:12px 10px 14px;margin:-14px -14px 18px;background:linear-gradient(180deg, rgba(12,15,20,.78), rgba(12,15,20,.35) 70%, rgba(12,15,20,0)); backdrop-filter:saturate(140%) blur(12px)}
-  .row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
-  .pill{display:inline-flex;align-items:center;gap:.55rem;padding:.7rem 1.05rem;border-radius:14px;background:var(--glass);backdrop-filter:blur(var(--blur)); box-shadow:inset 0 1px 0 rgba(255,255,255,.07), 0 6px 20px rgba(0,0,0,.25); color:var(--text); font-weight:700; letter-spacing:.2px}
-  .pill.mono{font-variant-numeric:tabular-nums}
-  .pill.meter{justify-content:space-between; min-width:108px}
-  .btn{cursor:pointer; user-select:none; transition:transform .06s ease, opacity .2s ease}
-  .btn:active{transform:translateY(1px) scale(.995)}
-  .btn.ghost{background:rgba(255,255,255,.06)}
-  .btn.primary{background:linear-gradient(180deg,#8da6ff 0%,#627bff 100%); color:#fff}
-  .btn.alt{background:linear-gradient(180deg,#ff9fd0 0%,#e36aa4 100%); color:#fff}
-  .btn.big{padding:.9rem 1.25rem;border-radius:16px}
-
-  /* progress bar */
-  .prog{margin:10px auto 6px;max-width:760px}
-  .bar{height:8px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
-  .bar>i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#ff7eb3,#87f3d7);border-radius:999px;transition:width .35s ease}
-  .phase{display:flex;justify-content:space-between;margin-top:8px;color:var(--muted);font-weight:700}
-  .center{display:flex;justify-content:center;margin:16px 0 6px}
-  .toggle{opacity:.85}
-  .toggle input{margin-right:.6rem}
+  .dash{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;place-items:center}
+  @media (max-width:720px){.dash{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .pill{
+    width:100%; padding:14px 16px; border-radius:16px; background:var(--pill);
+    border:1px solid var(--pillBorder); backdrop-filter:blur(8px);
+    box-shadow:var(--shadow); text-align:center
+  }
+  .pill .big{font:700 22px/1.1 ui-sans-serif}
+  .pill.grad{background:linear-gradient(90deg,var(--grad1),var(--grad2)); color:#0b1020; font-weight:800}
+  .barWrap{margin:18px 0 8px}
+  .bar{height:10px;border-radius:99px;background:#202737;border:1px solid #2a3242;overflow:hidden}
+  .bar > span{display:block;height:100%;width:0;background:linear-gradient(90deg,#f2a6ff,#9ad7ff);transition:width .25s ease}
+  .phase{display:flex;justify-content:space-between;color:var(--muted);font-weight:700;margin-top:8px}
+  .topButtons{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:22px 0 8px}
+  .btn{
+    border:none;border-radius:16px;padding:14px 18px;background:var(--pill);color:var(--text);
+    border:1px solid var(--pillBorder);backdrop-filter:blur(8px);box-shadow:var(--shadow);
+    font-weight:800;letter-spacing:.2px;cursor:pointer;transition:transform .06s ease,filter .2s ease,opacity .2s ease
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{background:linear-gradient(90deg,#c084fc,#60a5fa); color:#0b1020}
+  .btn:disabled{opacity:.5;pointer-events:none}
+  .caps{text-transform:uppercase;letter-spacing:.4px;font-weight:900;color:#9fb0c6}
 
   /* cards */
-  .cards{display:grid;gap:16px}
+  #cards{display:grid;gap:18px;margin:26px 0}
   .card{
-    position:relative; overflow:hidden;
-    border-radius:22px; background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.04));
-    backdrop-filter:blur(18px) saturate(140%);
-    border:1px solid rgba(255,255,255,.08);
-    box-shadow:0 20px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
+    border-radius:20px; overflow:hidden; background:var(--card); border:1px solid #232a38; box-shadow:var(--shadow)
   }
-  .card .name{
-    position:absolute; left:14px; top:12px;
-    padding:.5rem .85rem; border-radius:14px;
-    background:rgba(0,0,0,.35); color:#fff; font-weight:800; letter-spacing:.2px;
-    text-shadow:0 2px 10px rgba(0,0,0,.5);
+  .card .top{
+    display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #222a38;background:#0f141d99;backdrop-filter:blur(8px)
   }
-  .media{display:block;width:100%;height:72vh;max-height:640px;object-fit:cover;background:#0f131a}
-  .meta{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 14px}
-  .source{padding:.5rem .8rem;border-radius:12px;background:rgba(255,255,255,.09);color:var(--muted);font-weight:700}
-  .actions{display:flex;gap:10px}
-  .rect{
-    min-width:120px;text-align:center;padding:.84rem 1.05rem;border-radius:14px;
-    color:#fff;font-weight:900;letter-spacing:.2px;box-shadow:0 10px 24px rgba(0,0,0,.25);
-  }
-  /* gradient action buttons */
-  .rect.dislike{
-    background:linear-gradient(180deg,#ff4e50 0%,#ff7a6e 60%,#ffb199 100%);
-    box-shadow:0 8px 20px rgba(255,78,80,.35);
-  }
-  .rect.like{
-    background:linear-gradient(180deg,#34e89e 0%,#0f9b8e 100%);
-    box-shadow:0 8px 20px rgba(15,155,142,.35);
-  }
+  .name{font:800 18px/1.2 ui-sans-serif}
+  .source{color:var(--muted);font-size:13px}
+  .media{aspect-ratio:1/1.1; background:#11161f; display:flex;align-items:center;justify-content:center}
+  .media img,.media video{width:100%;height:100%;object-fit:cover;background:#0d121a}
+  .actions{display:flex;gap:12px;justify-content:space-between;padding:14px;border-top:1px solid #222a38;background:#0f141d99;backdrop-filter:blur(8px)}
+  .act{flex:1;text-align:center;padding:12px 10px;border-radius:14px;font-weight:900;border:1px solid #223043;cursor:pointer}
+  .act.like{background:linear-gradient(90deg,#22d3ee,#34d399); color:#0a1220}
+  .act.dis{background:linear-gradient(90deg,#fb7185,#ef4444); color:#0a1220}
+  .badge{display:inline-flex;align-items:center;gap:8px;background:#0f141d99;border:1px solid #2a3242;padding:8px 12px;border-radius:999px}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 
   /* modal */
-  .modal{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);z-index:50}
-  .modal.show{display:grid}
-  .sheet{max-width:820px;width:calc(100% - 22px);border-radius:18px;background:#111823;color:#dfe6f3;border:1px solid rgba(255,255,255,.08);box-shadow:0 30px 70px rgba(0,0,0,.55);overflow:hidden}
-  .hd{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:rgba(255,255,255,.05)}
-  .close{padding:.5rem .9rem;border-radius:12px;background:#ff8faf;font-weight:800;border:0;color:#111}
-  pre{margin:0;padding:14px;max-height:60vh;overflow:auto;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;color:#cfe4ff;white-space:pre-wrap}
-  .muted{color:var(--muted)}
-
-  /* likes page chip */
-  .chip{padding:.45rem .7rem;border-radius:999px;background:rgba(255,255,255,.08);font-weight:700}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px}
+  .modal.show{display:flex}
+  .sheet{width:min(820px,94vw);max-height:80vh;overflow:auto;background:#121723;border:1px solid #293243;border-radius:18px;box-shadow:var(--shadow);padding:18px}
+  .sheet .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .sheet pre{white-space:pre-wrap;color:#dbe7ff}
 </style>
 </head>
 <body>
-<div class="wrap">
-
-  <!-- DASHBOARD -->
-  <div class="dash">
-    <div class="row" id="topButtons">
-      <div class="pill btn ghost" id="homeBtn">Home</div>
-      <div class="pill btn ghost" id="likesBtn">⭐ Likes <span id="likesCount" class="chip">0</span></div>
-      <div class="pill btn primary" id="newBatchBtn">New batch</div>
-      <div class="pill btn ghost" id="shuffleBtn">Shuffle</div>
-      <div class="pill">Build <b class="mono">v2.7</b></div>
-      <div class="pill meter">Shown <b id="shownN" class="mono">0</b></div>
-      <div class="pill meter">Pool <b id="poolN" class="mono">0</b></div>
-      <div class="pill meter">Total <b id="totalN" class="mono">0</b></div>
-      <div class="pill btn alt" id="troubleshootBtn">Troubleshoot</div>
+  <div class="wrap">
+    <!-- Dashboard row -->
+    <div class="dash" id="dash">
+      <div class="pill"><div class="caps">Build</div><div class="big" id="build">v2.8</div></div>
+      <div class="pill"><div class="caps">Shown</div><div class="big" id="shown">0</div></div>
+      <div class="pill"><div class="caps">Pool</div><div class="big" id="pool">0</div></div>
+      <div class="pill"><div class="caps">Total</div><div class="big" id="total">0</div></div>
     </div>
 
-    <div class="prog">
-      <div class="bar"><i id="barFill"></i></div>
-      <div class="phase"><span id="phaseText">Idle</span><span id="phasePct">100%</span></div>
+    <div class="barWrap">
+      <div class="bar"><span id="bar"></span></div>
+      <div class="phase"><span id="phaseLabel">Idle</span><span id="phasePct">100%</span></div>
     </div>
 
-    <div class="center">
-      <label class="pill toggle btn ghost">
-        <input type="checkbox" id="autoToggle" /> Auto-load on scroll
+    <!-- Top controls -->
+    <div class="topButtons">
+      <button class="btn" id="homeBtn">Home</button>
+      <button class="btn" id="likesBtn">⭐ Likes <span class="badge" id="likeCount">0</span></button>
+      <button class="btn primary" id="newBatchBtn">New batch</button>
+      <button class="btn" id="shuffleBtn">Shuffle feed</button>
+      <button class="btn" id="loadMoreBtn">Load more</button>
+      <button class="btn" id="sourcesBtn">r/celebs + more</button>
+      <button class="btn" id="logBtn">Troubleshoot</button>
+    </div>
+
+    <!-- Cards -->
+    <section id="cards"></section>
+
+    <div style="text-align:center;margin:28px 0">
+      <label class="badge">
+        <input type="checkbox" id="autoScroll" checked style="transform:scale(1.2)">&nbsp; Auto-load on scroll
       </label>
     </div>
   </div>
 
-  <!-- FEED -->
-  <section id="cards" class="cards"></section>
-
-  <!-- MODAL -->
+  <!-- Troubleshoot modal -->
   <div class="modal" id="modal">
     <div class="sheet">
       <div class="hd">
         <div class="pill">Troubleshoot</div>
-        <button class="close" id="closeModal">Close</button>
+        <button class="btn" id="closeModal">Close</button>
       </div>
-      <pre id="log"></pre>
+      <pre id="log" class="mono"></pre>
     </div>
   </div>
-</div>
 
 <script>
-(() => {
-  const build = 'v2.7';
-  const state = {
-    page: 'home',
-    pool: [],
-    shown: 0,
-    total: 0,
-    fetching: false,
-    auto: false,
-    logLines: [],
-    disliked: new Set(JSON.parse(localStorage.getItem('disliked')||'[]')),
-    likes: JSON.parse(localStorage.getItem('likes')||'[]')
-  };
-
-  const el = s => document.querySelector(s);
-  const cards = el('#cards');
-  const shownN = el('#shownN');
-  const poolN = el('#poolN');
-  const totalN = el('#totalN');
-  const likesCount = el('#likesCount');
-  const barFill = el('#barFill');
-  const phaseText = el('#phaseText');
-  const phasePct = el('#phasePct');
-
-  // Celebs + subreddits
-  const CELEBS = [
-    "Ana de Armas","Alexandra Daddario","Taylor Swift","Selena Gomez","Hailey Bieber","Kendall Jenner",
-    "Madison Beer","Sabrina Carpenter","Sydney Sweeney","Dua Lipa","Zendaya","Vanessa Hudgens",
-    "Gal Gadot","Margot Robbie","Emma Watson","Kylie Jenner","Bella Hadid","Gigi Hadid","Anya Taylor-Joy",
-    "Emily Ratajkowski","Keke Palmer","Mia Khalifa","Rachel Cook","Alexandra Stan","Kaia Gerber",
-    "Irina Shayk","Veronika Rajek","Emily Feld","Lily Collins","Shakira","Ariana Grande","Natalie Portman",
-    "Lea Elui","Candice Swanepoel","Rita Ora","Bar Refaeli","Adriana Lima","Lais Ribeiro","Sophie Turner"
-  ];
-  const SUBS = [
-    "celebs","BeautifulCelebrities","CelebWorship","CelebsWithStyle","RedCarpetFashion","Models","ModelsonReddit"
-  ];
-
-  // ---------- UI helpers ----------
-  function setPhase(name, pct){
-    phaseText.textContent = name;
-    phasePct.textContent = (pct|0)+'%';
-    barFill.style.width = pct+'%';
+/* ===== Utilities ===== */
+const $ = sel => document.querySelector(sel);
+const logEl = $("#log");
+function logMsg(msg){
+  const line = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  console.log(line);
+  logEl.textContent = `${line}\n${logEl.textContent}`.slice(0, 20000);
+}
+function setPhase(name, pct){
+  $("#phaseLabel").textContent = name;
+  $("#phasePct").textContent = `${Math.round(pct)}%`;
+  $("#bar").style.width = `${pct}%`;
+}
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
   }
-  function log(line){
-    const ts = new Date().toLocaleTimeString();
-    state.logLines.unshift(`[${ts}] ${line}`);
-    el('#log').textContent = `Build: ${build}\nPool size: ${state.pool.length}, shown: ${state.shown}, likes: ${state.likes.length}\n\n` +
-      state.logLines.slice(0,120).join('\n');
-  }
-  function saveLikes(){ localStorage.setItem('likes', JSON.stringify(state.likes)); likesCount.textContent = String(state.likes.length); }
-  function saveDisliked(){ localStorage.setItem('disliked', JSON.stringify([...state.disliked])); }
+  return arr;
+}
 
-  function updateCounters(){
-    shownN.textContent = state.shown;
-    poolN.textContent = state.pool.length;
-    totalN.textContent = state.total;
-  }
+/* ===== Data & State ===== */
+const CELEBS = [
+  "Alexandra Daddario","Madison Beer","Kendall Jenner","Hailey Bieber",
+  "Dua Lipa","Gigi Hadid","Bella Hadid","Sydney Sweeney","Emma Watson",
+  "Margot Robbie","Ana de Armas","Sabrina Carpenter","Taylor Swift",
+  "Vanessa Hudgens","Salma Hayek","Kylie Jenner","Gal Gadot","Emily Ratajkowski",
+  "Rachel Cook","Alexandra Stan","Ariana Grande","Sofía Vergara","Rita Ora",
+  "Anya Taylor-Joy","Irina Shayk","Keke Palmer","Sophie Turner"
+];
+const SUBS = ["Celebs","BeautifulCelebrities","TheCelebArchive","celebs","LadiesOfWrestling"]; // lightweight mix
+let pool = [];           // not-yet-shown items
+let shown = [];          // rendered items (ids)
+let likes = JSON.parse(localStorage.getItem("likes.v1")||"[]");
+let mode = "home";       // "home" or "likes"
 
-  // ---------- Build one card ----------
-  function makeCard(item){
-    const card = document.createElement('article');
-    card.className = 'card';
+/* ===== Counters ===== */
+function updateCounters(){
+  $("#shown").textContent = shown.length;
+  $("#pool").textContent  = pool.length;
+  $("#total").textContent = shown.length + pool.length;
+  $("#likeCount").textContent = likes.length;
+}
 
-    const name = document.createElement('div');
-    name.className = 'name';
-    name.textContent = item.name;
-    card.appendChild(name);
-
-    const img = document.createElement('img');
-    img.className = 'media';
-    img.loading = 'lazy';
-    img.alt = item.title || item.name;
-    img.src = item.url;
-    card.appendChild(img);
-
-    const meta = document.createElement('div');
-    meta.className = 'meta';
-
-    const src = document.createElement('div');
-    src.className = 'source';
-    src.textContent = `r/${item.subreddit}`;
-    meta.appendChild(src);
-
-    const actions = document.createElement('div');
-    actions.className = 'actions';
-
-    const bDis = document.createElement('button');
-    bDis.className = 'rect dislike';
-    bDis.textContent = 'Dismiss';
-    bDis.onclick = () => {
-      state.disliked.add(item.id);
-      saveDisliked();
-      card.remove();
-      state.shown++;
-      updateCounters();
-    };
-
-    const bLike = document.createElement('button');
-    bLike.className = 'rect like';
-    bLike.textContent = 'Like';
-    bLike.onclick = () => {
-      // de-dup by id
-      if (!state.likes.find(x => x.id === item.id)){
-        state.likes.unshift({
-          id:item.id, url:item.url, name:item.name, subreddit:item.subreddit, title:item.title
-        });
-        saveLikes();
-      }
-      card.remove();
-      state.shown++;
-      updateCounters();
-    };
-
-    actions.appendChild(bDis);
-    actions.appendChild(bLike);
-    meta.appendChild(actions);
-
-    card.appendChild(meta);
-    return card;
-  }
-
-  // ---------- Render batch from pool ----------
-  function renderBatch(n=6){
-    if (state.page !== 'home') return;
-    let count = 0;
-    while(count<n && state.pool.length){
-      const it = state.pool.shift();
-      if (state.disliked.has(it.id)) continue;
-      cards.appendChild(makeCard(it));
-      count++;
-    }
-    updateCounters();
-    if (state.auto && state.pool.length < 8) fetchNew(); // keep a warm pool
-  }
-
-  // ---------- Shuffle main feed ----------
-  function shuffleFeed(){
-    // shuffle DOM order of current cards
-    const arr = Array.from(cards.children);
-    for (let i=arr.length-1;i>0;i--){
-      const j = (Math.random()* (i+1))|0;
-      [arr[i],arr[j]]=[arr[j],arr[i]];
-    }
-    cards.innerHTML='';
-    arr.forEach(n => cards.appendChild(n));
-  }
-
-  // ---------- Data loading ----------
-  const proxies = [
-    u => `https://r.jina.ai/http://old.reddit.com${u}`,
-    u => `https://cors.isomorphic-git.org/https://old.reddit.com${u}`,
-  ];
-
-  async function getJSON(path){
-    let lastErr;
-    for (const fn of proxies){
-      const url = fn(path + (path.includes('?')?'&':'?') + 'raw_json=1');
-      try{
-        const res = await fetch(url, {mode:'cors', headers:{'Accept':'application/json'}});
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const txt = await res.text();
-        // r.jina.ai may return already-parsed JSON as text; JSON.parse will work
-        return JSON.parse(txt);
-      }catch(e){
-        lastErr = e;
-        log(`Proxy fail: ${url.slice(0,80)}… — ${e.message}`);
-      }
-    }
-    throw lastErr || new Error('No proxy worked');
-  }
-
-  function pick(arr){ return arr[(Math.random()*arr.length)|0]; }
-  function uniqueId(o){ return `${o.subreddit}_${o.id}`; }
-
-  async function fetchNew(){
-    if (state.fetching) return;
-    state.fetching = true;
-    setPhase('Starting', 6);
-
-    // build a small plan of searches
-    const names = CELEBS.slice().sort(() => Math.random()-.5).slice(0,8);
-    const sub = pick(SUBS);
-
-    log(`Building new batch… (${sub})`);
-    setPhase('Querying', 28);
-
-    const results = [];
-    for (const nm of names){
-      try{
-        const q = encodeURIComponent(nm);
-        // restrict sub search, prefer images
-        const path = `/r/${sub}/search.json?q=${q}&restrict_sr=1&sort=new&t=year&limit=20`;
-        const data = await getJSON(path);
-
-        if (data && data.data && Array.isArray(data.data.children)){
-          for (const ch of data.data.children){
-            const p = ch.data;
-            // Skip text/self posts
-            const hasPreview = p.preview && p.preview.images && p.preview.images[0];
-            const url = (p.url_overridden_by_dest || (hasPreview ? p.preview.images[0].source.url : '') || '').replace(/&amp;/g,'&');
-            const imgOkay = /i\.redd\.it|i\.imgur\.com|redditmedia|redd\.it|imgur\.com/i.test(url) && !/\.gifv$/.test(url);
-            if (!imgOkay) continue;
-
-            const item = {
-              id: uniqueId({subreddit:p.subreddit,id:p.id}),
-              url, name:nm, subreddit:p.subreddit, title:p.title||nm
-            };
-            if (!state.disliked.has(item.id)) results.push(item);
-          }
-        } else {
-          log(`${nm}: no list`);
-        }
-        setPhase('Parsing', 55);
-      }catch(err){
-        log(`${nm}: load failed — ${err.message}`);
-      }
-    }
-
-    // build pool
-    results.sort(() => Math.random()-.5);
-    state.pool.push(...results);
-    state.total += results.length;
-    setPhase('Building', 82);
-    updateCounters();
-
-    // render initial slice
-    renderBatch(6);
-    setPhase('Idle', 100);
-    state.fetching = false;
-  }
-
-  // ---------- Likes page ----------
-  function renderLikes(){
-    state.page = 'likes';
-    cards.innerHTML = '';
-    if (!state.likes.length){
-      const empty = document.createElement('div');
-      empty.className = 'pill';
-      empty.style.margin = '20px auto';
-      empty.textContent = 'No likes yet';
-      cards.appendChild(empty);
-      return;
-    }
-    for (const it of state.likes){
-      cards.appendChild(makeCard(it));
-    }
-  }
-
-  // ---------- Events ----------
-  el('#newBatchBtn').onclick = () => {
-    state.page = 'home';
-    cards.innerHTML = '';
-    state.shown = 0;
-    updateCounters();
-    fetchNew();
-  };
-  el('#homeBtn').onclick = () => {
-    state.page = 'home';
-    cards.innerHTML = '';
-    state.shown = 0;
-    renderBatch(12);
-  };
-  el('#likesBtn').onclick = renderLikes;
-  el('#shuffleBtn').onclick = shuffleFeed;
-  el('#troubleshootBtn').onclick = () => el('#modal').classList.add('show');
-  el('#closeModal').onclick = () => el('#modal').classList.remove('show');
-
-  el('#autoToggle').onchange = e => { state.auto = e.target.checked; };
-
-  // Manual "Load more" button (centered, built with JS so it stays near the feed end)
-  const loadMoreBtn = (() => {
-    const b = document.createElement('div');
-    b.className = 'center';
-    b.innerHTML = `<div class="pill btn ghost big" id="loadMore">Load more</div>`;
-    document.querySelector('.wrap').appendChild(b);
-    b.querySelector('#loadMore').onclick = () => {
-      if (state.pool.length < 6) fetchNew();
-      renderBatch(6);
-    };
-    return b;
-  })();
-
-  // Infinite scroll
-  let ticking = false;
-  window.addEventListener('scroll', () => {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(() => {
-      ticking = false;
-      if (!state.auto || state.page!=='home') return;
-      const near = window.innerHeight + window.scrollY > document.body.offsetHeight - 1200;
-      if (near) {
-        if (state.pool.length < 6) fetchNew();
-        renderBatch(6);
-      }
+/* ===== Fetch / Parse ===== */
+async function fetchFromReddit(sub, limit=50){
+  try{
+    const url = `https://www.reddit.com/r/${sub}/hot.json?limit=${limit}`;
+    const res = await fetch(url, {headers:{'User-Agent':'web'}});   // reddit allows anon JSON
+    const data = await res.json();
+    const kids = data?.data?.children || [];
+    const posts = kids.map(k=>k.data).filter(p=>{
+      // media-ish
+      const u = p.url_overridden_by_dest || "";
+      return p.post_hint?.includes("image") || u.match(/\.(jpg|jpeg|png|gif)$/i) || p.preview?.images?.length;
+    }).map(p=>{
+      let media = p.url_overridden_by_dest || (p.preview?.images?.[0]?.source?.url ?? "");
+      // fix &amp; etc
+      media = media.replace(/&amp;/g,"&");
+      return {
+        id: p.id,
+        name: (p.title||"").replace(/\s*\(.*?\)\s*$/,""),
+        subreddit: p.subreddit,
+        url: media,
+        thumb: (p.thumbnail||"").startsWith("http") ? p.thumbnail : null
+      };
     });
+    logMsg(`✅ r/${sub}: ${posts.length} media`);
+    return posts;
+  }catch(e){
+    logMsg(`❌ r/${sub}: ${e.message}`);
+    return [];
+  }
+}
+
+async function buildBatch(){
+  setPhase("Fetching", 8);
+  const names = shuffle([...CELEBS]).slice(0, 10);   // sample of the list to keep it snappy
+  const subs  = shuffle([...SUBS]).slice(0, 3);
+
+  // Step 1: fetch subreddit pages
+  const subPromises = subs.map((s,i)=> (async()=>{
+    setPhase(`r/${s}`, 10 + i*8);
+    return await fetchFromReddit(s, 50);
+  })());
+  const subResults = (await Promise.all(subPromises)).flat();
+
+  // Step 2: keyword filter to favor celeb names
+  setPhase("Filtering", 40);
+  const lowered = names.map(n=>n.toLowerCase());
+  let picked = subResults.filter(p=>{
+    const t = (p.name||"").toLowerCase();
+    return lowered.some(n=>t.includes(n));
   });
 
-  // Init
-  likesCount.textContent = String(state.likes.length);
-  setPhase('Idle', 100);
-  log('Ready.');
-  // start with a batch automatically
-  fetchNew();
+  // If too few, keep generic images too
+  if(picked.length < 12){
+    const needed = 24 - picked.length;
+    picked = picked.concat(subResults.filter(p=>!picked.find(x=>x.id===p.id)).slice(0, needed));
+  }
+
+  // Dedup & keep unseen and not disliked
+  const disliked = new Set(JSON.parse(localStorage.getItem("dislikes.v1")||"[]"));
+  const existing = new Set(pool.map(x=>x.id).concat(shown));
+  const unique = [];
+  for(const p of picked){
+    if(!p.url) continue;
+    if(existing.has(p.id)) continue;
+    if(disliked.has(p.id)) continue;
+    unique.push(p);
+  }
+
+  // Update pool
+  pool = pool.concat(unique);
+  updateCounters();
+  logMsg(`📦 Batch ready: +${unique.length} (from ${subs.join(", ")})`);
+  setPhase("Ready", 100);
+}
+
+/* ===== Render ===== */
+function cardEl(item){
+  const el = document.createElement("article");
+  el.className = "card";
+  el.dataset.id = item.id;
+
+  const top = document.createElement("div");
+  top.className="top";
+  top.innerHTML = `<div class="name">${item.name || "Untitled"}</div><div class="source">r/${item.subreddit}</div>`;
+
+  const media = document.createElement("div");
+  media.className = "media";
+  const img = document.createElement("img");
+  img.loading="lazy";
+  img.src = item.url;
+  img.alt = item.name || "image";
+  img.onerror = ()=>{ el.remove(); bumpShown(-1); };
+  media.appendChild(img);
+
+  const actions = document.createElement("div");
+  actions.className = "actions";
+  const dislike = document.createElement("button");
+  dislike.className = "act dis";
+  dislike.textContent = "Dismiss";
+  const like = document.createElement("button");
+  like.className = "act like";
+  like.textContent = "Like";
+
+  dislike.onclick = ()=>{
+    localStorage.setItem("dislikes.v1", JSON.stringify(
+      Array.from(new Set(JSON.parse(localStorage.getItem("dislikes.v1")||"[]").concat(item.id)))
+    ));
+    el.remove();
+    bumpShown(-1);
+    logMsg(`🗑️ dismissed ${item.name}`);
+  };
+  like.onclick = ()=>{
+    if(!likes.find(x=>x.id===item.id)){
+      likes.push(item);
+      localStorage.setItem("likes.v1", JSON.stringify(likes));
+      $("#likeCount").textContent = likes.length;
+    }
+    el.remove();
+    bumpShown(-1);
+    logMsg(`⭐ liked ${item.name}`);
+  };
+
+  actions.append(dislike, like);
+  el.append(top, media, actions);
+  return el;
+}
+
+function bumpShown(delta){
+  // called after removal or failure
+  if(delta<0){ shown.pop(); }
+  $("#shown").textContent = shown.length;
+  $("#total").textContent = shown.length + pool.length;
+}
+
+/* Paint next N from pool */
+function renderMore(n=6){
+  if(mode==="likes"){
+    // show likes in feed style
+    $("#cards").innerHTML = "";
+    const items = shuffle([...likes]).slice(0,n);
+    for(const it of items){ $("#cards").appendChild(cardEl(it)); }
+    shown = items.map(x=>x.id);
+    updateCounters();
+    return;
+  }
+
+  const take = pool.splice(0, n);
+  for(const item of take){
+    $("#cards").appendChild(cardEl(item));
+    shown.push(item.id);
+  }
+  updateCounters();
+}
+
+/* Shuffle visible feed (not the pool itself) */
+function shuffleFeed(){
+  const cont = $("#cards");
+  const nodes = Array.from(cont.children);
+  shuffle(nodes);
+  cont.innerHTML = "";
+  nodes.forEach(n=>cont.appendChild(n));
+}
+
+/* ===== Events ===== */
+$("#newBatchBtn").onclick = async ()=>{
+  $("#cards").innerHTML = "";
+  shown = [];
+  updateCounters();
+  setPhase("Starting", 5);
+  await buildBatch();
+  renderMore(8);
+};
+$("#loadMoreBtn").onclick = ()=>{
+  if(pool.length<6){
+    // automatically top-up silently
+    buildBatch().then(()=>renderMore(8));
+  }else{
+    renderMore(8);
+  }
+};
+$("#shuffleBtn").onclick = ()=> shuffleFeed();
+$("#homeBtn").onclick = ()=>{
+  mode="home";
+  $("#cards").innerHTML = "";
+  shown=[]; updateCounters();
+};
+$("#likesBtn").onclick = ()=>{
+  mode="likes";
+  $("#cards").innerHTML = "";
+  shown=[]; updateCounters();
+  renderMore(12);
+};
+$("#sourcesBtn").onclick = ()=>{
+  alert(`Active subreddits:\n• ${SUBS.join("\n• ")}`);
+};
+$("#logBtn").onclick = ()=> $("#modal").classList.add("show");
+$("#closeModal").onclick = ()=> $("#modal").classList.remove("show");
+
+/* Auto-load on scroll */
+window.addEventListener("scroll", ()=>{
+  if(!$("#autoScroll").checked || mode!=="home") return;
+  const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 400;
+  if(nearBottom) $("#loadMoreBtn").click();
+});
+
+/* ===== Boot ===== */
+(async function init(){
+  updateCounters();
+  setPhase("Idle", 100);
+  logMsg("Build v2.8 — ready");
+  // first touch – quick warmup batch so UI feels alive
+  await buildBatch();
+  renderMore(6);
 })();
 </script>
 </body>
