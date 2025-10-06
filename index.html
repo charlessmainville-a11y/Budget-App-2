@@ -35,7 +35,7 @@ body{
 .switch input:checked:before{transform:translateX(20px)}
 #override{flex:1;min-width:220px;color:var(--ink);background:#0b1220;border:1px solid var(--ring);
   padding:12px 12px;border-radius:12px;outline:none}
-a.liked{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;border:1px solid var(--ring);
+a.liked,button.filters{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;border:1px solid var(--ring);
   background:var(--panel);text-decoration:none;color:var(--ink);font-weight:800}
 
 /* layout */
@@ -81,6 +81,20 @@ main{padding:12px}
 .pill{padding:8px 12px;border-radius:999px;border:1px solid var(--ring);background:rgba(255,255,255,.04);text-decoration:none;color:var(--ink)}
 .rm{border:0;border-radius:12px;padding:8px 12px;background:#3b2028;color:#ffd9de;font-weight:800;cursor:pointer}
 .empty{display:none;border:1px dashed var(--ring);padding:10px 12px;border-radius:12px;color:var(--muted);margin:8px}
+
+/* modal */
+.modal-back{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:50}
+.modal{width:min(780px,92vw);max-height:86vh;overflow:auto;background:var(--panel);border:1px solid var(--ring);border-radius:16px;box-shadow:var(--glow);padding:16px}
+.modal h3{margin:0 0 10px}
+.section{border:1px solid var(--ring);border-radius:12px;padding:12px;margin-bottom:12px}
+.subs{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.ck{display:flex;align-items:center;gap:8px;background:#0b1220;border:1px solid var(--ring);padding:10px;border-radius:10px}
+.ck input{width:18px;height:18px}
+.tags{display:flex;flex-wrap:wrap;gap:8px}
+.tag{background:#0b1220;border:1px solid var(--ring);padding:8px 10px;border-radius:12px}
+.tag button{margin-left:8px;border:0;background:#3b2028;color:#ffd9de;border-radius:8px;padding:2px 6px;cursor:pointer}
+.modal .rowbtns{display:flex;gap:10px;justify-content:flex-end;margin-top:10px}
+.small{font-size:12px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -97,6 +111,7 @@ main{padding:12px}
     </label>
 
     <input id="override" placeholder="e.g. reddit=r/FashionModels,r/Celebs,r/InstagramModels"/>
+    <button class="filters" id="filtersBtn">Filters ⚙️</button>
     <a class="liked" id="likedBtn" href="#/liked">Liked ⭐</a>
   </div>
 </div>
@@ -113,10 +128,44 @@ main{padding:12px}
   </section>
 </main>
 
+<!-- Filters modal -->
+<div id="filtersBack" class="modal-back" role="dialog" aria-modal="true" aria-labelledby="filtersTitle">
+  <div class="modal">
+    <h3 id="filtersTitle">Filters</h3>
+
+    <div class="section">
+      <strong>Default subreddits</strong>
+      <div id="subsList" class="subs"></div>
+      <div class="small">Toggle off any subs you don’t want.</div>
+    </div>
+
+    <div class="section">
+      <strong>Custom subreddits</strong>
+      <div class="row" style="gap:8px">
+        <input id="customSubInput" placeholder="e.g. r/CharliDAmelio" style="flex:1;color:var(--ink);background:#0b1220;border:1px solid var(--ring);padding:10px;border-radius:10px;"/>
+        <button id="addSub" class="filters">Add</button>
+      </div>
+      <div id="customSubs" class="tags" style="margin-top:8px"></div>
+    </div>
+
+    <div class="section">
+      <strong>People focus</strong>
+      <div class="small">Comma-separated names. We’ll search Reddit for each name (top of the week) and pull images.</div>
+      <textarea id="peopleInput" rows="3" placeholder="Charli D'Amelio, Halsey, Lea Elui" style="width:100%;margin-top:8px;color:var(--ink);background:#0b1220;border:1px solid var(--ring);padding:10px;border-radius:10px;"></textarea>
+    </div>
+
+    <div class="rowbtns">
+      <button id="clearFilters" class="filters">Clear</button>
+      <button id="saveFilters" class="btn">Save</button>
+      <button id="closeFilters" class="filters">Close</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast" class="toast"></div>
 
 <script>
-/* ===== Config: subs (models / celebs / influencers only) ===== */
+/* ===== Defaults (models / celebs / influencers) ===== */
 const DEFAULT_SUBS = [
   "Celebs","ModelPhotography","FashionModels","InstagramModels",
   "LadiesOfCinema","BeautifulFemales","CelebEvents","Modelshoot",
@@ -125,9 +174,22 @@ const DEFAULT_SUBS = [
 
 /* ===== Storage ===== */
 const STORAGE_LIKES="likedPostsV1";
+const STORAGE_FILTERS="scrollwallFiltersV1";
 function likesGet(){ try{return JSON.parse(localStorage.getItem(STORAGE_LIKES)||"[]");}catch{return[]} }
 function likesSet(v){ localStorage.setItem(STORAGE_LIKES, JSON.stringify(v)); }
 function likeStore(item){ const a=likesGet(); if(!a.find(x=>x.id===item.id)){ a.unshift(item); likesSet(a);} }
+function filtersGet(){
+  try{
+    return JSON.parse(localStorage.getItem(STORAGE_FILTERS)) || {
+      enabledSubs: DEFAULT_SUBS.reduce((m,s)=>(m[s]=true,m),{}),
+      customSubs: [],
+      people: ["Charli D'Amelio","Halsey","Lea Elui"]
+    };
+  }catch{
+    return { enabledSubs: DEFAULT_SUBS.reduce((m,s)=>(m[s]=true,m),{}), customSubs:[], people:["Charli D'Amelio","Halsey","Lea Elui"] };
+  }
+}
+function filtersSet(f){ localStorage.setItem(STORAGE_FILTERS, JSON.stringify(f)); }
 
 /* ===== Tiny helpers ===== */
 const $=(s,el=document)=>el.querySelector(s);
@@ -143,7 +205,6 @@ function route(){
 }
 window.addEventListener("hashchange", route);
 
-/* ===== Toast ===== */
 function showToast(msg){ toast.textContent=msg; toast.style.display="block"; clearTimeout(showToast.t); showToast.t=setTimeout(()=>toast.style.display="none",2200); }
 
 /* ===== Reddit fetch ===== */
@@ -166,26 +227,58 @@ async function fetchTop(sub, allowNSFW){
   }
   return out;
 }
+async function searchPeople(name, allowNSFW){
+  const q=encodeURIComponent(name);
+  const url=`https://www.reddit.com/search.json?q=${q}&sort=top&t=week&limit=50&type=link`;
+  const r=await fetch(url,{headers:{'User-Agent':'ScrollWall/1.0'}});
+  if(!r.ok) throw new Error(`HTTP ${r.status}`);
+  const j=await r.json(); const out=[];
+  for(const c of j.data.children){
+    const d=c.data;
+    if(!allowNSFW && d.over_18) continue;
+    const img=pickImage(d); if(!img) continue;
+    out.push({ id:d.id, title:d.title, img, author:d.author, sub:d.subreddit,
+               permalink:`https://reddit.com${d.permalink}`, nsfw:!!d.over_18 });
+  }
+  return out;
+}
 
 async function loadMore(){
   if(location.hash==="#/liked"){ location.hash=""; return; }
   const allowNSFW=$("#nsfw").checked;
-  let subs=[...DEFAULT_SUBS];
+
+  // override text field (optional quick test)
+  let subs=null;
   const ov=$("#override").value.trim();
   if(ov.startsWith("reddit=")){
     const list=ov.slice(7).split(",").map(s=>s.replace(/^r\//,"").trim()).filter(Boolean);
     if(list.length) subs=list;
   }
 
+  // filters
+  const f = filtersGet();
+  const enabled = Object.entries(f.enabledSubs).filter(([,on])=>on).map(([s])=>s);
+  const allSubs = subs || [...enabled, ...f.customSubs.map(s=>s.replace(/^r\//,""))];
+
   $("#loadMoreBtn").disabled=true;
   let batch=[];
-  for(const sub of subs){
+  // fetch subs
+  for(const sub of allSubs){
     try{
       const chunk=await fetchTop(sub, allowNSFW);
       for(const it of chunk){ if(!loadedIds.has(it.id)){ loadedIds.add(it.id); batch.push(it); } }
-    }catch(e){ /* ignore per-sub errors */ }
+    }catch(e){ /* ignore */ }
   }
-  if(!batch.length){ showToast("No fresh image posts found. Try again or different subs."); }
+  // fetch people searches
+  for(const name of (f.people||[])){
+    const nm=name.trim(); if(!nm) continue;
+    try{
+      const chunk=await searchPeople(nm, allowNSFW);
+      for(const it of chunk){ if(!loadedIds.has(it.id)){ loadedIds.add(it.id); batch.push(it); } }
+    }catch(e){ /* ignore */ }
+  }
+
+  if(!batch.length){ showToast("No fresh image posts found. Try again or change Filters."); }
   else { render(batch); loaded+=batch.length; total+=batch.length; updateCount(); }
   $("#loadMoreBtn").disabled=false;
 }
@@ -286,6 +379,60 @@ function renderLiked(){
     likedGrid.appendChild(card);
   }
 }
+
+/* ===== Filters modal ===== */
+const modalBack=$("#filtersBack"), subsList=$("#subsList"), customWrap=$("#customSubs");
+const peopleInput=$("#peopleInput"), customSubInput=$("#customSubInput");
+
+function openFilters(){
+  const f=filtersGet();
+  // default subs
+  subsList.innerHTML="";
+  for(const s of DEFAULT_SUBS){
+    const div=document.createElement("label"); div.className="ck";
+    const cb=document.createElement("input"); cb.type="checkbox"; cb.checked=!!f.enabledSubs[s]; cb.dataset.sub=s;
+    const span=document.createElement("span"); span.textContent=`r/${s}`;
+    div.append(cb,span); subsList.appendChild(div);
+  }
+  // custom subs
+  renderCustom(f.customSubs);
+  // people
+  peopleInput.value=(f.people||[]).join(", ");
+  modalBack.style.display="flex";
+}
+function closeFilters(){ modalBack.style.display="none"; }
+function renderCustom(list){
+  customWrap.innerHTML="";
+  list.forEach((s,idx)=>{
+    const tag=document.createElement("span"); tag.className="tag"; tag.textContent=`r/${s.replace(/^r\//,"")}`;
+    const x=document.createElement("button"); x.textContent="×"; x.title="Remove";
+    x.addEventListener("click",()=>{ const f=filtersGet(); f.customSubs.splice(idx,1); filtersSet(f); renderCustom(f.customSubs); });
+    tag.appendChild(x); customWrap.appendChild(tag);
+  });
+}
+$("#addSub").addEventListener("click", ()=>{
+  const raw=customSubInput.value.trim(); if(!raw) return;
+  const s=raw.replace(/^r\//,"");
+  const f=filtersGet(); if(!f.customSubs.includes(s)){ f.customSubs.push(s); filtersSet(f); }
+  customSubInput.value=""; renderCustom(filtersGet().customSubs);
+});
+$("#saveFilters").addEventListener("click", ()=>{
+  const f=filtersGet();
+  f.enabledSubs={}; subsList.querySelectorAll("input[type=checkbox]").forEach(cb=>f.enabledSubs[cb.dataset.sub]=cb.checked);
+  f.people=peopleInput.value.split(",").map(x=>x.trim()).filter(Boolean);
+  filtersSet(f); closeFilters();
+  showToast("Filters saved");
+});
+$("#clearFilters").addEventListener("click", ()=>{
+  filtersSet({
+    enabledSubs: DEFAULT_SUBS.reduce((m,s)=>(m[s]=true,m),{}),
+    customSubs: [],
+    people: ["Charli D'Amelio","Halsey","Lea Elui"]
+  });
+  openFilters();
+});
+$("#closeFilters").addEventListener("click", closeFilters);
+$("#filtersBtn").addEventListener("click", openFilters);
 
 /* ===== Icons ===== */
 function svgStar(){return `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3.5 14.9 9l6 .9-4.4 4.3 1 6-5.5-2.9-5.5 2.9 1-6L3 9.9l6-.9L12 3.5z" fill="currentColor"/></svg>`}
