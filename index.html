@@ -1,115 +1,312 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Celeb Wall v2.0-lite</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Celeb Wall • v2.0-lite+</title>
 <style>
-  body { margin:0; font-family:sans-serif; background:#0f0f0f; color:#eee; }
-  header, footer { display:flex; padding:8px; justify-content:center; gap:12px; background:#1a1a1a; position:sticky; top:0; z-index:10; }
-  .btn { background:#333; color:#eee; padding:6px 12px; border-radius:6px; cursor:pointer; }
-  .grid { display:grid; grid-template-columns:1fr; gap:16px; padding:16px; }
-  .card { background:#222; border-radius:12px; overflow:hidden; position:relative; }
-  .card img, .card video { width:100%; display:block; }
-  .controls { display:flex; justify-content:space-around; padding:8px; background:#111; }
+  :root{
+    --bg:#0f1115; --card:#161a22; --ink:#e9edf1; --muted:#a9b3c1;
+    --pill:#222836; --pillEdge:#2b3344; --pink:#ff9cb3; --blue:#8bb6ff;
+    --good:#3bd4a8; --bad:#ef6b7b; --edge:#273049;
+    --shadow:0 12px 28px rgba(0,0,0,.35);
+    --r:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; color:var(--ink);
+    background: radial-gradient(1200px 600px at 50% -220px,#1a202c 0%,#0f1115 60%), var(--bg);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* Top bar */
+  header{position:sticky; top:0; z-index:6; backdrop-filter:saturate(120%) blur(6px)}
+  .bar{
+    display:flex; flex-wrap:wrap; gap:.6rem; align-items:center;
+    padding:14px clamp(12px,4vw,28px);
+    background:linear-gradient(180deg,rgba(18,21,27,.85),rgba(18,21,27,.55) 70%,rgba(18,21,27,0));
+    border-bottom:1px solid #1f2430;
+  }
+  .row{display:flex; flex-wrap:wrap; gap:.6rem; align-items:center}
+  .pill{display:inline-flex; align-items:center; gap:.5rem; padding:.6rem .9rem; border-radius:999px; background:var(--pill); border:1px solid var(--pillEdge); color:var(--ink)}
+  .btn{cursor:pointer; user-select:none; transition:.12s transform}
+  .btn:active{transform:translateY(1px)}
+  .primary{background:var(--pink); color:#1b1418; border-color:#f6a8bc}
+  .alt{background:var(--blue); color:#0e1521; border-color:#a8c8ff}
+  .chip{background:#1a2130; color:var(--muted)}
+
+  /* Main */
+  main{padding:12px clamp(12px,4vw,28px) 90px}
+  .cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:18px}
+
+  .card{
+    background:var(--card); border:1px solid #1f2430; border-radius:18px; box-shadow:var(--shadow);
+    overflow:hidden; display:flex; flex-direction:column;
+  }
+  .frame{position:relative; aspect-ratio:4/5; background:#0c0f14; display:grid; place-items:center}
+  .frame img,.frame video{width:100%; height:100%; object-fit:cover; display:block}
+
+  .meta{
+    padding:10px 12px; border-top:1px solid #1f2430; background:linear-gradient(180deg,#151925,#141821);
+    display:flex; flex-direction:column; gap:6px;
+  }
+  .titleRow{display:flex; align-items:baseline; justify-content:space-between; gap:8px; flex-wrap:wrap}
+  .person{font-weight:800; font-size:1.05rem}
+  .source{font-size:.86rem; color:var(--muted)}
+  .title{font-size:.92rem; color:#cbd6e6}
+  .actions{
+    display:flex; gap:10px; margin-top:6px;
+  }
+  .rectBtn{
+    flex:1; padding:.65rem .85rem; border-radius:10px; border:1px solid var(--edge);
+    background:#1b2332; color:#e9f1ff; font-weight:700; letter-spacing:.1px; cursor:pointer;
+  }
+  .rectBtn.good{ background: #12372a; border-color:#225d47; color:#b3ffe9; }
+  .rectBtn.bad{  background: #401c23; border-color:#5f2b35; color:#ffc5cc;  }
+
+  /* Batch info drawer */
+  .drawer{
+    margin:10px clamp(12px,4vw,28px) 0;
+    background:#121823; border:1px solid #1f2533; border-radius:14px; overflow:hidden;
+  }
+  .drawerHd{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:10px 12px; background:#111723; cursor:pointer;
+  }
+  .drawerHd .label{font-weight:800}
+  .drawerBody{display:none; padding:10px 12px; color:#c9d4e4}
+  .drawerBody.open{display:block}
+  .kv{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px}
+  .tag{background:#1a2130; border:1px solid #27314a; padding:.35rem .6rem; border-radius:999px}
+
+  /* Toast */
+  .toast{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#151b25; border:1px solid #253049; color:#e6ecf3; padding:.7rem 1rem; border-radius:12px; display:none; z-index:9}
+  .toast.show{display:block}
 </style>
 </head>
 <body>
 <header>
-  <div class="btn" id="btnHome">Home</div>
-  <div class="btn" id="btnLikes">⭐ Likes</div>
-  <div class="btn" id="btnNew">New Batch</div>
+  <div class="bar">
+    <div class="row">
+      <div class="pill chip">Celeb Wall • v2.0-lite+</div>
+      <div class="pill chip">Shown <b id="shown">0</b></div>
+      <div class="pill chip">Pool <b id="pool">0</b></div>
+      <div class="pill chip">Total <b id="total">0</b></div>
+    </div>
+    <div class="row">
+      <div class="pill btn primary" id="btnNew">New batch</div>
+      <div class="pill btn alt" id="btnLoad">Load more</div>
+      <div class="pill btn alt" id="btnShuffle">Shuffle</div>
+      <div class="pill btn" id="btnLikes">⭐ Likes</div>
+      <div class="pill btn" id="btnHome">Home</div>
+    </div>
+  </div>
 </header>
 
-<div id="cards" class="grid"></div>
+<!-- Batch info drawer -->
+<div class="drawer" id="drawer">
+  <div class="drawerHd" id="drawerToggle">
+    <div class="label">Batch Info</div>
+    <div class="pill chip" id="batchStats">—</div>
+  </div>
+  <div class="drawerBody" id="drawerBody">
+    <div class="kv"><strong>Subreddits:</strong></div>
+    <div class="kv" id="subsList"></div>
+    <div class="kv"><strong>Names:</strong></div>
+    <div class="kv" id="namesList"></div>
+  </div>
+</div>
 
-<footer>
-  <div class="btn" id="btnShuffle">Shuffle</div>
-</footer>
+<main>
+  <section id="cards" class="cards"></section>
+</main>
+
+<div class="toast" id="toast"></div>
 
 <script>
-let pool=[], shown=0;
-let hidden=new Set(JSON.parse(localStorage.getItem('hidden_v1')||'[]'));
-let likes=JSON.parse(localStorage.getItem('likes_v1')||'[]');
-const cardsEl=document.getElementById('cards');
+/* ========= Config (edit these) ========= */
+const SUBS   = ['celebs','CelebrityPhotos','ModelPhotos']; // add/remove freely
+const PEOPLE = [
+  "Charli D'Amelio","Lea Elui","Kendall Jenner","Hailey Bieber","Madison Beer",
+  "Sabrina Carpenter","Sydney Sweeney","Dua Lipa","Gal Gadot","Alexandra Daddario",
+  "Ana de Armas","Selena Gomez","Kaia Gerber","Vanessa Hudgens","Margot Robbie",
+  "Emily Ratajkowski","Irina Shayk","Emma Watson","Ariana Grande","Bella Hadid"
+];
+const LIMIT_PER_QUERY = 30;   // Reddit search limit per celeb per subreddit
+const NAMES_PER_SUB   = 10;   // names to attempt per subreddit
+const RENDER_CHUNK    = 8;    // cards per "Load more"
+/* ====================================== */
 
-const PEOPLE=['Ana de Armas','Dua Lipa','Lea Elui','Kendall Jenner','Selena Gomez'];
-const SUBS=['celebs','models','CelebrityPortraits'];
+const cardsEl  = document.getElementById('cards');
+const shownEl  = document.getElementById('shown');
+const poolEl   = document.getElementById('pool');
+const totalEl  = document.getElementById('total');
+const toast    = document.getElementById('toast');
 
-function log(m){console.log(m);}
-function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+const drawerToggle = document.getElementById('drawerToggle');
+const drawerBody   = document.getElementById('drawerBody');
+const batchStats   = document.getElementById('batchStats');
+const subsList     = document.getElementById('subsList');
+const namesList    = document.getElementById('namesList');
 
-async function fetchCelebMedia(name, limit=20, sub='celebs'){
-  try{
-    const url=`https://www.reddit.com/r/${sub}/search.json?q=${encodeURIComponent(name)}&restrict_sr=1&limit=${limit}&include_over_18=on&raw_json=1`;
-    const res=await fetch(url);
-    if(!res.ok){log(`${name} @${sub}: ${res.status}`);return 0;}
-    const data=await res.json();
-    const children=(data?.data?.children)||[];
-    let added=0;
-    for(const c of children){
-      const d=c.data||{};
-      const raw=d.url_overridden_by_dest||d.url||"";
-      let final=null;
-      if(/\.(jpg|jpeg|png|gif)$/i.test(raw)) final=raw;
-      else if(/\.gifv$/i.test(raw)) final=raw.replace(/\.gifv$/i,".mp4");
-      else if(d.secure_media?.reddit_video?.fallback_url) final=d.secure_media.reddit_video.fallback_url;
-      if(final){
-        const id=d.permalink?`https://reddit.com${d.permalink}`:`${sub}|${d.title}`;
-        if(!hidden.has(id)){
-          pool.push({id,title:d.title||name,url:final,link:id,source:sub});
-          added++;
-        }
-      }
-    }
-    return added;
-  }catch(e){log(`${name}@${sub} error ${e.message}`);return 0;}
+let pool=[], shown=0, total=0, view='home';
+let likes  = JSON.parse(localStorage.getItem('likes_v1')||'[]');
+let hidden = new Set(JSON.parse(localStorage.getItem('hidden_v1')||'[]'));
+let batchInfo = { subs: [], names: [] };
+
+function toastShow(m){ toast.textContent=m; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),1100); }
+function updateMeters(){ shownEl.textContent=shown; poolEl.textContent=pool.length; totalEl.textContent=shown+pool.length; }
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function shuffleArray(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
+function clean(u){ return typeof u==='string' ? u.replace(/&amp;/g,'&') : u; }
+function toMP4(u){ if(!u) return null; if(/\.gifv($|\?)/i.test(u)) return u.replace(/\.gifv/i,'.mp4'); if(/imgur\.com\/(?!a\/)([^.]+)($|\/$)/.test(u)) return `${u.replace(/\/$/,'')}.jpg`; return u; }
+function pickRedditVideo(d){ const rv = d?.secure_media?.reddit_video || d?.media?.reddit_video; if (rv?.fallback_url) return rv.fallback_url; const cp = d?.crosspost_parent_list?.[0]; const rv2 = cp?.secure_media?.reddit_video || cp?.media?.reddit_video; return rv2?.fallback_url || null; }
+function extractGallery(d){ if(!d?.is_gallery || !d?.media_metadata) return []; const out=[]; for(const k of Object.keys(d.media_metadata)){ const m=d.media_metadata[k]; const s=m?.s; const u=clean(s?.u||s?.gif||s?.mp4); if(u) out.push({url:toMP4(u)}); } return out; }
+function extractPreview(d){ const p=d?.preview?.images?.[0]?.source?.url; return p ? clean(p) : null; }
+function bestMedia(d){
+  const direct = clean(d?.url_overridden_by_dest || d?.url);
+  const vid = pickRedditVideo(d); if(vid) return {url:vid, kind:'video'};
+  const gallery = extractGallery(d); if(gallery.length) return {url:gallery[0].url, kind:/\.mp4$/i.test(gallery[0].url)?'video':'image'};
+  let u = toMP4(direct); if(u && /\.(jpg|jpeg|png|gif|webp|mp4)$/i.test(u)) return {url:u, kind:/\.mp4$/i.test(u)?'video':'image'};
+  const prev = extractPreview(d); if(prev) return {url:toMP4(prev), kind:'image'};
+  return null;
 }
 
+/* -------- Reddit fetch (stable) -------- */
+async function fetchNameFromSub(name, sub){
+  const url = `https://www.reddit.com/r/${encodeURIComponent(sub)}/search.json?restrict_sr=1&sort=new&limit=${LIMIT_PER_QUERY}&q=title:${encodeURIComponent(name)}&include_over_18=on&raw_json=1`;
+  try{
+    const res = await fetch(url, {headers:{'Accept':'application/json'}});
+    if(!res.ok){ return 0; }
+    const data = await res.json();
+    const kids = data?.data?.children || [];
+    let added=0;
+    for(const c of kids){
+      const d = c?.data || {};
+      const pick = bestMedia(d); if(!pick?.url) continue;
+      const permalink = d.permalink ? `https://reddit.com${d.permalink}` : '';
+      const id = permalink || (`r/${sub}|` + (d.title || name));
+      if (hidden.has(id)) continue;
+      pool.push({
+        id,
+        person: name,                           // <-- keep the person name for the card
+        title: (d.title || name).replace(/\s*\(.*?\)\s*/,''),
+        url: pick.url,
+        kind: pick.kind,
+        source: `r/${sub}`,
+        by: d.author || '',
+        link: permalink
+      });
+      added++;
+    }
+    return added;
+  }catch(e){ return 0; }
+}
+
+/* -------- Build batch & drawer info -------- */
+function setBatchInfo(subs, names){
+  batchInfo = { subs: [...subs], names: [...names] };
+  batchStats.textContent = `${subs.length} subs · ${names.length} names`;
+  subsList.innerHTML  = subs.map(s=>`<span class="tag">r/${s}</span>`).join(' ');
+  namesList.innerHTML = names.map(n=>`<span class="tag">${n}</span>`).join(' ');
+}
+drawerToggle.onclick = () => { drawerBody.classList.toggle('open'); };
+
 async function buildNewBatch(){
-  cardsEl.innerHTML=""; pool=[]; shown=0;
-  const picks=PEOPLE.slice(0,5);
+  view='home';
+  cardsEl.innerHTML=''; shown=0; pool=[]; updateMeters();
+  const names = shuffleArray([...PEOPLE]).slice(0, NAMES_PER_SUB);
+  setBatchInfo(SUBS, names);
+
   for(const sub of SUBS){
-    for(const n of picks){
-      await fetchCelebMedia(n,20,sub);
-      await sleep(200);
+    for(const name of names){
+      await fetchNameFromSub(name, sub);
+      await sleep(140);
     }
   }
-  shuffle(pool);
+  shuffleArray(pool);
+  total = pool.length;
+  updateMeters();
+  if(pool.length===0){ return; }
   renderMore();
 }
 
-function renderMore(count=8){
-  for(let i=0;i<count && shown<pool.length;i++,shown++){
-    renderOne(pool[shown]);
+/* -------- Render -------- */
+function renderCard(item){
+  const card = document.createElement('article'); card.className='card';
+  const frame = document.createElement('div'); frame.className='frame';
+  if(item.kind==='video'){
+    const v = document.createElement('video');
+    v.src=item.url; v.controls=true; v.muted=true; v.playsInline=true; v.loop=true; v.autoplay=true;
+    frame.appendChild(v);
+  }else{
+    const img = document.createElement('img');
+    img.loading='lazy'; img.decoding='async'; img.alt=item.title; img.src=item.url;
+    frame.appendChild(img);
   }
+
+  const meta = document.createElement('div'); meta.className='meta';
+  const titleRow = document.createElement('div'); titleRow.className='titleRow';
+  const person = document.createElement('div'); person.className='person'; person.textContent = item.person || '—';
+  const source = document.createElement('div'); source.className='source'; source.textContent = item.source;
+  titleRow.append(person, source);
+
+  const title = document.createElement('div'); title.className='title'; title.textContent = item.title.slice(0,120);
+
+  const actions = document.createElement('div'); actions.className='actions';
+  const btnNope = document.createElement('button'); btnNope.className='rectBtn bad'; btnNope.textContent='Dismiss';
+  const btnLike = document.createElement('button'); btnLike.className='rectBtn good'; btnLike.textContent='Like';
+  // Dislike (left)
+  btnNope.onclick = () => {
+    if(item.id){ hidden.add(item.id); localStorage.setItem('hidden_v1', JSON.stringify([...hidden])); }
+    card.remove();
+  };
+  // Like (right)
+  btnLike.onclick = () => {
+    likes.unshift(item);
+    localStorage.setItem('likes_v1', JSON.stringify(likes.slice(0,500)));
+    card.remove();
+  };
+  actions.append(btnNope, btnLike);
+
+  meta.append(titleRow, title, actions);
+  card.append(frame, meta);
+  return card;
 }
 
-function renderOne(item){
-  const card=document.createElement('div'); card.className="card";
-  let el;
-  if(item.url.match(/\.(mp4|gif)$/i)){el=document.createElement('video');el.src=item.url;el.autoplay=true;el.loop=true;el.muted=true;}
-  else{el=document.createElement('img');el.src=item.url;}
-  card.appendChild(el);
-
-  const ctr=document.createElement('div'); ctr.className="controls";
-  const like=document.createElement('div'); like.className="btn"; like.textContent="⭐";
-  like.onclick=()=>{likes.unshift(item);localStorage.setItem('likes_v1',JSON.stringify(likes.slice(0,300)));card.remove();};
-  const nope=document.createElement('div'); nope.className="btn"; nope.textContent="👎";
-  nope.onclick=()=>{hidden.add(item.id);localStorage.setItem('hidden_v1',JSON.stringify([...hidden]));card.remove();};
-  ctr.appendChild(like); ctr.appendChild(nope);
-  card.appendChild(ctr);
-  cardsEl.appendChild(card);
+function renderMore(n=RENDER_CHUNK){
+  if(view!=='home') return;
+  let c=0;
+  while(c<n && pool.length){
+    const it = pool.shift();
+    cardsEl.appendChild(renderCard(it));
+    shown++; c++;
+  }
+  updateMeters();
 }
 
-function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}}
+/* -------- Likes & Home -------- */
+function showLikes(){
+  view='likes'; cardsEl.innerHTML=''; shown=likes.length; pool.length=0; updateMeters();
+  likes.forEach(item => cardsEl.appendChild(renderCard(item)));
+}
+function showHome(){
+  view='home'; cardsEl.innerHTML=''; shown=0; updateMeters();
+  if(pool.length===0){ /* keep empty, up to user to New batch */ }
+  else renderMore();
+}
 
-document.getElementById('btnNew').onclick=buildNewBatch;
-document.getElementById('btnShuffle').onclick=()=>{cardsEl.innerHTML="";shuffle(pool);shown=0;renderMore();};
-document.getElementById('btnLikes').onclick=()=>{cardsEl.innerHTML="";likes.forEach(renderOne);};
-document.getElementById('btnHome').onclick=()=>{cardsEl.innerHTML="";shown=0;renderMore();};
+/* -------- Buttons -------- */
+document.getElementById('btnNew').onclick = buildNewBatch;
+document.getElementById('btnLoad').onclick = ()=> renderMore();
+document.getElementById('btnShuffle').onclick = ()=>{ pool = shuffleArray(pool); };
+document.getElementById('btnLikes').onclick = showLikes;
+document.getElementById('btnHome').onclick = showHome;
 
-buildNewBatch();
+/* Init */
+updateMeters();
 </script>
 </body>
 </html>
