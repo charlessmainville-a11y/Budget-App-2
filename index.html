@@ -1,80 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Scroll Wall — Models • Influencers • Actors</title>
 <style>
   :root{
-    --bg:#0b0f14; --bg2:#101722; --panel:#182230;
-    --ink:#e9f0ff; --muted:#a6b3c7; --hot:#ff6fa5;
-    --ok:#6ee7b7; --warn:#ffd166; --accent:#6ea8ff;
-    --card:#121821; --shadow: 0 10px 30px rgba(0,0,0,.35);
-    --radius:18px;
+    --bg:#0b0f14; --panel:#182230; --ink:#e9f0ff; --muted:#a6b3c7;
+    --card:#121821; --ring:#28384c; --accent:#6ea8ff; --hot:#ff6fa5;
+    --ok:#6ee7b7; --shadow:0 10px 30px rgba(0,0,0,.35); --r:18px;
   }
-  *{box-sizing:border-box}
-  html,body{margin:0;height:100%;background:radial-gradient(1200px 400px at 50% -200px,#172030 0%,#0b0f14 60%);}
-  body{font-family: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;
-       color:var(--ink); -webkit-font-smoothing:antialiased; padding-bottom:48px;}
+  *{box-sizing:border-box} html,body{margin:0;height:100%;
+    background:radial-gradient(1200px 400px at 50% -200px,#172030 0%,#0b0f14 60%);
+    color:var(--ink); font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
   a{color:var(--accent);text-decoration:none}
-  .wrap{max-width:820px;margin:18px auto;padding:0 14px}
-  .row{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
-  .controls{background:linear-gradient(180deg,#111a24, #0f151e);
-            border:1px solid #213044;border-radius:22px;padding:18px;box-shadow:var(--shadow)}
-  .btn{border:0;border-radius:16px;padding:18px 22px;font-weight:800;font-size:20px;
-       background:linear-gradient(180deg,#ff8fb2,#ff5a94); color:#0c0f14; box-shadow:var(--shadow)}
-  .btn:active{transform:translateY(1px)}
-  .pill{min-width:88px;text-align:center;border-radius:14px;padding:12px 16px;
-        background:#0f1620;border:1px solid #29364a;color:#cfe0ff;font-weight:800}
-  .switch{appearance:none;width:66px;height:36px;border-radius:20px;position:relative;outline:none;border:1px solid #2a384e;background:#0c1320}
-  .switch::after{content:"";position:absolute;top:3px;left:4px;width:30px;height:30px;border-radius:50%;background:#f0f5ff;transition:.2s}
+
+  .wrap{max-width:860px;margin:18px auto;padding:0 14px}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .controls{background:linear-gradient(180deg,#111a24,#0f151e); border:1px solid #213044;
+    border-radius:22px;padding:16px;box-shadow:var(--shadow)}
+  .btn{border:0;border-radius:16px;padding:16px 18px;font-weight:800;
+    background:linear-gradient(180deg,#ff8fb2,#ff5a94);color:#0c0f14;box-shadow:var(--shadow);cursor:pointer}
+  .soft{padding:12px 14px;border-radius:14px;background:#101826;border:1px solid #253449;
+    color:#d7e7ff;font-weight:800;box-shadow:var(--shadow);cursor:pointer}
+  .pill{min-width:88px;text-align:center;border-radius:14px;padding:10px 12px;background:#0f1620;border:1px solid #29364a}
+  .input{flex:1;min-width:200px;border-radius:14px;background:#0f1620;border:1px solid #29364a;color:#e6f0ff;padding:12px 14px}
+  .switch{appearance:none;width:66px;height:36px;border-radius:20px;position:relative;outline:none;
+    border:1px solid #2a384e;background:#0c1320;cursor:pointer}
+  .switch::after{content:"";position:absolute;top:3px;left:4px;width:30px;height:30px;border-radius:50%;
+    background:#f0f5ff;transition:.18s}
   .switch:checked{background:#123423;border-color:#1f4b31}
   .switch:checked::after{transform:translateX(28px);background:#baf7d3}
-  .input{flex:1;min-width:220px;border-radius:14px;background:#0f1620;border:1px solid #29364a;
-         color:#e6f0ff;padding:14px 16px;font-size:16px}
-  .toolbar{display:flex;gap:12px;margin-top:12px;flex-wrap:wrap}
-  .minor{color:var(--muted);font-size:14px;margin-top:10px}
+  .minor{color:var(--muted);font-size:14px;margin-top:8px}
 
-  .soft{padding:14px 18px;border-radius:14px;background:#101826;border:1px solid #253449;color:#d7e7ff;font-weight:800;box-shadow:var(--shadow)}
-  .soft:active{transform:translateY(1px)}
+  .grid{display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px}
+  @media(min-width:720px){ .grid{grid-template-columns:1fr 1fr} }
 
-  .grid{display:grid;grid-template-columns:1fr;gap:18px;margin-top:16px}
-  @media(min-width:700px){ .grid{grid-template-columns:1fr 1fr} }
+  .card{background:linear-gradient(180deg,#141c26,#0d131c);border:1px solid var(--ring);
+    border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);position:relative}
+  .media{position:relative;background:#0a0f15;display:flex;align-items:center;justify-content:center;aspect-ratio:4/3}
+  .media img,.media video{width:100%;height:100%;object-fit:contain;background:#0a0f15}
+  .media video{display:block}
+  .media::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 70%,rgba(8,12,18,.85))}
 
-  .card{background:linear-gradient(180deg,#141c26,#0d131c);
-        border:1px solid #28384c;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);position:relative}
-  .imgwrap{position:relative; background:#0a0f15; display:flex;align-items:center;justify-content:center; aspect-ratio:4/3}
-  .imgwrap img{width:100%;height:100%;object-fit:contain; background:#0a0f15}
-  .imgwrap::before{content:"";position:absolute;inset:0;background:
-     linear-gradient(180deg,transparent 70%,rgba(8,12,18,.85)); pointer-events:none}
-  .meta{padding:16px 16px 14px}
-  .title{font-weight:900; font-size:22px; line-height:1.2; margin:0 0 8px}
-  .by{color:var(--muted);font-size:14px;margin-bottom:10px}
-  .tag{display:inline-block;border:1px solid #2a3950;color:#cfe3ff;padding:8px 12px;border-radius:12px;font-weight:800;margin-right:8px;background:#0f1722}
-  .rowfoot{display:flex;align-items:center;gap:10px;margin-top:10px}
-  .star{width:44px;height:44px;border-radius:50%;display:inline-grid;place-items:center;
-        background:linear-gradient(180deg,#ffe08a,#ffc44b); color:#111; font-weight:900; border:0}
-  .dismiss{width:44px;height:44px;border-radius:50%;display:inline-grid;place-items:center;
-           background:#1d2430;border:1px solid #2a394d;color:#cbd6ea}
-  .linkbtn{padding:10px 14px;border-radius:12px;border:1px solid #2a394d;background:#131b27;color:#d5e8ff;font-weight:800}
+  .meta{padding:14px}
+  .title{font-weight:900;font-size:20px;line-height:1.2;margin:0 0 6px}
+  .by{color:var(--muted);font-size:13px;margin-bottom:8px}
+  .tag{display:inline-block;border:1px solid #2a3950;color:#cfe3ff;padding:6px 10px;border-radius:12px;font-weight:800;margin-right:8px;background:#0f1722}
+  .rowfoot{display:flex;gap:10px;align-items:center;margin-top:8px}
+  .star,.dismiss{width:44px;height:44px;border-radius:50%;display:inline-grid;place-items:center;cursor:pointer}
+  .star{background:linear-gradient(180deg,#ffe08a,#ffc44b);color:#111;border:0}
+  .dismiss{background:#1d2430;border:1px solid #2a394d;color:#cbd6ea}
+  .linkbtn{padding:8px 12px;border-radius:12px;border:1px solid #2a394d;background:#131b27;color:#d5e8ff;font-weight:800}
 
-  .drag{touch-action:none}
-  .flying{will-change:transform; transition:transform .18s ease, opacity .18s ease}
+  .drag{touch-action:none} .flying{will-change:transform;transition:transform .18s ease,opacity .18s ease}
 
-  .modal{position:fixed;inset:0;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.4);backdrop-filter:saturate(120%) blur(2px);z-index:30}
+  .modal{position:fixed;inset:0;display:none;align-items:flex-end;justify-content:center;
+    background:rgba(0,0,0,.4);backdrop-filter:saturate(120%) blur(2px);z-index:30}
   .modal.show{display:flex}
-  .sheet{width:min(820px,100%);background:linear-gradient(180deg,#101726,#0e1420);
-         border-top-left-radius:20px;border-top-right-radius:20px;border:1px solid #223144;
-         box-shadow:0 -12px 40px rgba(0,0,0,.45); padding:16px}
-  .sheet h3{margin:6px 6px 10px}
+  .sheet{width:min(860px,100%);background:linear-gradient(180deg,#101726,#0e1420);
+    border-top-left-radius:20px;border-top-right-radius:20px;border:1px solid #223144;
+    box-shadow:0 -12px 40px rgba(0,0,0,.45);padding:16px}
   .subgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
   @media(min-width:680px){ .subgrid{grid-template-columns:repeat(3,1fr)} }
   .chk{display:flex;gap:10px;align-items:center;background:#0f1622;border:1px solid #263449;border-radius:12px;padding:10px 12px}
-  .close{padding:12px 16px;border-radius:12px;border:1px solid #2a394d;background:#141c28;color:#d7e8ff;font-weight:900}
+  .close{padding:10px 12px;border-radius:12px;border:1px solid #2a394d;background:#141c28;color:#d7e8ff;font-weight:900}
 
-  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);
-         max-width:86vw;background:#2a1a1a;border:1px solid #503232;
-         color:#ffd6d6;padding:12px 14px;border-radius:12px;font-weight:800;box-shadow:var(--shadow);z-index:40;display:none}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);max-width:86vw;background:#2a1a1a;border:1px solid #503232;color:#ffd6d6;padding:10px 12px;border-radius:12px;font-weight:800;box-shadow:var(--shadow);z-index:40;display:none}
   .toast.show{display:block}
 
   canvas.fx{position:fixed;pointer-events:none;inset:0;z-index:50}
@@ -82,26 +74,34 @@
 </head>
 <body>
   <canvas class="fx" id="fx"></canvas>
+
   <div class="wrap">
     <div class="controls">
       <div class="row">
         <button id="load" class="btn">Load more</button>
-        <button id="shuffle" class="soft" title="Shuffle feed">Shuffle 🔀</button>
+        <button id="shuffle" class="soft">Shuffle 🔀</button>
         <div id="count" class="pill">0/0</div>
-        <label class="row" style="margin-left:auto;gap:12px;align-items:center">
-          <input id="allowSfw" type="checkbox" class="switch" />
+
+        <label class="row" style="margin-left:auto;gap:8px;align-items:center">
+          <input id="peopleOnly" type="checkbox" class="switch"/>
+          <div style="font-weight:900">Only people</div>
+        </label>
+        <label class="row" style="gap:8px;align-items:center">
+          <input id="allowSfw" type="checkbox" class="switch"/>
           <div style="font-weight:900">Allow SFW</div>
         </label>
-        <label class="row" style="gap:12px;align-items:center">
-          <input id="nsfw" type="checkbox" class="switch" />
+        <label class="row" style="gap:8px;align-items:center">
+          <input id="nsfw" type="checkbox" class="switch"/>
           <div style="font-weight:900">Allow NSFW</div>
         </label>
       </div>
-      <div class="toolbar">
-        <input id="override" class="input" placeholder="e.g. reddit=r/FashionModels,r/Celebs,r/InstagramModels" />
+
+      <div class="row" style="margin-top:10px">
+        <input id="override" class="input" placeholder="e.g. reddit=r/FashionModels,r/Celebs,r/InstagramModels"/>
         <button id="filtersBtn" class="soft">Filters ⚙️</button>
         <button id="likedBtn" class="soft">Liked ⭐</button>
       </div>
+
       <div class="minor" id="loadedNote"></div>
     </div>
 
@@ -111,12 +111,12 @@
   <!-- Filters -->
   <div id="filtersModal" class="modal">
     <div class="sheet">
-      <h3>Pick sources</h3>
+      <h3>Pick subreddits</h3>
       <div class="subgrid" id="filtersGrid"></div>
-      <div class="row" style="margin-top:14px">
+      <div class="row" style="margin-top:12px">
         <button id="filtersClear" class="close">Clear all</button>
         <div style="flex:1"></div>
-        <button id="filtersClose" class="btn" style="padding:12px 16px">Save & Refresh</button>
+        <button id="filtersClose" class="btn" style="padding:10px 14px">Save & Refresh</button>
       </div>
     </div>
   </div>
@@ -126,11 +126,11 @@
     <div class="sheet">
       <h3>Liked ⭐</h3>
       <div class="grid" id="likedGrid" style="max-height:60vh;overflow:auto"></div>
-      <div class="row" style="margin-top:14px">
+      <div class="row" style="margin-top:12px">
         <button id="undoBtn" class="soft">Undo last</button>
         <div style="flex:1"></div>
         <button id="exportBtn" class="soft">Export JSON</button>
-        <button id="likedClose" class="btn" style="padding:12px 16px">Close</button>
+        <button id="likedClose" class="btn" style="padding:10px 14px">Close</button>
       </div>
     </div>
   </div>
@@ -138,49 +138,74 @@
   <div id="toast" class="toast"></div>
 
 <script>
-/* ========= curated SFW subs (focused on people; NO general scenic; NO FashionAdvice) ========= */
+/* ===== Curated subs focused on people (not general scenes) ===== */
 const DEFAULT_SFW_SUBS = [
   "Celebs","ModelPhotography","FashionModels","InstagramModels",
   "ModelPics","MostBeautiful","RedCarpet","LadyBoners","Beauty"
 ];
 
-/* ========= people search terms ========= */
+/* ===== 20 people (models / influencers / actresses) ===== */
 const PEOPLE = [
-  "Emily Ratajkowski","Charli D'Amelio","Lea Elui","Halsey",
-  "Kendall Jenner","Hailey Bieber","Bella Hadid","Gigi Hadid",
-  "Dua Lipa","Barbara Palvin","Taylor Hill","Alexandra Daddario",
-  "Ana de Armas","Margot Robbie","Sydney Sweeney","Zendaya",
-  "Anya Taylor-Joy","Florence Pugh","Madelyn Cline","Gal Gadot"
+  "Charli D'Amelio","Dixie D'Amelio","Addison Rae","Emily Ratajkowski",
+  "Hailey Bieber","Kendall Jenner","Kylie Jenner","Gigi Hadid","Bella Hadid",
+  "Halsey","Madison Beer","Sommer Ray","Alexis Ren","Lea Elui",
+  "Zendaya","Dua Lipa","Megan Fox","Sydney Sweeney","Doja Cat","Madelyn Cline"
 ];
 
-/* ========= storage ========= */
+/* ===== Local storage for likes ===== */
 const store = {
   liked: JSON.parse(localStorage.getItem("liked_v1")||"[]"),
   pushLiked(x){ this.liked.unshift(x); localStorage.setItem("liked_v1",JSON.stringify(this.liked)); },
   popLiked(){ const r=this.liked.shift(); localStorage.setItem("liked_v1",JSON.stringify(this.liked)); return r; }
 };
 
-/* ========= state ========= */
+/* ===== State ===== */
 const state = {
-  allowNSFW: true,           // default ON
-  allowSFW:  false,          // default OFF (your request: “get rid of SFW content”)
+  allowNSFW: true,          // default ON
+  allowSFW:  false,         // default OFF
+  peopleOnly: false,        // default OFF
   loaded: 0, total: 0,
   enabledSubs: new Set(DEFAULT_SFW_SUBS),
 };
-
-/* ========= small helpers ========= */
 const $ = s => document.querySelector(s);
 const grid = $("#grid"), likedGrid=$("#likedGrid"), toastEl=$("#toast");
+
+/* ===== UI helpers ===== */
 function showToast(m,ms=2400){ toastEl.textContent=m; toastEl.classList.add("show"); clearTimeout(showToast._t); showToast._t=setTimeout(()=>toastEl.classList.remove("show"),ms); }
 function setCount(){ $("#count").textContent = `${state.loaded}/${state.total}`; }
 const shuffleArr = a => { for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
 
-/* ========= Reddit helpers ========= */
-function pickImage(p){
-  if (p?.preview?.images?.[0]?.source?.url) return p.preview.images[0].source.url.replaceAll("&amp;","&");
-  const u=p?.url_overridden_by_dest||""; if(/\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(u)) return u;
+/* ===== Reddit media picking (image + video/gif support) =====
+   We try, in order:
+   - secure_media.reddit_video.fallback_url (MP4)
+   - media.reddit_video.fallback_url
+   - preview.reddit_video_preview.fallback_url
+   - URL if ends with image ext
+   - imgur .gifv -> .mp4
+*/
+function pickMedia(d){
+  const vid =
+    d?.secure_media?.reddit_video?.fallback_url ||
+    d?.media?.reddit_video?.fallback_url ||
+    d?.preview?.reddit_video_preview?.fallback_url ||
+    null;
+
+  if(vid) return {type:"video", src: vid};
+
+  // image/gif URL
+  let u = d?.url_overridden_by_dest || d?.url || "";
+  if(/\.gifv(\?|$)/i.test(u)) u = u.replace(/\.gifv(\?|$)/i, ".mp4$1"); // imgur gifv -> mp4
+  if(/\.(mp4)(\?|$)/i.test(u)) return {type:"video", src: u};
+  if(/\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(u)) return {type:"image", src: u};
+
+  // preview image
+  const p = d?.preview?.images?.[0]?.source?.url?.replaceAll("&amp;","&");
+  if(p) return {type:"image", src: p};
+
   return null;
 }
+
+/* ===== Fetchers ===== */
 async function fetchTop(sub, allowNSFW, allowSFW){
   const url=`https://www.reddit.com/r/${sub}/top.json?raw_json=1&t=week&limit=50`;
   try{
@@ -188,11 +213,10 @@ async function fetchTop(sub, allowNSFW, allowSFW){
     const j=await r.json(); const out=[];
     for(const c of j.data?.children||[]){
       const d=c.data;
-      // filter by SFW/NSFW rules
       if(d.over_18 && !allowNSFW) continue;
       if(!d.over_18 && !allowSFW) continue;
-      const img=pickImage(d); if(!img) continue;
-      out.push({id:d.id,title:d.title,img,author:d.author,sub:d.subreddit,permalink:`https://reddit.com${d.permalink}`,nsfw:!!d.over_18});
+      const media=pickMedia(d); if(!media) continue;
+      out.push({ id:d.id, title:d.title, media, author:d.author, sub:d.subreddit, permalink:`https://reddit.com${d.permalink}`, nsfw:!!d.over_18 });
     }
     return out;
   }catch{ return []; }
@@ -206,22 +230,30 @@ async function searchPeople(name, allowNSFW, allowSFW){
       const d=c.data;
       if(d.over_18 && !allowNSFW) continue;
       if(!d.over_18 && !allowSFW) continue;
-      const img=pickImage(d); if(!img) continue;
-      out.push({id:d.id,title:d.title,img,author:d.author,sub:d.subreddit,permalink:`https://reddit.com${d.permalink}`,nsfw:!!d.over_18});
+      const media=pickMedia(d); if(!media) continue;
+      out.push({ id:d.id, title:d.title, media, author:d.author, sub:d.subreddit, permalink:`https://reddit.com${d.permalink}`, nsfw:!!d.over_18 });
     }
     return out;
   }catch{ return []; }
 }
 
-/* ========= render ========= */
+/* ===== Rendering ===== */
+function mediaHTML(m){
+  if(m.type==="video"){
+    // muted + playsinline enables mobile autoplay, user can unmute with controls
+    return `<video src="${m.src}" muted playsinline loop controls preload="metadata"></video>`;
+  }else{
+    return `<img src="${m.src}" alt="" loading="lazy">`;
+  }
+}
 function cardHTML(item){
   const tag = item.nsfw? `<span class="tag" style="border-color:#5a2a2a;background:#1a1111;color:#ffb3b3">NSFW</span>` : `<span class="tag">SFW</span>`;
   return `
   <div class="card drag flying" data-id="${item.id}">
-    <div class="imgwrap"><img src="${item.img}" alt="" loading="lazy"></div>
+    <div class="media">${mediaHTML(item.media)}</div>
     <div class="meta">
       <h3 class="title">${item.title.replace(/[<>]/g,"")}</h3>
-      <div class="by">by u/${item.author} • r/${item.sub}</div>
+      <div class="by">u/${item.author} • r/${item.sub}</div>
       <div class="rowfoot">
         <button class="star" title="Like">★</button>
         <button class="dismiss" title="Dismiss">×</button>
@@ -239,6 +271,8 @@ function renderFeed(items){
   });
   grid.appendChild(f);
 }
+
+/* ===== Liked ===== */
 function renderLiked(){
   likedGrid.innerHTML="";
   if(store.liked.length===0){ likedGrid.innerHTML=`<div class="minor">No likes yet.</div>`; return; }
@@ -247,10 +281,10 @@ function renderLiked(){
     const d=document.createElement("div");
     d.innerHTML=`
       <div class="card">
-        <div class="imgwrap"><img src="${it.img}" alt=""></div>
+        <div class="media">${mediaHTML(it.media)}</div>
         <div class="meta">
           <h3 class="title">${it.title.replace(/[<>]/g,"")}</h3>
-          <div class="by">by u/${it.author} • r/${it.sub}</div>
+          <div class="by">u/${it.author} • r/${it.sub}</div>
           <div class="rowfoot">
             <a class="linkbtn" href="${it.permalink}" target="_blank" rel="noopener">Reddit</a>
             <button class="dismiss" title="Remove">−</button>
@@ -269,7 +303,7 @@ function renderLiked(){
   likedGrid.appendChild(f);
 }
 
-/* ========= FX ========= */
+/* ===== FX (confetti/dust) ===== */
 const fx=$("#fx"), ctx=fx.getContext("2d");
 function sizeFx(){ fx.width=innerWidth; fx.height=innerHeight } addEventListener("resize",sizeFx); sizeFx();
 function confetti(x,y,n=26){ const p=[]; for(let i=0;i<n;i++) p.push({x,y,vx:(Math.random()*2-1)*4,vy:-Math.random()*4-2,life:40+Math.random()*20,c:`hsl(${Math.random()*360},90%,60%)`}); run(p);
@@ -278,58 +312,69 @@ function confetti(x,y,n=26){ const p=[]; for(let i=0;i<n;i++) p.push({x,y,vx:(Ma
     const alive=parts.filter(s=>s.life>0); if(alive.length) requestAnimationFrame(()=>run(alive)); else ctx.clearRect(0,0,fx.width,fx.height);
   } }
 function dust(x,y,n=16){ const p=[]; for(let i=0;i<n;i++) p.push({x,y,r:2+Math.random()*3,vx:(Math.random()*2-1)*2,vy:(Math.random()*2-1)*2,life:28+Math.random()*12});
-  function run(parts){ ctx.clearRect(0,0,fx.width,fx.height); ctx.fillStyle="rgba(200,200,220,.5)";
+  (function run(parts){ ctx.clearRect(0,0,fx.width,fx.height); ctx.fillStyle="rgba(200,200,220,.5)";
     for(const s of parts){ ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fill(); s.x+=s.vx; s.y+=s.vy; s.life--; s.r*=0.98; }
     const alive=parts.filter(s=>s.life>0); if(alive.length) requestAnimationFrame(()=>run(alive)); else ctx.clearRect(0,0,fx.width,fx.height);
-  } run(p);
+  })(p);
 }
 
-/* ========= swipe ========= */
+/* ===== Swipe & actions ===== */
 function attachCardHandlers(node,item){
   const star=node.querySelector(".star"), close=node.querySelector(".dismiss");
   star.addEventListener("click",(e)=>{ store.pushLiked(item); const r=e.currentTarget.getBoundingClientRect(); confetti(r.left+r.width/2, r.top+scrollY); node.remove(); });
   close.addEventListener("click",(e)=>{ const r=e.currentTarget.getBoundingClientRect(); dust(r.left+r.width/2, r.top+scrollY); node.remove(); });
 
+  // Touch swipe (horizontal) without hijacking page scroll
   let sx=0, sy=0, dx=0, dragging=false;
   node.addEventListener("touchstart",(ev)=>{ const t=ev.touches[0]; sx=t.clientX; sy=t.clientY; dx=0; dragging=true; node.classList.add("drag"); },{passive:true});
-  node.addEventListener("touchmove",(ev)=>{ if(!dragging) return; const t=ev.touches[0]; if(Math.abs(t.clientY-sy)>14) return;
-    dx=t.clientX-sx; node.style.transform=`translateX(${dx}px) rotate(${dx*0.03}deg)`; node.style.opacity=String(1-Math.min(Math.abs(dx)/220,0.35)); },{passive:true});
-  node.addEventListener("touchend",()=>{ node.classList.remove("drag");
+  node.addEventListener("touchmove",(ev)=>{
+    if(!dragging) return; const t=ev.touches[0];
+    if(Math.abs(t.clientY-sy)>14) return; // let page scroll vertically
+    dx=t.clientX-sx;
+    node.style.transform=`translateX(${dx}px) rotate(${dx*0.03}deg)`; node.style.opacity=String(1-Math.min(Math.abs(dx)/220,0.35));
+  },{passive:true});
+  node.addEventListener("touchend",()=>{
+    node.classList.remove("drag");
     if(Math.abs(dx)>120){ const r=node.getBoundingClientRect();
       if(dx>0){ store.pushLiked(item); confetti(r.left+r.width/2, r.top+scrollY); } else { dust(r.left+r.width/2, r.top+scrollY); }
       node.remove();
     } else { node.style.transform=""; node.style.opacity=""; }
-    dragging=false; dx=0; });
+    dragging=false; dx=0;
+  });
 }
 
-/* ========= load ========= */
+/* ===== Load batches ===== */
 async function loadBatch(shuffleSources=false){
   const allowNSFW = $("#nsfw").checked;
   const allowSFW  = $("#allowSfw").checked;
+  const onlyPeople = $("#peopleOnly").checked;
 
   let sources=[];
   const ov=$("#override").value.trim();
+
   if(ov.startsWith("reddit=")){
     const subs=ov.split("=")[1].split(",").map(s=>s.replace(/^r\//,"").trim()).filter(Boolean);
-    sources=subs.map(s=>({type:"sub",value:s}));
+    sources = subs.map(s=>({type:"sub", value:s}));
+  }else if(onlyPeople){
+    sources = PEOPLE.map(n=>({type:"search", value:n}));
   }else{
     for(const s of state.enabledSubs) sources.push({type:"sub", value:s});
     PEOPLE.forEach(n=>sources.push({type:"search", value:n}));
   }
-  if(sources.length===0){ showToast("No sources selected. Open Filters."); return; }
 
+  if(!sources.length){ showToast("No sources selected. Open Filters or toggle Only people."); return; }
   if(shuffleSources) shuffleArr(sources);
 
   $("#loadedNote").textContent="Fetching…";
   const results=await Promise.all(sources.map(s => s.type==="sub" ? fetchTop(s.value,allowNSFW,allowSFW) : searchPeople(s.value,allowNSFW,allowSFW)));
   let flat=results.flat();
 
-  // Dedup + randomize final set so feed is lively
+  // Dedup & randomize
   const seen=new Set(), unique=[];
   for(const it of flat){ if(seen.has(it.permalink)) continue; seen.add(it.permalink); unique.push(it); }
   shuffleArr(unique);
 
-  if(unique.length===0){ showToast("No fresh image posts found. Try again or change Filters."); return; }
+  if(unique.length===0){ showToast("No fresh posts found. Try toggles or Filters."); $("#loadedNote").textContent=""; return; }
 
   state.total+=unique.length; state.loaded+=unique.length; setCount();
   $("#loadedNote").textContent=`Loaded ${state.total}.`;
@@ -337,13 +382,9 @@ async function loadBatch(shuffleSources=false){
 }
 
 async function loadMore(){ await loadBatch(false); }
-async function shuffleFeed(){
-  // Clear and reload with randomized sources order
-  grid.innerHTML=""; state.loaded=0; state.total=0; setCount(); $("#loadedNote").textContent="";
-  await loadBatch(true);
-}
+async function shuffleFeed(){ grid.innerHTML=""; state.loaded=0; state.total=0; setCount(); $("#loadedNote").textContent=""; await loadBatch(true); }
 
-/* ========= Filters UI + Refresh ========= */
+/* ===== Filters UI ===== */
 function buildFilters(){
   const host=$("#filtersGrid"); host.innerHTML="";
   const mk=(label,val,checked=true)=>{
@@ -356,14 +397,13 @@ function buildFilters(){
 }
 buildFilters();
 
-/* ========= modals ========= */
+/* ===== Modals ===== */
 const filtersModal=$("#filtersModal"), likedModal=$("#likedModal");
 $("#filtersBtn").onclick=()=>{ buildFilters(); filtersModal.classList.add("show"); }
 $("#filtersClose").onclick=async ()=>{
-  // Save & Refresh: clear current, reset counters, reload
   filtersModal.classList.remove("show");
   grid.innerHTML=""; state.loaded=0; state.total=0; setCount(); $("#loadedNote").textContent="";
-  await loadBatch(true);
+  await loadBatch(true);        // refresh immediately with new filter state
 };
 $("#filtersClear").onclick=()=>{ state.enabledSubs.clear(); buildFilters(); }
 filtersModal.addEventListener("click",(e)=>{ if(e.target===filtersModal) filtersModal.classList.remove("show"); });
@@ -377,9 +417,10 @@ $("#exportBtn").onclick=()=>{
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="liked.json"; a.click(); URL.revokeObjectURL(a.href);
 };
 
-/* ========= init ========= */
-$("#nsfw").checked = true;     // NSFW default ON
-$("#allowSfw").checked = false;// SFW default OFF (you can toggle on)
+/* ===== Init ===== */
+$("#nsfw").checked = true;      // NSFW ON by default
+$("#allowSfw").checked = false; // SFW OFF by default
+$("#peopleOnly").checked = false;
 setCount();
 $("#load").onclick=loadMore;
 $("#shuffle").onclick=shuffleFeed;
