@@ -1,44 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Scroll Wall — Women • Models • Influencers • Actors (Reddit)</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Scroll Wall — Women • Models • Influencers • Actors</title>
 <style>
   :root{
-    --bg:#0c0f13; --ink:#ecf0f3; --muted:#a8b0bb; --card:#161b22; --edge:#262f3a;
-    --accent:#ff6ea6; --good:#56f1a2;
+    --bg:#0c0f13; --ink:#ecf0f3; --muted:#a8b0bb;
+    --card:#161b22; --edge:#263243; --accent:#ff6ea6; --ok:#56f1a2;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
-  body{
-    margin:0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue";
-    color:var(--ink); background:radial-gradient(1200px 600px at 50% -200px, #1c2330 0%, #0c0f13 65%);
-  }
-  .wrap{max-width:980px;margin:28px auto;padding:0 16px 48px}
-  header{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-  h1{margin:0;font-size:42px;letter-spacing:.5px}
-  .pill{border:1px solid var(--edge);background:#0e131a;border-radius:14px;padding:8px 12px}
-  .toolbar{margin:18px 0 10px;background:linear-gradient(#111723, #0d131b);border:1px solid var(--edge);border-radius:22px;padding:18px}
-  .toolbar .row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
-  button{
-    appearance:none;border:0;border-radius:16px;padding:16px 22px;font-weight:800;
-    background:var(--accent);color:#111;cursor:pointer;transition:.15s transform ease;
-  }
-  button:active{transform:translateY(1px) scale(.99)}
+  body{margin:0;color:var(--ink);background:radial-gradient(1100px 560px at 50% -220px,#1b2230 0%,#0c0f13 65%);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue"}
+  .wrap{max-width:980px;margin:26px auto;padding:0 16px 56px}
+  header{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  h1{margin:0 10px 0 0;font-size:42px}
+  .pill{border:1px solid var(--edge);background:#0f1520;border-radius:14px;padding:8px 12px;color:#cbd5d6}
+  .toolbar{margin:16px 0;background:linear-gradient(#111723,#0e141c);border:1px solid var(--edge);border-radius:22px;padding:16px}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  button{appearance:none;border:0;border-radius:16px;padding:14px 18px;font-weight:800;cursor:pointer;transition:.15s transform ease}
+  .btn{background:var(--accent);color:#111}
   .btn-ghost{background:#0f1520;border:1px solid var(--edge);color:var(--ink)}
-  .counter{min-width:88px;text-align:center;padding:12px 16px;border-radius:14px;background:#0f1520;border:1px solid var(--edge);font-weight:800}
+  .btn:active,.btn-ghost:active{transform:translateY(1px) scale(.99)}
+  .counter{min-width:92px;text-align:center;padding:10px 14px;border-radius:12px;background:#0f1520;border:1px solid var(--edge);font-weight:800}
   .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px;margin-top:18px}
-  .card{
-    grid-column:span 12;
-    background:linear-gradient(#151b24,#10161e);
-    border:1px solid var(--edge);border-radius:22px;overflow:hidden;position:relative;
-    box-shadow:0 10px 22px rgba(0,0,0,.35);
-    touch-action:pan-y;
-  }
-  @media(min-width:700px){ .card{grid-column:span 6} }
+  .card{grid-column:span 12;background:linear-gradient(#151b24,#10161e);border:1px solid var(--edge);border-radius:22px;overflow:hidden;position:relative;box-shadow:0 10px 22px rgba(0,0,0,.35);touch-action:pan-y}
+  @media(min-width:700px){.card{grid-column:span 6}}
   .media{position:relative;overflow:hidden;aspect-ratio:4/5;background:#0b0f14}
-  .media img, .media video{width:100%;height:100%;object-fit:cover;display:block}
+  .media img,.media video{width:100%;height:100%;object-fit:cover;display:block}
   .meta{padding:16px 16px 14px;border-top:1px solid #111820}
   .title{font-weight:900;font-size:22px;line-height:1.25;margin:0 0 10px}
   .subtle{color:var(--muted);font-size:14px}
@@ -47,18 +36,20 @@
   .like{margin-left:auto;font-size:22px;width:54px;height:44px;border-radius:12px;background:#111820;border:1px solid var(--edge);display:flex;align-items:center;justify-content:center}
   .like.liked{background:linear-gradient(#ffe29a,#ffc96b);color:#221}
   .badge{position:absolute;top:12px;right:12px;padding:8px 10px;border-radius:10px;font-weight:900;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(10px);display:none}
-  .card.likeing .badge.like, .card.dismiss .badge.dismiss{display:block}
+  .card.likeing .badge.like,.card.dismiss .badge.dismiss{display:block}
   .badge.like{background:linear-gradient(180deg,#fff29f,#ffd776);color:#241}
   .badge.dismiss{background:linear-gradient(180deg,#2a3342,#1a202c);color:#cbd5e1}
-
   dialog{border:1px solid var(--edge);background:#0f1520;border-radius:18px;color:var(--ink);padding:14px 14px 18px;max-width:980px;width:94%}
   dialog::backdrop{background:rgba(0,0,0,.45)}
   .drawer-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
   .drawer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-height:60vh;overflow:auto}
   .drawer-grid img,.drawer-grid video{width:100%;height:140px;object-fit:cover;border-radius:10px;border:1px solid #1c2734;background:#0b0f14}
-  .tip{margin-top:10px;color:#b7c1cd}
   .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;background:#2a3342;color:#ffe1e1;border:1px solid #3b4757;padding:12px 14px;border-radius:12px;font-weight:800;display:none}
   .show{display:block}
+  /* spinner */
+  .spinner{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.18)}
+  .spinner:before{content:"";width:34px;height:34px;border-radius:50%;border:4px solid #2b3646;border-top-color:var(--accent);animation:spin 900ms linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -66,12 +57,13 @@
     <header>
       <h1>Scroll Wall</h1>
       <div class="pill">Women • Models • Influencers • Actors</div>
-      <button class="btn-ghost" id="openLiked" style="margin-left:auto;">Liked ⭐</button>
+      <button id="openLiked" class="btn-ghost" style="margin-left:auto;">Liked ⭐</button>
     </header>
 
     <div class="toolbar">
       <div class="row">
-        <button id="load">Load more</button>
+        <button id="fresh" class="btn-ghost">New batch 🆕</button>
+        <button id="load" class="btn">Load more</button>
         <button id="shuffle" class="btn-ghost">Shuffle 🔀</button>
         <div id="count" class="counter">0/0</div>
       </div>
@@ -80,7 +72,7 @@
     <div id="grid" class="grid"></div>
   </div>
 
-  <!-- Liked drawer -->
+  <!-- liked drawer -->
   <dialog id="likedDlg">
     <div class="drawer-head">
       <strong style="font-size:18px">Liked ⭐</strong>
@@ -89,61 +81,76 @@
       <button id="closeLiked" class="btn">Close</button>
     </div>
     <div id="likedGrid" class="drawer-grid"></div>
-    <div class="tip">Tap any ⭐ in Liked to undo.</div>
+    <div style="margin-top:6px;color:#aeb8c4">Tap ⭐ on a tile to undo.</div>
   </dialog>
 
   <div id="toast" class="toast"></div>
+  <div id="spin" class="spinner"></div>
 
 <script>
-/* ----------------- curated person-only subreddits (≈100 women) -----------------
-   NOTE: Some may be quiet or moderated. The loader samples randomly and skips empties. */
+/* ---------------- curated pools ----------------
+   – WOMEN_SUBS: person-specific (SFW+NSFW mixed)
+   – APPRECIATION_SUBS: “hot/ appreciation” (adult-oriented)
+   If a sub is empty or rate-limited, we skip it.
+*/
 const WOMEN_SUBS = [
-  // actors / musicians / mega-influencers
   "AnaDeArmas","AlexandraDaddario","MargotRobbie","SydneySweeney_","salmahayek",
   "HaileeSteinfeld","GalGadot","Zendaya_","DuaLipa","AnyaTaylorJoy",
   "FlorencePugh","EmiliaClarke","ElizabethOlsen","JennaOrtega_","EmmaWatson",
-  "ScarlettJohansson","BrieLarson","NataliePortman","AlexandraDaddarioHQ","alexandradaddario_",
+  "ScarlettJohansson","BrieLarson","NataliePortman","AlexandraDaddarioHQ",
   "ArianaGrande","SelenaGomez","SabrinaCarpenter","MadisonBeer","OliviaRodrigo",
-  "CamilaCabello","DojaCat","Halsey","CarolinePolachek","GracieAbrams",
-  // models / VS angels / fashion
+  "CamilaCabello","DojaCat","Halsey","GracieAbrams",
   "AlexisRen","BarbaraPalvin","BellaHadid","GigiHadid","HaileyBieber",
-  "CandiceSwanepoel","AdrianaLima","LilyAldridge","SaraSampaio","TaylorHill",
-  "JosephineSkriver","RomeeStrijd","KarlieKloss","MirandaKerr","BarRefaeli",
-  "EmilyRatajkowski","KateUpton","WinnieHarlow","LaisRibeiro","Doutzen",
-  // influencers / IG / TikTok
+  "CandiceSwanepoel","AdrianaLima","SaraSampaio","TaylorHill","JosephineSkriver",
+  "RomeeStrijd","KarlieKloss","MirandaKerr","BarRefaeli","EmilyRatajkowski",
+  "KateUpton","WinnieHarlow","LaisRibeiro","Doutzen",
   "CharliDAmelio","AddisonRae","LeaElui","SommerRay","AmelieZilber",
-  "EmmaChamberlain","AlixEarle","KylieJenner","KendallJenner","HaileyBaldwin",
+  "EmmaChamberlain","AlixEarle","KylieJenner","KendallJenner",
   "NataLee","AbigailRatchford","HannahPalmer","DemiRose","JuliaRose",
   "LorenGray","ChantelJeffries","SofiaVergara","SofiaRichie","AlexandriaMorgan",
-  "BrittanyRenner","PaigeSpiranac","NikkiBlackketter","VioletSummers","JemWolfie",
-  "KatyaEliseHenry","AlexaDellanos","AnllelaSagra","Yovanna","LilyMaymac",
-  "BelleDelphine","CorinnaKopf","Amouranth","MiaKhalifaHQ","LanaRhoades_",
-  // actresses / TV
+  "BrittanyRenner","PaigeSpiranac","VioletSummers","KatyaEliseHenry",
+  "AlexaDellanos","AnllelaSagra","Yovanna","LilyMaymac","CorinnaKopf",
+  "Amouranth","MiaKhalifaHQ","LanaRhoades_",
   "AlexandraBreckenridge","VictoriaJustice","AubreyPlaza","NinaDobrev","CamilaMendes",
-  "LiliReinhart","MadelainePetsch","PhoebeTonkin","MillieBobbyBrown","SaoirseRonan",
-  "KiernanShipka","MaisieWilliams","SophieTurner","LucyHale","AlexandraShipp",
-  // international stars
+  "LiliReinhart","MadelainePetsch","PhoebeTonkin","SaoirseRonan",
+  "KiernanShipka","SophieTurner","LucyHale","AlexandraShipp",
   "RashmikaMandanna","AnushkaSharma","PriyankaChopra","DeepikaPadukone","AditiRaoHydari",
-  "IU","Suzy","LisaBlackpink","JennieBlackpink","RoséBlackpink",
-  "KarolG","BeckyG","BelindaPeregrin","EizaGonzalez","DannaPaola"
+  "IU","Suzy","LisaBlackpink","JennieBlackpink","RoseBlackpink",
+  "KarolG","BeckyG","EizaGonzalez","DannaPaola"
 ];
 
-/* ------------- helpers ------------- */
+const APPRECIATION_SUBS = [
+  // “hot/xx/…mommy” style (aimed at adults). Some may be sporadic; loader skips empties.
+  "emratahot","kendalljennerx","gigihadid__","addisonraehot","leaelui_",
+  "alixearlehot","bellahadid__", "halseysexy", "sydney_sweeney_hot",
+  "margotrobbiesexy","dua_lipa_hot","sofiavergarahot","alexisrenhot",
+  "barbarapalvinhot","madisonbeerhot","paigespiranachot","demirosehot",
+  "juliarosehot","sommerrayhot","charlidameliomommy"
+];
+
+/* ---------------- DOM refs ---------------- */
 const $ = s=>document.querySelector(s);
 const grid = $("#grid");
 const likedDlg = $("#likedDlg");
 const likedGrid = $("#likedGrid");
 const toast = $("#toast");
+const spinner = $("#spin");
+const counter = $("#count");
 
+/* ---------------- state ---------------- */
 let queue = [];
 let shown = 0;
+let seen = new Set();     // avoid repeats per session
 let liked = JSON.parse(localStorage.getItem("liked_v2")||"[]");
 updateLikedBadge();
 
-function showToast(msg, ms=2200){ toast.textContent=msg; toast.classList.add("show"); setTimeout(()=>toast.classList.remove("show"), ms); }
+/* ---------------- utils ---------------- */
+function showToast(msg,ms=2000){ toast.textContent=msg; toast.classList.add("show"); setTimeout(()=>toast.classList.remove("show"),ms); }
 function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]] } return a; }
+function spin(on){ spinner.style.display = on ? "grid" : "none"; }
+function updateCounter(){ counter.textContent = `${shown}/${queue.length}`; }
 
-/* ------------- reddit fetch ------------- */
+/* ---------------- reddit ---------------- */
 async function fetchFromSub(sub){
   const url = `https://www.reddit.com/r/${sub}/hot.json?limit=80`;
   const r = await fetch(url);
@@ -151,135 +158,156 @@ async function fetchFromSub(sub){
   const data = await r.json();
   return (data.data?.children||[]).map(c=>c.data);
 }
-
 function asMedia(p){
-  // media only + allow NSFW by default
+  const id = p.id;
+  if(seen.has(id)) return null;
   const nsfw = !!p.over_18;
   const title = p.title || "";
   const author = p.author || "u/unknown";
   const sub = p.subreddit || "";
+  // detect video/mp4
   let isVideo=false, mp4=null;
-
   if(p.secure_media?.reddit_video?.fallback_url){
-    isVideo = true; mp4 = p.secure_media.reddit_video.fallback_url.split("?")[0];
+    isVideo=true; mp4=p.secure_media.reddit_video.fallback_url.split("?")[0];
   }else if(p.preview?.images?.[0]?.variants?.mp4?.source?.url){
-    isVideo = true; mp4 = p.preview.images[0].variants.mp4.source.url.replace(/&amp;/g,"&");
-  }else if(/\.(mp4)$/i.test(p.url)){
-    isVideo = true; mp4 = p.url;
-  }
-
+    isVideo=true; mp4=p.preview.images[0].variants.mp4.source.url.replace(/&amp;/g,"&");
+  }else if(/\.(mp4)$/i.test(p.url)){ isVideo=true; mp4=p.url; }
   let img=null;
   if(!isVideo){
-    if(p.url && /\.(jpe?g|png|webp)$/i.test(p.url)) img = p.url;
-    else if(p.preview?.images?.[0]?.source?.url) img = p.preview.images[0].source.url.replace(/&amp;/g,"&");
+    if(p.url && /\.(jpe?g|png|webp)$/i.test(p.url)) img=p.url;
+    else if(p.preview?.images?.[0]?.source?.url) img=p.preview.images[0].source.url.replace(/&amp;/g,"&");
   }
-
   if(!img && !mp4) return null;
-  return { id:p.id, title, author, sub, nsfw, isVideo, mp4, img };
+  return {id,title,author,sub,nsfw,isVideo,mp4,img};
 }
 
-/* ------------- loading ------------- */
-function updateCounter(){ $("#count").textContent = `${shown}/${queue.length}`; }
+/* ---------------- loading ---------------- */
+async function loadSample(sampleCount=10, perSub=10){
+  // Pick a mix from both lists, then fetch in parallel
+  const base = shuffle([...WOMEN_SUBS]);
+  const spicy = shuffle([...APPRECIATION_SUBS]);
+  const pick = shuffle([...base.slice(0,Math.ceil(sampleCount*0.7)), ...spicy.slice(0,Math.floor(sampleCount*0.3))]);
 
-async function loadMore(){
-  let subs = shuffle([...WOMEN_SUBS]).slice(0, 10); // sample 10 different person-subs each click
-  const got = [];
-  await Promise.all(subs.map(async s=>{
+  const bag = [];
+  await Promise.all(pick.map(async s=>{
     try{
       const posts = await fetchFromSub(s);
       const media = posts.map(asMedia).filter(Boolean);
-      // Prefer fresher ones at the top, then shuffle to avoid clumps
       shuffle(media);
-      got.push(...media.slice(0, 12));
-    }catch(e){/* ignore */}
+      bag.push(...media.slice(0, perSub));
+    }catch(e){/* skip on error */}
   }));
-  if(!got.length){ showToast("No fresh posts. Tap Load more again."); return; }
-  // global shuffle to mix across subs
-  queue.push(...shuffle(got));
-  updateCounter();
-  pumpQueue(12);
+  return shuffle(bag);
+}
+
+async function loadMore(){
+  spin(true);
+  try{
+    const got = await loadSample(10, 10); // ~ up to 100 candidates mixed
+    if(!got.length){ showToast("No fresh posts. Tap again."); return; }
+    // filter out duplicates (seen) and top-up queue
+    const fresh = got.filter(x=>!seen.has(x.id));
+    fresh.forEach(x=>seen.add(x.id));
+    queue.push(...fresh);
+    // render a chunk
+    pumpQueue(12);
+  } finally {
+    spin(false);
+  }
 }
 
 function pumpQueue(n=8){
   for(let i=0;i<n;i++){
     const it = queue.shift();
     if(!it) break;
-    createCard(it); shown++;
+    createCard(it);
+    shown++;
   }
   updateCounter();
 }
 
-/* ------------- card UI / swipes ------------- */
-function createCard(it){
-  const card = document.createElement("article");
-  card.className = "card"; card.dataset.id = it.id;
-
-  const media = document.createElement("div"); media.className = "media";
-  if(it.isVideo){
-    const v = document.createElement("video");
-    v.src = it.mp4; v.autoplay=true; v.loop=true; v.muted=true; v.playsInline=true; v.controls=true;
-    v.addEventListener("canplay", ()=> v.play().catch(()=>{}));
-    media.appendChild(v);
-  }else{
-    const img = document.createElement("img");
-    img.src = it.img; img.loading="lazy";
-    media.appendChild(img);
-  }
-  const likeBadge = document.createElement("div"); likeBadge.className="badge like"; likeBadge.textContent="LIKE ⭐";
-  const dismissBadge = document.createElement("div"); dismissBadge.className="badge dismiss"; dismissBadge.textContent="DISMISS";
-  media.append(likeBadge, dismissBadge);
-
-  const meta = document.createElement("div"); meta.className="meta";
-  const title = document.createElement("h3"); title.className="title"; title.textContent = it.title || "(untitled)";
-  const subtle = document.createElement("div"); subtle.className="subtle"; subtle.textContent = `u/${it.author} • r/${it.sub} ${it.nsfw?"• NSFW":"• SFW"}`;
-  const row = document.createElement("div"); row.className="row-buttons";
-  const subBtn = document.createElement("a"); subBtn.className="chip"; subBtn.href=`https://reddit.com/r/${it.sub}`; subBtn.target="_blank"; subBtn.textContent="Reddit";
-  const kind = document.createElement("span"); kind.className="chip"; kind.textContent= it.nsfw?"NSFW":"SFW";
-  const likeBtn = document.createElement("button"); likeBtn.className="like"; likeBtn.innerHTML="⭐";
-  likeBtn.addEventListener("click", ()=> toggleLike(card,it,likeBtn));
-  row.append(subBtn, kind, likeBtn);
-  meta.append(title, subtle, row);
-
-  card.append(media, meta);
-  grid.appendChild(card);
-
-  enableSwipe(card, it, likeBtn);
+function newBatch(){
+  grid.innerHTML=""; queue=[]; shown=0;
+  updateCounter();
+  loadMore();
 }
 
-function toggleLike(card, it, btn){
-  const i = liked.findIndex(x=>x.id===it.id);
-  if(i>=0){ liked.splice(i,1); btn.classList.remove("liked"); }
-  else { liked.unshift(it); btn.classList.add("liked"); heartBurst(btn); }
+/* ---------------- UI / cards ---------------- */
+function createCard(it){
+  const card = document.createElement("article");
+  card.className="card"; card.dataset.id=it.id;
+
+  const media = document.createElement("div"); media.className="media";
+  if(it.isVideo){
+    const v=document.createElement("video");
+    v.src=it.mp4; v.autoplay=true; v.loop=true; v.muted=true; v.playsInline=true; v.controls=true;
+    v.addEventListener("canplay",()=>v.play().catch(()=>{}));
+    media.appendChild(v);
+  }else{
+    const img=document.createElement("img"); img.src=it.img; img.loading="lazy"; media.appendChild(img);
+  }
+  const likeBadge=document.createElement("div"); likeBadge.className="badge like"; likeBadge.textContent="LIKE ⭐";
+  const dismissBadge=document.createElement("div"); dismissBadge.className="badge dismiss"; dismissBadge.textContent="DISMISS";
+  media.append(likeBadge,dismissBadge);
+
+  const meta=document.createElement("div"); meta.className="meta";
+  const title=document.createElement("h3"); title.className="title"; title.textContent=it.title||"(untitled)";
+  const subtle=document.createElement("div"); subtle.className="subtle"; subtle.textContent=`u/${it.author} • r/${it.sub} ${it.nsfw?"• NSFW":"• SFW"}`;
+  const row=document.createElement("div"); row.className="row-buttons";
+  const subBtn=document.createElement("a"); subBtn.className="chip"; subBtn.href=`https://reddit.com/r/${it.sub}`; subBtn.target="_blank"; subBtn.textContent="Reddit";
+  const kind=document.createElement("span"); kind.className="chip"; kind.textContent=it.nsfw?"NSFW":"SFW";
+  const likeBtn=document.createElement("button"); likeBtn.className="like"; likeBtn.innerHTML="⭐";
+  likeBtn.addEventListener("click",()=>toggleLike(card,it,likeBtn));
+  row.append(subBtn,kind,likeBtn);
+  meta.append(title,subtle,row);
+
+  card.append(media,meta);
+  grid.appendChild(card);
+
+  enableSwipe(card,it,likeBtn);
+}
+
+function toggleLike(card,it,btn){
+  const idx = liked.findIndex(x=>x.id===it.id);
+  if(idx>=0){ liked.splice(idx,1); btn.classList.remove("liked"); }
+  else { liked.unshift(it); btn.classList.add("liked"); burst(btn); }
   localStorage.setItem("liked_v2", JSON.stringify(liked));
   updateLikedBadge();
 }
-function heartBurst(anchor){
-  const s=document.createElement("span"); s.textContent="⭐"; s.style.position="absolute"; s.style.pointerEvents="none";
-  const r = anchor.getBoundingClientRect(); s.style.left=(r.left+r.width/2)+"px"; s.style.top=(r.top-8)+"px";
-  s.style.fontSize="22px"; s.style.transition="600ms all cubic-bezier(.2,.7,.2,1)";
-  document.body.appendChild(s); requestAnimationFrame(()=>{ s.style.transform="translateY(-28px) scale(1.6)"; s.style.opacity=".0"; });
-  setTimeout(()=>s.remove(),620);
+
+function burst(anchor){
+  const s=document.createElement("span"); s.textContent="⭐";
+  s.style.position="absolute"; s.style.pointerEvents="none";
+  const r=anchor.getBoundingClientRect(); s.style.left=(r.left+r.width/2)+"px"; s.style.top=(r.top-6)+"px";
+  s.style.fontSize="22px"; s.style.transition="600ms all cubic-bezier(.2,.7,.2,1)"; document.body.appendChild(s);
+  requestAnimationFrame(()=>{ s.style.transform="translateY(-26px) scale(1.6)"; s.style.opacity=".0"; }); setTimeout(()=>s.remove(),620);
 }
 
-function enableSwipe(card, it, likeBtn){
-  let startX=0, dx=0, dragging=false;
-  const onStart=e=>{dragging=true;dx=0;startX=(e.touches?e.touches[0].clientX:e.clientX);card.style.transition="none";};
-  const onMove=e=>{ if(!dragging) return; const x=(e.touches?e.touches[0].clientX:e.clientX); dx=x-startX;
-    card.style.transform=`translateX(${dx}px) rotate(${dx/40}deg)`; card.classList.toggle("likeing",dx>40); card.classList.toggle("dismiss",dx<-40); };
-  const onEnd=()=>{ if(!dragging) return; dragging=false; card.style.transition="";
+function enableSwipe(card,it,likeBtn){
+  let startX=0, dx=0, drag=false;
+  const start=e=>{drag=true;dx=0;startX=(e.touches?e.touches[0].clientX:e.clientX);card.style.transition="none";}
+  const move=e=>{
+    if(!drag) return;
+    const x=(e.touches?e.touches[0].clientX:e.clientX);
+    dx=x-startX;
+    card.style.transform=`translateX(${dx}px) rotate(${dx/40}deg)`;
+    card.classList.toggle("likeing",dx>40); card.classList.toggle("dismiss",dx<-40);
+  }
+  const end=()=>{
+    if(!drag) return; drag=false; card.style.transition="";
     if(dx>120){ toggleLike(card,it,likeBtn); card.style.transform=`translateX(120vw)`; setTimeout(()=>card.remove(),180); return; }
     if(dx<-120){ card.style.transform=`translateX(-120vw)`; setTimeout(()=>card.remove(),180); return; }
     card.style.transform=""; card.classList.remove("likeing","dismiss");
-  };
-  card.addEventListener("touchstart", onStart, {passive:true});
-  card.addEventListener("touchmove", onMove, {passive:true});
-  card.addEventListener("touchend", onEnd);
-  card.addEventListener("mousedown", onStart);
-  window.addEventListener("mousemove", onMove);
-  window.addEventListener("mouseup", onEnd);
+  }
+  card.addEventListener("touchstart",start,{passive:true});
+  card.addEventListener("touchmove",move,{passive:true});
+  card.addEventListener("touchend",end);
+  card.addEventListener("mousedown",start);
+  window.addEventListener("mousemove",move);
+  window.addEventListener("mouseup",end);
 }
 
-/* ------------- liked drawer ------------- */
+/* ---------------- liked drawer ---------------- */
 function updateLikedBadge(){ $("#openLiked").textContent=`Liked ⭐ (${liked.length})`; $("#likedCount").textContent=liked.length; }
 $("#openLiked").addEventListener("click", ()=>{
   likedGrid.innerHTML="";
@@ -295,22 +323,30 @@ $("#openLiked").addEventListener("click", ()=>{
       localStorage.setItem("liked_v2", JSON.stringify(liked));
       updateLikedBadge(); wrap.remove();
     });
-    wrap.append(cell, undo); likedGrid.appendChild(wrap);
+    wrap.append(cell,undo); likedGrid.appendChild(wrap);
   });
   likedDlg.showModal();
 });
 $("#closeLiked").addEventListener("click", ()=> likedDlg.close());
 $("#exportLiked").addEventListener("click", ()=>{
-  const blob = new Blob([JSON.stringify(liked,null,2)], {type:"application/json"});
-  const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="liked.json"; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1e3);
+  const blob = new Blob([JSON.stringify(liked,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="liked.json"; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
 });
 
-/* ------------- controls ------------- */
-$("#load").addEventListener("click", loadMore);
-$("#shuffle").addEventListener("click", ()=>{ queue = shuffle(queue); showToast("Shuffled"); });
+/* ---------------- controls ---------------- */
+$("#load").addEventListener("click", async ()=>{
+  if(queue.length<6) await loadMore(); else pumpQueue(8);
+});
+$("#shuffle").addEventListener("click", async ()=>{
+  // If queue is thin, top-up first
+  if(queue.length<6){ await loadMore(); }
+  queue = shuffle(queue); showToast("Shuffled");
+});
+$("#fresh").addEventListener("click", newBatch);
 
-/* ------------- init ------------- */
-document.addEventListener("DOMContentLoaded", ()=>{ loadMore(); });
+/* ---------------- init ---------------- */
+document.addEventListener("DOMContentLoaded", newBatch);
 </script>
 </body>
 </html>
