@@ -3,62 +3,44 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Scroll Wall • Build v5.6 (Reddit-only)</title>
+<title>Scroll Wall • Build v5.7 (Reddit-only with mirrors)</title>
 <style>
-:root{
-  --bg:#0e1217;--ink:#e9eef7;--muted:#9fb0c2;--panel:#151c27;--panel2:#111723;
-  --rose:#ff5ea2;--rose2:#ff7fb3;--ok:#79ffa6;--bad:#ff7a7a;--line:#2a364b;--shadow:rgba(0,0,0,.45)
-}
-*{box-sizing:border-box}html,body{margin:0;background:radial-gradient(1200px 520px at 50% -220px,#182132,#0e1217),#0e1217;
-  color:var(--ink);font:600 16px/1.45 ui-rounded,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+:root{--bg:#0e1217;--ink:#e9eef7;--muted:#9fb0c2;--panel:#151c27;--line:#2a364b;--rose:#ff5ea2;--rose2:#ff7fb3;--ok:#79ffa6;--bad:#ff7a7a;--shadow:rgba(0,0,0,.45)}
+*{box-sizing:border-box}html,body{margin:0;background:radial-gradient(1200px 520px at 50% -220px,#182132,#0e1217),#0e1217;color:var(--ink);font:600 16px/1.45 ui-rounded,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
 .wrap{max-width:880px;margin:26px auto 120px;padding:0 14px}
 .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-.btn{background:linear-gradient(180deg,var(--rose2),var(--rose));color:#091018;border:0;border-radius:16px;
-  padding:14px 20px;font-weight:800;box-shadow:0 12px 28px -10px var(--shadow);cursor:pointer;transition:.2s transform,.2s opacity}
-.btn.alt{background:linear-gradient(180deg,#20283a,#131a26);color:var(--ink);border:1px solid var(--line)}
-.btn:active{transform:translateY(1px)}.btn[disabled]{opacity:.45;pointer-events:none}
-.pill{display:inline-flex;align-items:center;gap:10px;padding:12px 18px;border-radius:16px;background:linear-gradient(180deg,#182131,#121824);
-  border:1px solid var(--line);color:var(--ink)}
+.btn{background:linear-gradient(180deg,var(--rose2),var(--rose));color:#091018;border:0;border-radius:16px;padding:14px 20px;font-weight:800;box-shadow:0 12px 28px -10px var(--shadow);cursor:pointer;transition:.2s}
+.btn.alt{background:linear-gradient(180deg,#20283a,#131a26);color:var(--ink);border:1px solid var(--line)}.btn:active{transform:translateY(1px)}.btn[disabled]{opacity:.45;pointer-events:none}
+.pill{display:inline-flex;align-items:center;gap:10px;padding:12px 18px;border-radius:16px;background:linear-gradient(180deg,#182131,#121824);border:1px solid var(--line);color:var(--ink)}
 .badge{display:inline-block;padding:4px 9px;border-radius:10px;background:#1b2536;border:1px solid var(--line);color:#9bdfff;font-weight:800}
-.muted{color:var(--muted)}
-.hrule{height:1px;background:linear-gradient(90deg,transparent,#223148,transparent);margin:18px 0}
-
-.card{position:relative;background:radial-gradient(150% 110% at 50% -30%,#1b2434,#111722);
-  border:1px solid var(--line);border-radius:26px;box-shadow:0 20px 60px -20px var(--shadow);overflow:hidden;margin:18px 0}
-.polaroid{padding:16px 16px 12px;background:
-  radial-gradient(180px 80px at 50% -30px,#2b375280,transparent),
-  linear-gradient(180deg,#1c2536 0%,#121a26 100%)}
+.muted{color:var(--muted)}.hrule{height:1px;background:linear-gradient(90deg,transparent,#223148,transparent);margin:18px 0}
+.card{position:relative;background:radial-gradient(150% 110% at 50% -30%,#1b2434,#111722);border:1px solid var(--line);border-radius:26px;box-shadow:0 20px 60px -20px var(--shadow);overflow:hidden;margin:18px 0}
+.polaroid{padding:16px 16px 12px;background:radial-gradient(180px 80px at 50% -30px,#2b375280,transparent),linear-gradient(180deg,#1c2536 0%,#121a26 100%)}
 .ph{display:block;width:100%;height:auto;border-radius:16px;background:#0b0f15;object-fit:cover}
 .meta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px}
 .src{font-weight:800;color:#d7e6ff;background:#1b2536;border:1px solid var(--line);border-radius:12px;padding:8px 12px}
 .act{display:flex;gap:10px}
-.star,.nope{width:52px;height:52px;border-radius:16px;border:0;cursor:pointer;font-size:22px;color:#091018;
-  background:linear-gradient(180deg,var(--rose2),var(--rose));box-shadow:0 12px 30px -12px var(--shadow)}
+.star,.nope{width:52px;height:52px;border-radius:16px;border:0;cursor:pointer;font-size:22px;color:#091018;background:linear-gradient(180deg,var(--rose2),var(--rose));box-shadow:0 12px 30px -12px var(--shadow)}
 .nope{background:linear-gradient(180deg,#ff9c9c,#ff6f6f)}
 .kicker{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .kicker .badge.ok{background:#0f2a1d;border-color:#1e5a3e;color:#93f7c3}
 .kicker .badge.warn{background:#2a2410;border-color:#6c5315;color:#ffd88a}
-
-.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#21161d;color:#ffd8e6;border:1px solid #5a2a42;
-  padding:12px 14px;border-radius:12px;box-shadow:0 8px 24px -12px var(--shadow);opacity:0;pointer-events:none;transition:.25s}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#21161d;color:#ffd8e6;border:1px solid #5a2a42;padding:12px 14px;border-radius:12px;box-shadow:0 8px 24px -12px var(--shadow);opacity:0;pointer-events:none;transition:.25s}
 .toast.show{opacity:1}
 .modal{position:fixed;inset:0;background:rgba(5,8,12,.6);backdrop-filter:blur(3px);display:none;align-items:flex-start;justify-content:center;padding:28px}
 .modal.show{display:flex}
-.sheet{width:min(740px,92vw);background:linear-gradient(180deg,#131a26,#0f151f);border:1px solid var(--line);border-radius:18px;
-  box-shadow:0 30px 80px -20px var(--shadow);padding:16px 16px 18px}
-pre{white-space:pre-wrap;word-break:break-word;font:500 14px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;color:#d0d6e2}
-a.link{color:#9bdfff;text-decoration:none;border-bottom:1px dotted #4b6b8f}
-.topbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.sheet{width:min(740px,92vw);background:linear-gradient(180deg,#131a26,#0f151f);border:1px solid var(--line);border-radius:18px;box-shadow:0 30px 80px -20px var(--shadow);padding:16px 16px 18px}
+pre{white-space:pre-wrap;word-break:break-word;font:500 14px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#d0d6e2}
 h1{margin:0;font-size:18px;letter-spacing:.5px}
 </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="topbar row">
+    <div class="row">
       <button class="btn alt" id="btnHome">Home</button>
       <button class="btn alt" id="btnLiked">Liked ⭐ <span class="badge" id="likedCount">0</span></button>
       <button class="btn alt" id="btnTrouble">Troubleshoot 🩺</button>
-      <span class="pill">NSFW enabled • people-only • <b>Build v5.6</b></span>
+      <span class="pill">NSFW enabled • people-only • <b>Build v5.7</b></span>
     </div>
 
     <div class="card" style="padding:16px">
@@ -69,10 +51,7 @@ h1{margin:0;font-size:18px;letter-spacing:.5px}
         <button class="btn alt" id="btnShuffle">Shuffle 🔀</button>
       </div>
       <div class="hrule"></div>
-      <div class="kicker">
-        <span class="badge ok" id="statusPing">Ready</span>
-        <span class="badge warn">Tip: New batch → Load more</span>
-      </div>
+      <div class="kicker"><span class="badge ok" id="statusPing">Ready</span></div>
     </div>
 
     <div id="grid"></div>
@@ -92,167 +71,155 @@ h1{margin:0;font-size:18px;letter-spacing:.5px}
   </div>
 
 <script>
-/* ========= Config ========= */
+/* ===== Config (edit safely) ===== */
 const PEOPLE_ONLY_SUBS = [
-  // High-confidence active name subs (edit freely)
   "CharliDAmelio","LeaElui","KendallJenner","madisonbeer","AddisonRae","haileesteinfeld",
   "margotrobbie","SydneySweeney","AnyaTaylorJoy","SabrinaCarpenter","EmiliaClarke",
   "AlexandraDaddario","EmmaWatson","DuaLipa","jenniferlawrence","GalGadot",
   "AnaDeArmas","ScarlettJohansson","BellaHadid","GigiHadid","HaileyBieber","EmilyRatajkowski"
 ];
-// Fallback set if the above yields nothing this round
-const BACKUP_SUBS = ["Celebs","CelebrityEyes","ladiesinred","PrettyGirls","ModelPhotography","FashionModels"];
-const PAGE_SIZE = 6;         // how many cards per "Load more"
-const MAX_PER_SUB = 12;      // fetch up to N per subreddit
-const AGE_WINDOW = "week";   // top posts in 'day' | 'week' | 'month'
-/* ========================= */
+const BACKUP_SUBS = ["Celebs","CelebrityArmpits","PrettyGirls","ModelPhotography","FashionModels"]; // image-heavy backups
+const AGE_WINDOW = "week";   // 'day' | 'week' | 'month'
+const MAX_PER_SUB = 20;
+const PAGE_SIZE = 6;
+/* ================================= */
 
-const S = {
-  pool: [], shown: 0, likes: loadLikes(), log: [],
-  setStatus(txt, good=true) {
-    const el = document.getElementById('statusPing'); el.textContent = txt;
-    el.style.color = good ? "#93f7c3" : "#ffd88a";
-  }
-};
-
-function $(id){return document.getElementById(id)}
-function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1400)}
-function saveLikes(arr){localStorage.setItem('sw_likes', JSON.stringify(arr))}
+const S = { pool:[], shown:0, likes:loadLikes(), log:[] };
+const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
+const $ = (id)=>document.getElementById(id);
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1400)}
+function saveLikes(a){localStorage.setItem('sw_likes',JSON.stringify(a))}
 function loadLikes(){try{return JSON.parse(localStorage.getItem('sw_likes')||"[]")}catch{return[]}}
-function updateLikedBadge(){ $('likedCount').textContent = S.likes.length }
-updateLikedBadge();
-
-/* ---- UI wiring ---- */
-$('btnHome').onclick = ()=>{ window.scrollTo({top:0,behavior:'smooth'}) }
-$('btnTrouble').onclick = ()=>{ showTrouble() }
-$('btnCloseTs').onclick = ()=>{ $('tsModal').classList.remove('show') }
-$('btnShuffle').onclick = ()=>{ if(!S.pool.length){toast("No pool yet — tap New batch");return}
-  S.pool = shuffle(S.pool); S.shown = 0; $('grid').innerHTML=""; $('counter').textContent=`0/${S.pool.length}`; enableMore(true); toast("Shuffled!")
-}
-$('btnNew').onclick = newBatch;
-$('btnMore').onclick = loadMore;
-$('btnLiked').onclick = renderLiked;
-
-/* ---- Helpers ---- */
+function updateLikedBadge(){ $('likedCount').textContent=S.likes.length } updateLikedBadge();
+function setStatus(txt, good=true){ const el=$('statusPing'); el.textContent=txt; el.style.color=good?"#93f7c3":"#ffd88a" }
+function enableMore(on){ $('btnMore').disabled=!on }
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]] } return a }
-function enableMore(on){ $('btnMore').disabled = !on }
+function cleanUrl(u){ return (u||"").replace(/&amp;/g,"&") }
 
-/* ---- Reddit fetch ---- */
-async function newBatch(){
-  S.pool=[]; S.shown=0; $('grid').innerHTML=""; $('counter').textContent="0/0"; enableMore(false);
-  S.log=[]; S.setStatus("Pinging Reddit…");
-  const chosen = shuffle([...PEOPLE_ONLY_SUBS]).slice(0,12);
-  const subs = [...chosen, ...shuffle(BACKUP_SUBS).slice(0,4)];
-  for(const sub of subs){
-    const ok = await pullSub(sub);
-    if(!ok) continue;
-    if(S.pool.length >= 48) break;
+/* ---------- UI ---------- */
+$('btnHome').onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
+$('btnTrouble').onclick=()=>showTrouble();
+$('btnCloseTs').onclick=()=>$('tsModal').classList.remove('show');
+$('btnShuffle').onclick=()=>{ if(!S.pool.length){toast("No pool yet — tap New batch");return}
+  S.pool=shuffle(S.pool);S.shown=0;$('grid').innerHTML="";$('counter').textContent=`0/${S.pool.length}`;enableMore(true);toast("Shuffled!") }
+$('btnNew').onclick=newBatch;
+$('btnMore').onclick=loadMore;
+$('btnLiked').onclick=renderLiked;
+
+/* ---------- Reddit fetching with mirrors ---------- */
+async function fetchJsonWithMirrors(sub){
+  const base = `r/${encodeURIComponent(sub)}/top.json?t=${AGE_WINDOW}&limit=${MAX_PER_SUB}&raw_json=1`;
+  const tries = [
+    `https://www.reddit.com/${base}`,
+    `https://r.jina.ai/http://www.reddit.com/${base}`,
+    `https://r.jina.ai/http://old.reddit.com/${base}`
+  ];
+  let lastErr=""; 
+  for(let i=0;i<tries.length;i++){
+    try{
+      const res = await fetch(tries[i], {headers:{'Accept':'application/json'}});
+      if(!res.ok) { lastErr = `HTTP ${res.status}`; continue; }
+      // r.jina.ai returns text/plain sometimes
+      const ct = res.headers.get('content-type')||"";
+      const data = ct.includes('application/json') ? await res.json() : JSON.parse(await res.text());
+      return {ok:true, data};
+    }catch(e){ lastErr = (e && e.message)||String(e) }
+    // tiny backoff before next mirror
+    await sleep(120+Math.random()*200);
   }
-  if(!S.pool.length){
-    S.setStatus("No fresh posts. Try New batch again.", false);
-    toast("No fresh posts. Tap New batch again.");
-    showTrouble();
-    return;
-  }
-  S.pool = dedupeByUrl(shuffle(S.pool));
-  $('counter').textContent=`0/${S.pool.length}`;
-  enableMore(true);
-  S.setStatus(`Pool: ${S.pool.length} items`);
-  toast(`Ready — ${S.pool.length} images`);
+  return {ok:false, error:lastErr};
 }
 
-function dedupeByUrl(arr){
-  const seen=new Set(); const out=[];
-  for(const it of arr){ if(!seen.has(it.url)){ seen.add(it.url); out.push(it) } }
-  return out;
+function extractImages(post){
+  const p = post.data || {};
+  if(p.stickied) return [];
+  const out = [];
+  // 1) gallery
+  if(p.is_gallery && p.media_metadata){
+    for(const k of Object.keys(p.media_metadata)){
+      const m = p.media_metadata[k];
+      if(m && m.s && m.s.u){ out.push(cleanUrl(m.s.u)) }
+    }
+  }
+  // 2) preview
+  if(p.preview && p.preview.images && p.preview.images[0]){
+    const src = p.preview.images[0].source || p.preview.images[0].resolutions.slice(-1)[0];
+    if(src && src.url) out.push(cleanUrl(src.url));
+  }
+  // 3) direct link (static only)
+  if(p.url_overridden_by_dest && /\.(jpg|jpeg|png)$/.test(p.url_overridden_by_dest)){
+    out.push(cleanUrl(p.url_overridden_by_dest));
+  }
+  // remove gifs/mp4
+  return out.filter(u=>!/\.(gif|gifv|mp4|webm)$/i.test(u));
 }
 
 async function pullSub(sub){
-  // Reddit JSON (CORS-friendly)
-  const url = `https://www.reddit.com/r/${encodeURIComponent(sub)}/top.json?t=${AGE_WINDOW}&limit=${MAX_PER_SUB}&raw_json=1`;
-  try{
-    const t0 = performance.now();
-    const res = await fetch(url, {headers:{'Accept':'application/json'}});
-    if(!res.ok){ S.log.push(`${sub}: HTTP ${res.status}`); return false }
-    const json = await res.json();
-    const kids = (json.data && json.data.children) || [];
-    let added = 0;
-    for(const k of kids){
-      const p = k.data || {};
-      if(p.stickied) continue;
-      const over18 = !!p.over_18;
-      // we allow NSFW (user asked), but skip if it's a link with no preview
-      const prev = (p.preview && p.preview.images && p.preview.images[0])? p.preview.images[0] : null;
-      let img = prev ? (prev.source || prev.resolutions.slice(-1)[0]) : null;
-      if(!img || !img.url) continue;
-      // fix &amp; etc from Reddit
-      const clean = img.url.replace(/&amp;/g,'&');
-      // skip gifs/videos (keep static images for reliability)
-      if(/\.(gif|gifv|mp4|webm)$/i.test(clean)) continue;
-      S.pool.push({ sub, author:p.author, title:p.title, url:clean, permalink:`https://reddit.com${p.permalink}`, nsfw:over18 });
+  const t0 = performance.now();
+  const r = await fetchJsonWithMirrors(sub);
+  if(!r.ok){ S.log.push(`${sub}: ${r.error||'fetch failed'}`); return 0; }
+  const kids = (r.data && r.data.data && r.data.data.children) || [];
+  let added=0;
+  for(const k of kids){
+    const imgs = extractImages(k);
+    for(const u of imgs){
+      S.pool.push({ sub, url:u, nsfw:!!(k.data && k.data.over_18), permalink:`https://reddit.com${k.data.permalink||""}` });
       added++;
     }
-    const ms = Math.round(performance.now()-t0);
-    S.log.push(`${sub}: +${added} (${ms}ms)`);
-    return added>0;
-  }catch(e){
-    S.log.push(`${sub}: ${String(e).slice(0,120)}`);
-    return false;
   }
+  const ms = Math.round(performance.now()-t0);
+  S.log.push(`${sub}: +${added} (${ms}ms)`);
+  return added;
 }
 
-/* ---- Rendering ---- */
+/* ---------- Batch & render ---------- */
+async function newBatch(){
+  S.pool=[];S.shown=0;$('grid').innerHTML="";$('counter').textContent="0/0";enableMore(false);S.log=[];
+  setStatus("Building…");
+  const subs = [...shuffle([...PEOPLE_ONLY_SUBS]).slice(0,12), ...shuffle(BACKUP_SUBS).slice(0,4)];
+  for(const sub of subs){
+    await pullSub(sub);
+    if(S.pool.length>=60) break;
+  }
+  // dedupe by url
+  const seen=new Set(); S.pool=S.pool.filter(x=>!seen.has(x.url)&&seen.add(x.url));
+  if(!S.pool.length){ setStatus("No fresh posts. Tap New batch again.",false); toast("No fresh posts"); showTrouble(); return; }
+  shuffle(S.pool); $('counter').textContent=`0/${S.pool.length}`; enableMore(true); setStatus(`Pool: ${S.pool.length} images`);
+}
+
 function loadMore(){
-  const start = S.shown;
-  const end = Math.min(S.shown + PAGE_SIZE, S.pool.length);
-  for(let i=start;i<end;i++) renderCard(S.pool[i]);
-  S.shown = end;
-  $('counter').textContent = `${S.shown}/${S.pool.length}`;
-  if(S.shown >= S.pool.length) enableMore(false);
+  const end = Math.min(S.shown+PAGE_SIZE, S.pool.length);
+  for(let i=S.shown;i<end;i++) renderCard(S.pool[i]);
+  S.shown=end;$('counter').textContent=`${S.shown}/${S.pool.length}`; if(S.shown>=S.pool.length) enableMore(false);
 }
 
 function renderCard(item){
-  const wrap = document.createElement('div');
-  wrap.className="card polaroid";
+  const wrap=document.createElement('div'); wrap.className="card polaroid";
   wrap.innerHTML = `
     <img class="ph" src="${item.url}" alt="">
     <div class="meta">
-      <span class="src">r/${item.sub}${item.nsfw? ' • NSFW':''}</span>
+      <span class="src">r/${item.sub}${item.nsfw?' • NSFW':''}</span>
       <div class="act">
         <button class="star" aria-label="Like">⭐</button>
         <button class="nope" aria-label="Dismiss">👎</button>
       </div>
     </div>`;
-  const [star,nope] = wrap.querySelectorAll('button');
-  star.onclick = ()=>{
-    if(!S.likes.find(x=>x.url===item.url)){ S.likes.unshift(item); saveLikes(S.likes); updateLikedBadge(); toast("Saved ⭐") }
-    wrap.remove();
-  };
-  nope.onclick = ()=>{ wrap.remove(); };
+  const [star,nope]=wrap.querySelectorAll('button');
+  star.onclick=()=>{ if(!S.likes.find(x=>x.url===item.url)){S.likes.unshift(item);saveLikes(S.likes);updateLikedBadge();toast("Saved ⭐")} wrap.remove(); };
+  nope.onclick=()=>wrap.remove();
   $('grid').appendChild(wrap);
 }
 
 function renderLiked(){
-  const list = loadLikes();
-  updateLikedBadge();
-  $('grid').innerHTML = "";
-  if(!list.length){ toast("No likes yet"); return }
-  list.forEach(renderCard);
-  S.shown = list.length; S.pool = list.slice(); $('counter').textContent = `${S.shown}/${S.pool.length}`; enableMore(false);
+  const list=loadLikes(); updateLikedBadge(); $('grid').innerHTML=""; if(!list.length){toast("No likes yet");return}
+  list.forEach(renderCard); S.shown=list.length; S.pool=list.slice(); $('counter').textContent=`${S.shown}/${S.pool.length}`; enableMore(false);
 }
 
-/* ---- Troubleshoot ---- */
+/* ---------- Troubleshoot ---------- */
 function showTrouble(){
-  const ua = navigator.userAgent;
-  const lines = [
-    `Online: ${navigator.onLine}`,
-    `UA: ${ua}`,
-    `Pool size: ${S.pool.length}, shown: ${S.shown}, likes: ${S.likes.length}`,
-    `Last lines:`,
-    ...S.log.slice(-18)
-  ];
-  $('ts').textContent = lines.join('\n');
-  $('tsModal').classList.add('show');
+  const ua=navigator.userAgent;
+  const lines=[`Online: ${navigator.onLine}`,`UA: ${ua}`,`Pool size: ${S.pool.length}, shown: ${S.shown}, likes: ${S.likes.length}`,`Last lines:`,...S.log.slice(-20)];
+  $('ts').textContent=lines.join('\n'); $('tsModal').classList.add('show');
 }
 </script>
 </body>
