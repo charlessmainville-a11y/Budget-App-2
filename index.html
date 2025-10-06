@@ -3,82 +3,57 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Scroll Wall — v4.0</title>
+<title>Scroll Wall — v4.1</title>
 <style>
-/* ======= THEME ======= */
 :root{
   --bg:#0c1116; --ink:#e9eef4; --muted:#a3afbf;
   --panel:#141a22; --panel2:#0f141a; --accent:#ff7aa2;
-  --accent-ink:#1b0c13; --ok:#7ef0b2; --warn:#ffd166; --bad:#ff8b7e;
-  --ring:rgba(255,255,255,.12);
+  --accent-ink:#1b0c13; --ring:rgba(255,255,255,.12);
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:radial-gradient(1200px 600px at 30% -10%, #1b2430 0%, #0c1116 60%) fixed, var(--bg);color:var(--ink);font:16px/1.35 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
-a{color:inherit}
 button{cursor:pointer;border:0;background:transparent;color:inherit}
 .app{max-width:860px;margin:18px auto 120px;padding:0 16px}
-
-/* Header row */
 .header{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
 .badge{background:linear-gradient(180deg,#1a212b,#111820);border:1px solid var(--ring);padding:10px 16px;border-radius:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
 .badge.pink{background:linear-gradient(180deg,#ff99b5,#ff7aa2);color:#1a0e15;border-color:#ffb0c6}
 .hint{color:var(--muted);opacity:.8}
-
-/* Controls */
 .controls{background:linear-gradient(180deg,#111821,#0d1218);border:1px solid var(--ring);border-radius:22px;padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;position:sticky;top:0;z-index:5;backdrop-filter:blur(10px)}
 .controls .big{grid-column:1/3;background:linear-gradient(180deg,#ff99b5,#ff7aa2);color:#1b0c13;border:1px solid #ffb0c6;border-radius:18px;padding:14px 18px;font-weight:800;font-size:20px}
 .controls .pill{background:linear-gradient(180deg,#1a212b,#111820);border:1px solid var(--ring);border-radius:16px;padding:12px 16px;font-weight:700;text-align:center}
 .counter{font-weight:900;font-size:22px;letter-spacing:.5px;text-align:center}
-
 .grid{display:grid;gap:18px;margin-top:18px}
-
-/* Polaroid card */
-.card{background:linear-gradient(180deg,#121922,#0f141b);border:1px solid var(--ring);border-radius:26px;padding:14px 14px 12px;box-shadow:
-  0 14px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04)}
+.card{background:linear-gradient(180deg,#121922,#0f141b);border:1px solid var(--ring);border-radius:26px;padding:14px 14px 12px;box-shadow:0 14px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04)}
 .frame{position:relative;border-radius:18px;overflow:hidden;background:#0a0f14}
 .media{width:100%;height:64vh;max-height:560px;object-fit:contain;background:#0a0f14;display:block}
-.media[poster]{object-fit:contain}
 .stamp{position:absolute;top:10px;left:12px;background:rgba(0,0,0,.35);padding:6px 10px;border-radius:12px;font-weight:700;font-size:13px;backdrop-filter:blur(6px)}
 .actions{display:flex;gap:10px;align-items:center;margin-top:10px}
 .tag{background:linear-gradient(180deg,#1a212b,#111820);border:1px solid var(--ring);border-radius:12px;padding:10px 14px;font-weight:800;color:#cfe6ff}
 .star,.nope{flex:0 0 auto;padding:12px 16px;border-radius:14px;font-size:18px;font-weight:900}
 .star{background:linear-gradient(180deg,#ffafc5,#ff7aa2);color:#291018;border:1px solid #ffc2d3}
 .nope{background:linear-gradient(180deg,#ffb2a6,#ff8b7e);color:#2a0e0a;border:1px solid #ffc3bb}
-
-/* Like flash */
 @keyframes pop {0%{transform:scale(.9);opacity:.0} 50%{transform:scale(1.05);opacity:1} 100%{transform:scale(1);opacity:1}}
 .pop{animation:pop .28s ease-out}
-
-/* Liked sheet & Troubleshoot */
 .sheet{position:fixed;inset:0;background:rgba(8,12,16,.7);backdrop-filter:blur(8px);display:none;align-items:flex-start;justify-content:center;padding:20px;z-index:50}
 .sheet .box{max-width:860px;width:100%;background:linear-gradient(180deg,#101620,#0d1218);border:1px solid var(--ring);border-radius:20px;padding:16px}
 .sheet.open{display:flex}
 .sheet .title{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .code{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;white-space:pre-wrap;background:#0a0f14;border:1px solid var(--ring);border-radius:14px;padding:12px;color:#cfe6ff}
-
-/* Toast */
 .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#2a171b;border:1px solid #6f2f3a;color:#ffb3c2;padding:12px 16px;border-radius:14px;display:none}
 .toast.show{display:block}
-
-/* small */
-@media (max-width:480px){
-  .media{height:60vh}
-}
+@media (max-width:480px){ .media{height:60vh} }
 </style>
 </head>
 <body>
 <div class="app" id="app">
-
-  <!-- header -->
   <div class="header">
-    <div class="badge">Build <strong>v4.0</strong></div>
+    <div class="badge">Build <strong>v4.1</strong></div>
     <button class="badge" id="btnHome">Home</button>
     <button class="badge" id="btnLiked">Liked ⭐</button>
     <button class="badge" id="btnTrouble">Troubleshoot 🩺</button>
     <div class="hint" id="modeHint">NSFW enabled · people-only · spicy sprinkle</div>
   </div>
 
-  <!-- controls -->
   <div class="controls">
     <button class="big" id="btnLoad">Load more</button>
     <div class="pill counter" id="counter">0/0</div>
@@ -86,11 +61,9 @@ button{cursor:pointer;border:0;background:transparent;color:inherit}
     <button class="pill" id="btnShuffle">Shuffle 🔀</button>
   </div>
 
-  <!-- feed -->
   <div class="grid" id="feed"></div>
 </div>
 
-<!-- Liked sheet -->
 <div class="sheet" id="likedSheet" aria-hidden="true">
   <div class="box">
     <div class="title">
@@ -105,7 +78,6 @@ button{cursor:pointer;border:0;background:transparent;color:inherit}
   </div>
 </div>
 
-<!-- Troubleshoot sheet -->
 <div class="sheet" id="troubleSheet" aria-hidden="true">
   <div class="box">
     <div class="title">
@@ -119,14 +91,13 @@ button{cursor:pointer;border:0;background:transparent;color:inherit}
 <div class="toast" id="toast"></div>
 
 <script>
-/* ========= CONFIG ========= */
-const BUILD = "v4.0";   // shows in header
-const TARGET_BATCH = 6; // how many cards to aim for per “New batch”
-const PAGE_SIZE = 3;    // how many cards per “Load more”
-const REDGIFS_HOST = "https://api.redgifs.com";
-const NAME_BIAS = 1.0;  // 100% names, no generic tags
+/* ===== Config ===== */
+const BUILD = "v4.1";
+const TARGET_BATCH = 6;
+const PAGE_SIZE = 3;
+const HOSTS = ["https://api.redgifs.com","https://api-cdn.redgifs.com"];
+const NAME_BIAS = 1.0;
 
-// ~100 women (models / influencers / actors). Names are used as search queries.
 const NAMES = [
 "Addison Rae","Adriana Lima","Alexandra Daddario","Alexis Ren","Alisha Lehmann","Alix Earle",
 "Ana de Armas","Ananya Panday","Anne Hathaway","Anya Taylor-Joy","Ariana Grande","Ashley Graham",
@@ -141,14 +112,12 @@ const NAMES = [
 "Olivia Rodrigo","Paris Hilton","Rihanna","Sabrina Carpenter","Sadie Sink","Salma Hayek","Sara Sampaio",
 "Selena Gomez","Sofia Carson","Sofia Vergara","Sommer Ray","Sydney Sweeney","Taylor Hill","Taylor Swift",
 "Vanessa Hudgens","Victoria Justice","Yara Shahidi","Zendaya","Loren Gray","Lea Elui","Kendall Vertes",
-"Charli Howard","Elsa Hosk","Kylie Verzosa","Pia Wurtzbach","Sushmita Sen","Aishwarya Rai","Deepika Padukone",
-"Janhvi Kapoor","Sara Ali Khan","Anushka Sharma","Taissa Farmiga","Mila Kunis","Emmy Rossum"
+"Charli Howard","Elsa Hosk","Kylie Verzosa","Pia Wurtzbach","Deepika Padukone","Janhvi Kapoor",
+"Sara Ali Khan","Anushka Sharma","Taissa Farmiga","Mila Kunis","Emmy Rossum"
 ];
+const SPICY = ["lingerie","bikini","photoshoot","runway","backstage","swimsuit"];
 
-// tiny pool of spicy search helpers (mixed in occasionally)
-const SPICY_TAGS = ["lingerie","bikini","photoshoot","runway","behind the scenes","backstage","swimsuit"];
-
-/* ========= STATE ========= */
+/* ===== State ===== */
 const feedEl = document.getElementById('feed');
 const counterEl = document.getElementById('counter');
 const toastEl = document.getElementById('toast');
@@ -157,105 +126,105 @@ const likedGrid = document.getElementById('likedGrid');
 const troubleSheet = document.getElementById('troubleSheet');
 const diagEl = document.getElementById('diag');
 
-let token = null;
-let pool = [];          // queued items to show
-let shown = 0;          // how many rendered so far
-let likes = loadLikes();// array of saved items
+let token = null, tokenTime = 0;
+let pool = [], shown = 0, likes = loadLikes();
 let lastError = "(none)";
 
-/* ========= UTIL ========= */
-function showToast(msg){ toastEl.textContent = msg; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'),1800); }
-function shuffle(arr){ for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]} return arr; }
-function loadLikes(){ try{ return JSON.parse(localStorage.getItem('likes_v1')||'[]'); }catch{ return []; } }
-function saveLikes(){ localStorage.setItem('likes_v1', JSON.stringify(likes)); }
-function fmtUA(){ return navigator.userAgent; }
-function setCounter(){ counterEl.textContent = `${shown}/${pool.length}`; }
+/* ===== Utils ===== */
+function showToast(m){toastEl.textContent=m;toastEl.classList.add('show');setTimeout(()=>toastEl.classList.remove('show'),1800)}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function loadLikes(){try{return JSON.parse(localStorage.getItem('likes_v1')||'[]')}catch{return[]}}
+function saveLikes(){localStorage.setItem('likes_v1',JSON.stringify(likes))}
+function setCounter(){counterEl.textContent=`${shown}/${pool.length}`}
+const age = () => Date.now()-tokenTime;
 
-/* ========= REDGIFS API =========
-   Public flow:
-     1) GET /v2/auth/temporary -> { token }
-     2) GET /v2/gifs/search?search_text=NAME&order=trending&count=…  (Auth: Bearer token)
-   We only accept results with content_urls?.hd or .sd (mp4).
-=================================*/
+/* ===== Token (auto-refresh every 5 min) ===== */
 async function ensureToken(){
-  if (token) return token;
-  try{
-    const r = await fetch(`${REDGIFS_HOST}/v2/auth/temporary`);
-    const j = await r.json();
-    token = j?.token || null;
-    return token;
-  }catch(e){ lastError = `auth: ${e}`; return null; }
+  if (token && age()<5*60*1000) return token;
+  for (const host of HOSTS){
+    try{
+      const r = await fetch(`${host}/v2/auth/temporary`,{mode:'cors'});
+      if (!r.ok) { lastError=`auth ${r.status}`; continue; }
+      const j = await r.json();
+      token = j?.token||null; tokenTime = Date.now();
+      if (token) return token;
+    }catch(e){ lastError = `auth err ${e.message||e}`; }
+  }
+  return null;
 }
 
-async function searchRedgifs(q, count=25){
-  const t = await ensureToken(); if(!t) throw new Error("no token");
-  const url = `${REDGIFS_HOST}/v2/gifs/search?search_text=${encodeURIComponent(q)}&order=trending&count=${count}`;
-  const r = await fetch(url, { headers:{ Authorization:`Bearer ${t}` } });
-  if (r.status === 429){ throw new Error("429 rate limited"); }
+/* ===== Search (with smart retries + better diagnostics) ===== */
+async function searchOnce(host, q, count, variant=0){
+  // variant 0: default search_text
+  // variant 1: add spicy tag
+  const text = variant===1 ? `${q} ${SPICY[Math.floor(Math.random()*SPICY.length)]}` : q;
+  const url = `${host}/v2/gifs/search?search_text=${encodeURIComponent(text)}&order=trending&count=${count}&from=0`;
+  const t = await ensureToken(); if(!t) throw new Error("token missing");
+  const r = await fetch(url,{headers:{Authorization:`Bearer ${t}`},mode:'cors'});
+  if (!r.ok){ const msg = `HTTP ${r.status}`; if (r.status===429) throw new Error("429 rate limited"); throw new Error(msg); }
   const j = await r.json();
-  return (j?.gifs || []).map(g => ({
-    id: g.id,
-    url: g?.urls?.hd || g?.urls?.sd || g?.urls?.gif || "",
-    preview: g?.urls?.poster || "",
-    width: g?.width, height:g?.height,
-    author: g?.userName || "",
-    title: g?.title || "",
-    source: "RedGifs",
-    query: q
-  })).filter(x => x.url);
+  return (j?.gifs||[]).map(g=>({
+    id:g.id,
+    url:g?.urls?.hd||g?.urls?.sd||g?.urls?.gif||"",
+    preview:g?.urls?.poster||"",
+    width:g?.width,height:g?.height,
+    author:g?.userName||"", title:g?.title||"",
+    source:"RedGifs", query:text
+  })).filter(x=>x.url);
 }
 
-/* ========= BATCH BUILDING ========= */
+async function searchRedgifs(q, count=24){
+  let last = "";
+  for (const host of HOSTS){
+    try { const a = await searchOnce(host,q,count,0); if (a.length) return a; last=`${host} empty`; }
+    catch(e){ lastError = `${q}: ${e.message||e}`; last = lastError;}
+    // try a spicy variant before switching host again
+    try { const b = await searchOnce(host,q,count,1); if (b.length) return b; }
+    catch(e){ last = `${q}: ${e.message||e}`; }
+  }
+  throw new Error(last||"no results");
+}
+
+/* ===== Batch ===== */
 function pickQueries(n){
   const names = shuffle([...NAMES]).slice(0, Math.ceil(n*NAME_BIAS));
-  const spicy = Array.from({length:Math.max(0, n - names.length)}, () => {
-    const name = NAMES[Math.floor(Math.random()*NAMES.length)];
-    const tag = SPICY_TAGS[Math.floor(Math.random()*SPICY_TAGS.length)];
-    return `${name} ${tag}`;
-  });
-  return shuffle([...names, ...spicy]);
+  const extra = Array.from({length:Math.max(0,n-names.length)}, ()=>`${NAMES[Math.floor(Math.random()*NAMES.length)]} ${SPICY[Math.floor(Math.random()*SPICY.length)]}`);
+  return shuffle([...names,...extra]);
 }
 
 async function buildBatch(){
-  pool.length = 0; shown = 0; setCounter(); feedEl.innerHTML = "";
+  pool.length=0; shown=0; setCounter(); feedEl.innerHTML="";
   const want = TARGET_BATCH;
-  const queries = pickQueries(Math.max(6, want*3));
+  const queries = pickQueries(Math.max(6,want*3));
   for (const q of queries){
-    if (pool.length >= want) break;
+    if (pool.length>=want) break;
     try{
-      const items = await searchRedgifs(q, 30);
-      // prefer people-ish aspect ratios and recent-ish
-      const filtered = items.filter(it => it.width && it.height && it.height/it.width>0.9 && it.height/it.width<1.8);
-      shuffle(filtered).slice(0,2).forEach(it => pool.push(it));
+      const items = await searchRedgifs(q, 24);
+      // Looser filter now – only require we have a usable url
+      shuffle(items).slice(0,2).forEach(it=>pool.push(it));
     }catch(e){
       lastError = `${q}: ${e.message||e}`;
-      // small delay on 429 to be polite
       if (String(e).includes("429")) await new Promise(r=>setTimeout(r, 900));
     }
   }
-  shuffle(pool);
-  setCounter();
-  if (!pool.length) showToast("No posts yet. Tap Shuffle ↺ or try again in ~30s.");
+  shuffle(pool); setCounter();
+  if(!pool.length) showToast("No posts yet. Tap Shuffle, then Load more, or try again in ~30–60s.");
 }
 
-/* ========= RENDER ========= */
+/* ===== Render ===== */
 function cardTemplate(item, idx){
-  const id = `m${Date.now()}_${idx}`;
   const isVideo = /\.mp4|\.webm/i.test(item.url);
-  const mediaEl = isVideo
+  const media = isVideo
     ? `<video class="media" playsinline muted loop controls preload="metadata" poster="${item.preview||''}">
-         <source src="${item.url}" type="video/mp4">
-       </video>`
+         <source src="${item.url}" type="video/mp4"></video>`
     : `<img class="media" src="${item.url}" alt="">`;
-  return `
-  <div class="card" data-idx="${idx}">
+  return `<div class="card" data-idx="${idx}">
     <div class="frame">
-      ${mediaEl}
+      ${media}
       <div class="stamp">${item.query} · ${item.source}</div>
     </div>
     <div class="actions">
-      <div class="tag">${item.source}</div>
-      <div style="flex:1"></div>
+      <div class="tag">${item.source}</div><div style="flex:1"></div>
       <button class="star" title="Like">⭐</button>
       <button class="nope" title="Remove">👎</button>
     </div>
@@ -263,120 +232,75 @@ function cardTemplate(item, idx){
 }
 
 function renderMore(n=PAGE_SIZE){
-  const end = Math.min(pool.length, shown + n);
+  const end = Math.min(pool.length, shown+n);
   for(let i=shown;i<end;i++){
     const html = cardTemplate(pool[i], i);
-    const tmp = document.createElement('div'); tmp.innerHTML = html;
-    const card = tmp.firstElementChild;
+    const wrap = document.createElement('div'); wrap.innerHTML = html;
+    const card = wrap.firstElementChild;
     feedEl.appendChild(card);
 
     const media = card.querySelector('.media');
-    if (media && media.tagName === 'VIDEO'){
-      media.addEventListener('canplay', ()=> media.play().catch(()=>{}), {once:true});
-      // try autoplay once in view
-      setTimeout(()=>media.play().catch(()=>{}), 50);
+    if (media && media.tagName==='VIDEO'){
+      media.addEventListener('canplay', ()=>media.play().catch(()=>{}), {once:true});
+      setTimeout(()=>media.play().catch(()=>{}), 40);
     }
 
-    card.querySelector('.star').addEventListener('click', ()=>{
-      likeItem(pool[i]);
-      card.classList.add('pop');
-      showToast("Saved to Liked ⭐");
-    });
-    card.querySelector('.nope').addEventListener('click', ()=>{
-      card.remove();
-      // nothing else to do; just visually remove
-    });
+    card.querySelector('.star').addEventListener('click', ()=>{ likeItem(pool[i]); card.classList.add('pop'); showToast("Saved to Liked ⭐"); });
+    card.querySelector('.nope').addEventListener('click', ()=> card.remove());
   }
-  shown = end; setCounter();
+  shown=end; setCounter();
 }
 
-/* ========= LIKES ========= */
-function likeItem(item){
-  likes.unshift({
-    t: Date.now(),
-    url: item.url,
-    preview: item.preview,
-    where: item.source,
-    query: item.query
-  });
-  // keep last 500
-  likes = likes.slice(0,500);
-  saveLikes();
+/* ===== Likes ===== */
+function likeItem(it){
+  likes.unshift({t:Date.now(),url:it.url,preview:it.preview,where:it.source,query:it.query});
+  likes=likes.slice(0,500); saveLikes();
 }
 function openLiked(){
-  likedGrid.innerHTML = likes.length ? "" : `<div class="hint">No likes yet.</div>`;
-  likes.forEach((it, i)=>{
-    const isVideo = /\.mp4|\.webm/i.test(it.url);
-    const media = isVideo
-      ? `<video class="media" playsinline muted loop controls preload="metadata" poster="${it.preview||''}">
-           <source src="${it.url}" type="video/mp4">
-         </video>`
-      : `<img class="media" src="${it.url}" alt="">`;
-    const row = document.createElement('div');
-    row.className = 'card';
-    row.innerHTML = `
-      <div class="frame">${media}<div class="stamp">${it.query||''} · ${it.where||''}</div></div>
-      <div class="actions">
-        <div class="tag">${new Date(it.t).toLocaleString()}</div>
-        <div style="flex:1"></div>
-        <button class="nope">Remove</button>
-      </div>`;
-    row.querySelector('.nope').addEventListener('click', ()=>{
-      likes.splice(i,1); saveLikes(); row.remove();
-    });
-    const vid = row.querySelector('video'); if(vid){ setTimeout(()=>vid.play().catch(()=>{}), 60); }
+  likedGrid.innerHTML = likes.length?"":"<div class='hint'>No likes yet.</div>";
+  likes.forEach((it,i)=>{
+    const isVideo=/\.mp4|\.webm/i.test(it.url);
+    const media=isVideo?`<video class="media" playsinline muted loop controls preload="metadata" poster="${it.preview||''}"><source src="${it.url}" type="video/mp4"></video>`:`<img class="media" src="${it.url}" alt="">`;
+    const row=document.createElement('div'); row.className='card';
+    row.innerHTML=`<div class="frame">${media}<div class="stamp">${it.query||''} · ${it.where||''}</div></div>
+                   <div class="actions"><div class="tag">${new Date(it.t).toLocaleString()}</div><div style="flex:1"></div><button class="nope">Remove</button></div>`;
+    row.querySelector('.nope').addEventListener('click',()=>{likes.splice(i,1);saveLikes();row.remove();});
+    const v=row.querySelector('video'); if(v){setTimeout(()=>v.play().catch(()=>{}),50);}
     likedGrid.appendChild(row);
   });
   likedSheet.classList.add('open');
 }
 
-/* ========= TROUBLESHOOT ========= */
+/* ===== Troubleshoot ===== */
 function openTrouble(){
-  const ua = fmtUA();
   const log = `Online: ${navigator.onLine}
-UA: ${ua}
+UA: ${navigator.userAgent}
 Pool size: ${pool.length}, shown: ${shown}, likes: ${likes.length}
-Last error: ${lastError || "(none)"}
+Last error: ${lastError}
 
-If “429 rate limited” appears, RedGifs is throttling. Tap Shuffle or wait ~30–60s and try again.`;
+If “429 rate limited” appears, RedGifs is throttling.
+Tap Shuffle or wait ~30–60s and try again.`;
   diagEl.textContent = log;
   troubleSheet.classList.add('open');
 }
 
-/* ========= WIRE UP ========= */
-document.getElementById('btnLoad').addEventListener('click', ()=> renderMore());
-document.getElementById('btnNew').addEventListener('click', async ()=>{
-  showToast("Building a new batch…");
-  await buildBatch();
-  renderMore();
-});
-document.getElementById('btnShuffle').addEventListener('click', ()=>{
-  shuffle(pool); feedEl.innerHTML=""; shown=0; renderMore();
-});
+/* ===== Wire-up ===== */
+document.getElementById('btnLoad').addEventListener('click', ()=>renderMore());
+document.getElementById('btnNew').addEventListener('click', async()=>{showToast("Building a new batch…");await buildBatch();renderMore();});
+document.getElementById('btnShuffle').addEventListener('click', ()=>{shuffle(pool);feedEl.innerHTML="";shown=0;renderMore();});
 document.getElementById('btnLiked').addEventListener('click', openLiked);
-document.getElementById('btnCloseLiked').addEventListener('click', ()=> likedSheet.classList.remove('open'));
+document.getElementById('btnCloseLiked').addEventListener('click', ()=>likedSheet.classList.remove('open'));
 document.getElementById('btnExport').addEventListener('click', ()=>{
-  const blob = new Blob([JSON.stringify(likes,null,2)], {type:"application/json"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href=url; a.download='liked.json'; a.click();
-  URL.revokeObjectURL(url);
+  const blob=new Blob([JSON.stringify(likes,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='liked.json'; a.click(); URL.revokeObjectURL(url);
 });
-document.getElementById('btnClearLikes').addEventListener('click', ()=>{
-  if (confirm("Clear all likes?")){ likes=[]; saveLikes(); openLiked(); }
-});
-
+document.getElementById('btnClearLikes').addEventListener('click', ()=>{ if(confirm("Clear all likes?")){likes=[];saveLikes();openLiked();} });
 document.getElementById('btnTrouble').addEventListener('click', openTrouble);
-document.getElementById('btnCloseTrouble').addEventListener('click', ()=> troubleSheet.classList.remove('open'));
-document.getElementById('btnHome').addEventListener('click', ()=>{
-  likedSheet.classList.remove('open'); troubleSheet.classList.remove('open');
-  window.scrollTo({top:0,behavior:'smooth'});
-});
+document.getElementById('btnCloseTrouble').addEventListener('click', ()=>troubleSheet.classList.remove('open'));
+document.getElementById('btnHome').addEventListener('click', ()=>{likedSheet.classList.remove('open'); troubleSheet.classList.remove('open'); window.scrollTo({top:0,behavior:'smooth'});});
 
 /* First run */
-(async function init(){
-  await buildBatch();
-  renderMore();
-})();
+(async function init(){ await buildBatch(); renderMore(); })();
 </script>
 </body>
 </html>
