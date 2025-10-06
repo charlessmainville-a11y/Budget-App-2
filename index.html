@@ -1,447 +1,388 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Scroll Wall</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Scroll Wall — Models • Influencers • Actors</title>
 <style>
-:root{
-  --bg:#0d1117; --bg2:#0f1724; --panel:#1b2330; --card:#121821;
-  --ink:#e6edf3; --muted:#9aa5b1; --ring:rgba(255,255,255,.08);
-  --accent:#ff6ea9; --accent-ink:#111; --ok:#31d0aa; --no:#ff5577;
-  --radius:18px; --glow:0 12px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
-}
-*{box-sizing:border-box} html,body{height:100%}
-body{
-  margin:0; color:var(--ink);
-  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;
-  background: radial-gradient(1200px 500px at 50% -200px,#1a2330 0%,#0f1724 45%,#0d1117 100%);
-}
+  :root{
+    --bg:#0b0f14; --bg2:#101722; --panel:#182230;
+    --ink:#e9f0ff; --muted:#a6b3c7; --hot:#ff6fa5;
+    --ok:#6ee7b7; --warn:#ffd166; --accent:#6ea8ff;
+    --card:#121821; --shadow: 0 10px 30px rgba(0,0,0,.35);
+    --radius:18px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:radial-gradient(1200px 400px at 50% -200px,#172030 0%,#0b0f14 60%);}
+  body{font-family: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;
+       color:var(--ink); -webkit-font-smoothing:antialiased; padding-bottom:48px;}
+  a{color:var(--accent);text-decoration:none}
+  .wrap{max-width:820px;margin:18px auto;padding:0 14px}
+  .row{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+  .controls{background:linear-gradient(180deg,#111a24, #0f151e);
+            border:1px solid #213044;border-radius:22px;padding:18px;box-shadow:var(--shadow)}
+  .btn{border:0;border-radius:16px;padding:18px 22px;font-weight:800;font-size:20px;
+       background:linear-gradient(180deg,#ff8fb2,#ff5a94); color:#0c0f14; box-shadow:var(--shadow)}
+  .btn:active{transform:translateY(1px)}
+  .pill{min-width:88px;text-align:center;border-radius:14px;padding:12px 16px;
+        background:#0f1620;border:1px solid #29364a;color:#cfe0ff;font-weight:800}
+  .switch{appearance:none;width:66px;height:36px;border-radius:20px;position:relative;outline:none;border:1px solid #2a384e;background:#0c1320}
+  .switch::after{content:"";position:absolute;top:3px;left:4px;width:30px;height:30px;border-radius:50%;background:#f0f5ff;transition:.2s}
+  .switch:checked{background:#123423;border-color:#1f4b31}
+  .switch:checked::after{transform:translateX(28px);background:#baf7d3}
+  .input{flex:1;min-width:220px;border-radius:14px;background:#0f1620;border:1px solid #29364a;
+         color:#e6f0ff;padding:14px 16px;font-size:16px}
+  .toolbar{display:flex;gap:12px;margin-top:12px;flex-wrap:wrap}
+  .minor{color:var(--muted);font-size:14px;margin-top:10px}
 
-/* top controls */
-.controls-wrap{position:sticky; top:0; z-index:5; padding:10px;
-  background:linear-gradient(#0f1724, rgba(15,23,36,.75) 60%, transparent);
-  border-bottom:1px solid rgba(255,255,255,.06); backdrop-filter:saturate(120%) blur(6px);}
-.controls{display:flex; gap:10px; align-items:center; flex-wrap:wrap;
-  padding:10px; border:1px solid var(--ring); background:var(--panel); border-radius:14px;}
-.btn{border:0;border-radius:14px;padding:14px 18px;font-weight:800;cursor:pointer;
-  background:var(--accent);color:var(--accent-ink);box-shadow:var(--glow)}
-.counter{min-width:74px;text-align:center;padding:8px 12px;border-radius:12px;background:#0b1220;
-  border:1px solid var(--ring);font-weight:800}
-.switch{display:flex;align-items:center;gap:8px;margin-left:auto;white-space:nowrap}
-.switch input{width:48px;height:28px;appearance:none;background:#2a3342;border-radius:999px;position:relative;cursor:pointer;outline:none;box-shadow:inset 0 0 0 2px rgba(255,255,255,.06)}
-.switch input:checked{background:#224637}
-.switch input:before{content:"";position:absolute;inset:4px auto 4px 4px;width:20px;border-radius:999px;background:white;transition:transform .18s ease}
-.switch input:checked:before{transform:translateX(20px)}
-#override{flex:1;min-width:220px;color:var(--ink);background:#0b1220;border:1px solid var(--ring);
-  padding:12px 12px;border-radius:12px;outline:none}
-a.liked,button.filters{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;border:1px solid var(--ring);
-  background:var(--panel);text-decoration:none;color:var(--ink);font-weight:800}
+  .soft{padding:14px 18px;border-radius:14px;background:#101826;border:1px solid #253449;color:#d7e7ff;font-weight:800;box-shadow:var(--shadow)}
+  .soft:active{transform:translateY(1px)}
 
-/* layout */
-main{padding:12px}
-.view{display:none}
-.view.active{display:block}
-.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+  .grid{display:grid;grid-template-columns:1fr;gap:18px;margin-top:16px}
+  @media(min-width:700px){ .grid{grid-template-columns:1fr 1fr} }
 
-/* cards */
-.card{position:relative;overflow:hidden;border-radius:var(--radius);background:var(--card);border:1px solid var(--ring);box-shadow:var(--glow);touch-action:none}
-.card figure{margin:0;position:relative;aspect-ratio:4/5;overflow:hidden;background:#0a0f17}
-.card img{width:100%;height:100%;object-fit:cover;display:block;transform:translateZ(0)}
-.content{padding:14px 14px 12px}
-.title{font-size:20px;font-weight:900;line-height:1.2;margin:0 0 6px}
-.meta{color:var(--muted);font-size:13px;margin:0 0 10px}
-.badges{display:flex;gap:8px}
-.badge{padding:6px 10px;font-weight:800;border-radius:999px;border:1px solid var(--ring);background:rgba(255,255,255,.03)}
+  .card{background:linear-gradient(180deg,#141c26,#0d131c);
+        border:1px solid #28384c;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);position:relative}
+  .imgwrap{position:relative; background:#0a0f15; display:flex;align-items:center;justify-content:center; aspect-ratio:4/3}
+  .imgwrap img{width:100%;height:100%;object-fit:contain; background:#0a0f15}
+  .imgwrap::before{content:"";position:absolute;inset:0;background:
+     linear-gradient(180deg,transparent 70%,rgba(8,12,18,.85)); pointer-events:none}
+  .meta{padding:16px 16px 14px}
+  .title{font-weight:900; font-size:22px; line-height:1.2; margin:0 0 8px}
+  .by{color:var(--muted);font-size:14px;margin-bottom:10px}
+  .tag{display:inline-block;border:1px solid #2a3950;color:#cfe3ff;padding:8px 12px;border-radius:12px;font-weight:800;margin-right:8px;background:#0f1722}
+  .rowfoot{display:flex;align-items:center;gap:10px;margin-top:10px}
+  .star{width:44px;height:44px;border-radius:50%;display:inline-grid;place-items:center;
+        background:linear-gradient(180deg,#ffe08a,#ffc44b); color:#111; font-weight:900; border:0}
+  .dismiss{width:44px;height:44px;border-radius:50%;display:inline-grid;place-items:center;
+           background:#1d2430;border:1px solid #2a394d;color:#cbd6ea}
+  .linkbtn{padding:10px 14px;border-radius:12px;border:1px solid #2a394d;background:#131b27;color:#d5e8ff;font-weight:800}
 
-/* action buttons */
-.actions{position:absolute;inset:auto 10px 10px;display:flex;gap:10px}
-.iconbtn{display:inline-flex;align-items:center;justify-content:center;width:50px;height:50px;border-radius:50%;border:1px solid var(--ring);background:rgba(255,255,255,.05);cursor:pointer;backdrop-filter:blur(2px)}
-.iconbtn svg{pointer-events:none}
+  .drag{touch-action:none}
+  .flying{will-change:transform; transition:transform .18s ease, opacity .18s ease}
 
-/* swipe visuals */
-.card.swiping{transition:none}
-.card.like-anim{animation:pop-like .45s ease both}
-.card.dismiss-anim{animation:pop-no .45s ease both}
-@keyframes pop-like{0%{transform:scale(.98)}40%{transform:scale(1.02) rotate(-1deg)}100%{transform:scale(1)}}
-@keyframes pop-no{0%{transform:scale(1)}60%{transform:scale(.96)}100%{transform:scale(1)}}
-.overlay{position:absolute;inset:0;pointer-events:none;opacity:0;background:linear-gradient(to bottom, rgba(49,208,170,.18), transparent 60%);transition:opacity .15s ease}
-.overlay.no{background:linear-gradient(to bottom, rgba(255,85,119,.18), transparent 60%)}
-.confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-.confetti i{position:absolute;width:14px;height:14px;background:var(--ok);
-  mask:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="black" d="M12 21s-6.716-4.317-9.193-6.794C.334 11.733.334 8.267 2.807 5.793a5.5 5.5 0 0 1 7.778 0L12 7.207l1.415-1.414a5.5 5.5 0 0 1 7.778 7.778C18.716 16.683 12 21 12 21z"/></svg>') center/contain no-repeat;
-  animation:float 800ms ease-out forwards;opacity:.9}
-@keyframes float{from{transform:translate(var(--x,0),var(--y,0)) scale(.7)}to{transform:translate(var(--xend,0),calc(var(--yend,-80px))) scale(1.1) rotate(35deg);opacity:0}}
+  .modal{position:fixed;inset:0;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.4);backdrop-filter:saturate(120%) blur(2px);z-index:30}
+  .modal.show{display:flex}
+  .sheet{width:min(820px,100%);background:linear-gradient(180deg,#101726,#0e1420);
+         border-top-left-radius:20px;border-top-right-radius:20px;border:1px solid #223144;
+         box-shadow:0 -12px 40px rgba(0,0,0,.45); padding:16px}
+  .sheet h3{margin:6px 6px 10px}
+  .subgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  @media(min-width:680px){ .subgrid{grid-template-columns:repeat(3,1fr)} }
+  .chk{display:flex;gap:10px;align-items:center;background:#0f1622;border:1px solid #263449;border-radius:12px;padding:10px 12px}
+  .close{padding:12px 16px;border-radius:12px;border:1px solid #2a394d;background:#141c28;color:#d7e8ff;font-weight:900}
 
-.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#3a2329;color:#ffd9de;border:1px solid rgba(255,255,255,.1);
-  padding:12px 14px;border-radius:12px;box-shadow:var(--glow);display:none;z-index:10}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);
+         max-width:86vw;background:#2a1a1a;border:1px solid #503232;
+         color:#ffd6d6;padding:12px 14px;border-radius:12px;font-weight:800;box-shadow:var(--shadow);z-index:40;display:none}
+  .toast.show{display:block}
 
-/* liked view bits */
-.row{display:flex;gap:8px;flex-wrap:wrap}
-.pill{padding:8px 12px;border-radius:999px;border:1px solid var(--ring);background:rgba(255,255,255,.04);text-decoration:none;color:var(--ink)}
-.rm{border:0;border-radius:12px;padding:8px 12px;background:#3b2028;color:#ffd9de;font-weight:800;cursor:pointer}
-.empty{display:none;border:1px dashed var(--ring);padding:10px 12px;border-radius:12px;color:var(--muted);margin:8px}
-
-/* modal */
-.modal-back{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:50}
-.modal{width:min(780px,92vw);max-height:86vh;overflow:auto;background:var(--panel);border:1px solid var(--ring);border-radius:16px;box-shadow:var(--glow);padding:16px}
-.modal h3{margin:0 0 10px}
-.section{border:1px solid var(--ring);border-radius:12px;padding:12px;margin-bottom:12px}
-.subs{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
-.ck{display:flex;align-items:center;gap:8px;background:#0b1220;border:1px solid var(--ring);padding:10px;border-radius:10px}
-.ck input{width:18px;height:18px}
-.tags{display:flex;flex-wrap:wrap;gap:8px}
-.tag{background:#0b1220;border:1px solid var(--ring);padding:8px 10px;border-radius:12px}
-.tag button{margin-left:8px;border:0;background:#3b2028;color:#ffd9de;border-radius:8px;padding:2px 6px;cursor:pointer}
-.modal .rowbtns{display:flex;gap:10px;justify-content:flex-end;margin-top:10px}
-.small{font-size:12px;color:var(--muted)}
+  canvas.fx{position:fixed;pointer-events:none;inset:0;z-index:50}
 </style>
 </head>
 <body>
-
-<!-- Controls -->
-<div class="controls-wrap">
-  <div class="controls">
-    <button class="btn" id="loadMoreBtn">Load more</button>
-    <div class="counter" id="count">0/0</div>
-
-    <label class="switch" title="Allow NSFW">
-      <input id="nsfw" type="checkbox">
-      <span>Allow NSFW</span>
-    </label>
-
-    <input id="override" placeholder="e.g. reddit=r/FashionModels,r/Celebs,r/InstagramModels"/>
-    <button class="filters" id="filtersBtn">Filters ⚙️</button>
-    <a class="liked" id="likedBtn" href="#/liked">Liked ⭐</a>
-  </div>
-</div>
-
-<!-- Views -->
-<main>
-  <section id="view-feed" class="view active">
-    <div id="grid" class="grid"></div>
-  </section>
-
-  <section id="view-liked" class="view">
-    <div id="likedGrid" class="grid"></div>
-    <p id="empty" class="empty">No likes yet. Go back and ⭐ something.</p>
-  </section>
-</main>
-
-<!-- Filters modal -->
-<div id="filtersBack" class="modal-back" role="dialog" aria-modal="true" aria-labelledby="filtersTitle">
-  <div class="modal">
-    <h3 id="filtersTitle">Filters</h3>
-
-    <div class="section">
-      <strong>Default subreddits</strong>
-      <div id="subsList" class="subs"></div>
-      <div class="small">Toggle off any subs you don’t want.</div>
-    </div>
-
-    <div class="section">
-      <strong>Custom subreddits</strong>
-      <div class="row" style="gap:8px">
-        <input id="customSubInput" placeholder="e.g. r/CharliDAmelio" style="flex:1;color:var(--ink);background:#0b1220;border:1px solid var(--ring);padding:10px;border-radius:10px;"/>
-        <button id="addSub" class="filters">Add</button>
+  <canvas class="fx" id="fx"></canvas>
+  <div class="wrap">
+    <div class="controls">
+      <div class="row">
+        <button id="load" class="btn">Load more</button>
+        <button id="shuffle" class="soft" title="Shuffle feed">Shuffle 🔀</button>
+        <div id="count" class="pill">0/0</div>
+        <label class="row" style="margin-left:auto;gap:12px;align-items:center">
+          <input id="allowSfw" type="checkbox" class="switch" />
+          <div style="font-weight:900">Allow SFW</div>
+        </label>
+        <label class="row" style="gap:12px;align-items:center">
+          <input id="nsfw" type="checkbox" class="switch" />
+          <div style="font-weight:900">Allow NSFW</div>
+        </label>
       </div>
-      <div id="customSubs" class="tags" style="margin-top:8px"></div>
+      <div class="toolbar">
+        <input id="override" class="input" placeholder="e.g. reddit=r/FashionModels,r/Celebs,r/InstagramModels" />
+        <button id="filtersBtn" class="soft">Filters ⚙️</button>
+        <button id="likedBtn" class="soft">Liked ⭐</button>
+      </div>
+      <div class="minor" id="loadedNote"></div>
     </div>
 
-    <div class="section">
-      <strong>People focus</strong>
-      <div class="small">Comma-separated names. We’ll search Reddit for each name (top of the week) and pull images.</div>
-      <textarea id="peopleInput" rows="3" placeholder="Charli D'Amelio, Halsey, Lea Elui" style="width:100%;margin-top:8px;color:var(--ink);background:#0b1220;border:1px solid var(--ring);padding:10px;border-radius:10px;"></textarea>
-    </div>
+    <div id="grid" class="grid"></div>
+  </div>
 
-    <div class="rowbtns">
-      <button id="clearFilters" class="filters">Clear</button>
-      <button id="saveFilters" class="btn">Save</button>
-      <button id="closeFilters" class="filters">Close</button>
+  <!-- Filters -->
+  <div id="filtersModal" class="modal">
+    <div class="sheet">
+      <h3>Pick sources</h3>
+      <div class="subgrid" id="filtersGrid"></div>
+      <div class="row" style="margin-top:14px">
+        <button id="filtersClear" class="close">Clear all</button>
+        <div style="flex:1"></div>
+        <button id="filtersClose" class="btn" style="padding:12px 16px">Save & Refresh</button>
+      </div>
     </div>
   </div>
-</div>
 
-<div id="toast" class="toast"></div>
+  <!-- Liked -->
+  <div id="likedModal" class="modal">
+    <div class="sheet">
+      <h3>Liked ⭐</h3>
+      <div class="grid" id="likedGrid" style="max-height:60vh;overflow:auto"></div>
+      <div class="row" style="margin-top:14px">
+        <button id="undoBtn" class="soft">Undo last</button>
+        <div style="flex:1"></div>
+        <button id="exportBtn" class="soft">Export JSON</button>
+        <button id="likedClose" class="btn" style="padding:12px 16px">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
 
 <script>
-/* ===== Defaults (models / celebs / influencers) ===== */
-const DEFAULT_SUBS = [
+/* ========= curated SFW subs (focused on people; NO general scenic; NO FashionAdvice) ========= */
+const DEFAULT_SFW_SUBS = [
   "Celebs","ModelPhotography","FashionModels","InstagramModels",
-  "LadiesOfCinema","BeautifulFemales","CelebEvents","Modelshoot",
-  "RedCarpet","CelebPhotos","GlamourModels","Runway"
+  "ModelPics","MostBeautiful","RedCarpet","LadyBoners","Beauty"
 ];
 
-/* ===== Storage ===== */
-const STORAGE_LIKES="likedPostsV1";
-const STORAGE_FILTERS="scrollwallFiltersV1";
-function likesGet(){ try{return JSON.parse(localStorage.getItem(STORAGE_LIKES)||"[]");}catch{return[]} }
-function likesSet(v){ localStorage.setItem(STORAGE_LIKES, JSON.stringify(v)); }
-function likeStore(item){ const a=likesGet(); if(!a.find(x=>x.id===item.id)){ a.unshift(item); likesSet(a);} }
-function filtersGet(){
-  try{
-    return JSON.parse(localStorage.getItem(STORAGE_FILTERS)) || {
-      enabledSubs: DEFAULT_SUBS.reduce((m,s)=>(m[s]=true,m),{}),
-      customSubs: [],
-      people: ["Charli D'Amelio","Halsey","Lea Elui"]
-    };
-  }catch{
-    return { enabledSubs: DEFAULT_SUBS.reduce((m,s)=>(m[s]=true,m),{}), customSubs:[], people:["Charli D'Amelio","Halsey","Lea Elui"] };
-  }
-}
-function filtersSet(f){ localStorage.setItem(STORAGE_FILTERS, JSON.stringify(f)); }
+/* ========= people search terms ========= */
+const PEOPLE = [
+  "Emily Ratajkowski","Charli D'Amelio","Lea Elui","Halsey",
+  "Kendall Jenner","Hailey Bieber","Bella Hadid","Gigi Hadid",
+  "Dua Lipa","Barbara Palvin","Taylor Hill","Alexandra Daddario",
+  "Ana de Armas","Margot Robbie","Sydney Sweeney","Zendaya",
+  "Anya Taylor-Joy","Florence Pugh","Madelyn Cline","Gal Gadot"
+];
 
-/* ===== Tiny helpers ===== */
-const $=(s,el=document)=>el.querySelector(s);
-const grid=$("#grid"), likedGrid=$("#likedGrid"), toast=$("#toast");
-const feedView=$("#view-feed"), likedView=$("#view-liked");
-const loadedIds=new Set(); let loaded=0,total=0;
+/* ========= storage ========= */
+const store = {
+  liked: JSON.parse(localStorage.getItem("liked_v1")||"[]"),
+  pushLiked(x){ this.liked.unshift(x); localStorage.setItem("liked_v1",JSON.stringify(this.liked)); },
+  popLiked(){ const r=this.liked.shift(); localStorage.setItem("liked_v1",JSON.stringify(this.liked)); return r; }
+};
 
-function route(){
-  const isLiked=location.hash==="#/liked";
-  feedView.classList.toggle("active",!isLiked);
-  likedView.classList.toggle("active", isLiked);
-  if(isLiked) renderLiked();
-}
-window.addEventListener("hashchange", route);
+/* ========= state ========= */
+const state = {
+  allowNSFW: true,           // default ON
+  allowSFW:  false,          // default OFF (your request: “get rid of SFW content”)
+  loaded: 0, total: 0,
+  enabledSubs: new Set(DEFAULT_SFW_SUBS),
+};
 
-function showToast(msg){ toast.textContent=msg; toast.style.display="block"; clearTimeout(showToast.t); showToast.t=setTimeout(()=>toast.style.display="none",2200); }
+/* ========= small helpers ========= */
+const $ = s => document.querySelector(s);
+const grid = $("#grid"), likedGrid=$("#likedGrid"), toastEl=$("#toast");
+function showToast(m,ms=2400){ toastEl.textContent=m; toastEl.classList.add("show"); clearTimeout(showToast._t); showToast._t=setTimeout(()=>toastEl.classList.remove("show"),ms); }
+function setCount(){ $("#count").textContent = `${state.loaded}/${state.total}`; }
+const shuffleArr = a => { for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
 
-/* ===== Reddit fetch ===== */
+/* ========= Reddit helpers ========= */
 function pickImage(p){
   if (p?.preview?.images?.[0]?.source?.url) return p.preview.images[0].source.url.replaceAll("&amp;","&");
-  const u=p?.url_overridden_by_dest||""; if (/\.(jpg|jpeg|png|gif)(\?|$)/i.test(u)) return u;
+  const u=p?.url_overridden_by_dest||""; if(/\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(u)) return u;
   return null;
 }
-async function fetchTop(sub, allowNSFW){
-  const url=`https://www.reddit.com/r/${sub}/top.json?t=week&limit=50`;
-  const r=await fetch(url,{headers:{'User-Agent':'ScrollWall/1.0'}});
-  if(!r.ok) throw new Error(`HTTP ${r.status}`);
-  const j=await r.json(); const out=[];
-  for(const c of j.data.children){
-    const d=c.data;
-    if(!allowNSFW && d.over_18) continue;
-    const img=pickImage(d); if(!img) continue;
-    out.push({ id:d.id, title:d.title, img, author:d.author, sub:d.subreddit,
-               permalink:`https://reddit.com${d.permalink}`, nsfw:!!d.over_18 });
-  }
-  return out;
+async function fetchTop(sub, allowNSFW, allowSFW){
+  const url=`https://www.reddit.com/r/${sub}/top.json?raw_json=1&t=week&limit=50`;
+  try{
+    const r=await fetch(url,{mode:"cors"}); if(!r.ok) return [];
+    const j=await r.json(); const out=[];
+    for(const c of j.data?.children||[]){
+      const d=c.data;
+      // filter by SFW/NSFW rules
+      if(d.over_18 && !allowNSFW) continue;
+      if(!d.over_18 && !allowSFW) continue;
+      const img=pickImage(d); if(!img) continue;
+      out.push({id:d.id,title:d.title,img,author:d.author,sub:d.subreddit,permalink:`https://reddit.com${d.permalink}`,nsfw:!!d.over_18});
+    }
+    return out;
+  }catch{ return []; }
 }
-async function searchPeople(name, allowNSFW){
-  const q=encodeURIComponent(name);
-  const url=`https://www.reddit.com/search.json?q=${q}&sort=top&t=week&limit=50&type=link`;
-  const r=await fetch(url,{headers:{'User-Agent':'ScrollWall/1.0'}});
-  if(!r.ok) throw new Error(`HTTP ${r.status}`);
-  const j=await r.json(); const out=[];
-  for(const c of j.data.children){
-    const d=c.data;
-    if(!allowNSFW && d.over_18) continue;
-    const img=pickImage(d); if(!img) continue;
-    out.push({ id:d.id, title:d.title, img, author:d.author, sub:d.subreddit,
-               permalink:`https://reddit.com${d.permalink}`, nsfw:!!d.over_18 });
-  }
-  return out;
+async function searchPeople(name, allowNSFW, allowSFW){
+  const url=`https://www.reddit.com/search.json?raw_json=1&q=${encodeURIComponent(name)}&sort=top&t=week&limit=50&type=link`;
+  try{
+    const r=await fetch(url,{mode:"cors"}); if(!r.ok) return [];
+    const j=await r.json(); const out=[];
+    for(const c of j.data?.children||[]){
+      const d=c.data;
+      if(d.over_18 && !allowNSFW) continue;
+      if(!d.over_18 && !allowSFW) continue;
+      const img=pickImage(d); if(!img) continue;
+      out.push({id:d.id,title:d.title,img,author:d.author,sub:d.subreddit,permalink:`https://reddit.com${d.permalink}`,nsfw:!!d.over_18});
+    }
+    return out;
+  }catch{ return []; }
 }
 
-async function loadMore(){
-  if(location.hash==="#/liked"){ location.hash=""; return; }
-  const allowNSFW=$("#nsfw").checked;
+/* ========= render ========= */
+function cardHTML(item){
+  const tag = item.nsfw? `<span class="tag" style="border-color:#5a2a2a;background:#1a1111;color:#ffb3b3">NSFW</span>` : `<span class="tag">SFW</span>`;
+  return `
+  <div class="card drag flying" data-id="${item.id}">
+    <div class="imgwrap"><img src="${item.img}" alt="" loading="lazy"></div>
+    <div class="meta">
+      <h3 class="title">${item.title.replace(/[<>]/g,"")}</h3>
+      <div class="by">by u/${item.author} • r/${item.sub}</div>
+      <div class="rowfoot">
+        <button class="star" title="Like">★</button>
+        <button class="dismiss" title="Dismiss">×</button>
+        <a class="linkbtn" href="${item.permalink}" target="_blank" rel="noopener">Reddit</a>
+        ${tag}
+      </div>
+    </div>
+  </div>`;
+}
+function renderFeed(items){
+  const f=document.createDocumentFragment();
+  items.forEach(it=>{
+    const d=document.createElement("div"); d.innerHTML=cardHTML(it);
+    const node=d.firstElementChild; attachCardHandlers(node,it); f.appendChild(node);
+  });
+  grid.appendChild(f);
+}
+function renderLiked(){
+  likedGrid.innerHTML="";
+  if(store.liked.length===0){ likedGrid.innerHTML=`<div class="minor">No likes yet.</div>`; return; }
+  const f=document.createDocumentFragment();
+  store.liked.forEach(it=>{
+    const d=document.createElement("div");
+    d.innerHTML=`
+      <div class="card">
+        <div class="imgwrap"><img src="${it.img}" alt=""></div>
+        <div class="meta">
+          <h3 class="title">${it.title.replace(/[<>]/g,"")}</h3>
+          <div class="by">by u/${it.author} • r/${it.sub}</div>
+          <div class="rowfoot">
+            <a class="linkbtn" href="${it.permalink}" target="_blank" rel="noopener">Reddit</a>
+            <button class="dismiss" title="Remove">−</button>
+            <span class="tag">${it.nsfw?"NSFW":"SFW"}</span>
+          </div>
+        </div>
+      </div>`;
+    const node=d.firstElementChild;
+    node.querySelector(".dismiss").addEventListener("click", ()=>{
+      store.liked = store.liked.filter(x=>x.id!==it.id);
+      localStorage.setItem("liked_v1",JSON.stringify(store.liked));
+      renderLiked();
+    });
+    f.appendChild(node);
+  });
+  likedGrid.appendChild(f);
+}
 
-  // override text field (optional quick test)
-  let subs=null;
+/* ========= FX ========= */
+const fx=$("#fx"), ctx=fx.getContext("2d");
+function sizeFx(){ fx.width=innerWidth; fx.height=innerHeight } addEventListener("resize",sizeFx); sizeFx();
+function confetti(x,y,n=26){ const p=[]; for(let i=0;i<n;i++) p.push({x,y,vx:(Math.random()*2-1)*4,vy:-Math.random()*4-2,life:40+Math.random()*20,c:`hsl(${Math.random()*360},90%,60%)`}); run(p);
+  function run(parts){ ctx.clearRect(0,0,fx.width,fx.height);
+    for(const s of parts){ ctx.fillStyle=s.c; ctx.fillRect(s.x,s.y,4,6); s.x+=s.vx; s.y+=s.vy; s.vy+=0.15; s.life--; }
+    const alive=parts.filter(s=>s.life>0); if(alive.length) requestAnimationFrame(()=>run(alive)); else ctx.clearRect(0,0,fx.width,fx.height);
+  } }
+function dust(x,y,n=16){ const p=[]; for(let i=0;i<n;i++) p.push({x,y,r:2+Math.random()*3,vx:(Math.random()*2-1)*2,vy:(Math.random()*2-1)*2,life:28+Math.random()*12});
+  function run(parts){ ctx.clearRect(0,0,fx.width,fx.height); ctx.fillStyle="rgba(200,200,220,.5)";
+    for(const s of parts){ ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fill(); s.x+=s.vx; s.y+=s.vy; s.life--; s.r*=0.98; }
+    const alive=parts.filter(s=>s.life>0); if(alive.length) requestAnimationFrame(()=>run(alive)); else ctx.clearRect(0,0,fx.width,fx.height);
+  } run(p);
+}
+
+/* ========= swipe ========= */
+function attachCardHandlers(node,item){
+  const star=node.querySelector(".star"), close=node.querySelector(".dismiss");
+  star.addEventListener("click",(e)=>{ store.pushLiked(item); const r=e.currentTarget.getBoundingClientRect(); confetti(r.left+r.width/2, r.top+scrollY); node.remove(); });
+  close.addEventListener("click",(e)=>{ const r=e.currentTarget.getBoundingClientRect(); dust(r.left+r.width/2, r.top+scrollY); node.remove(); });
+
+  let sx=0, sy=0, dx=0, dragging=false;
+  node.addEventListener("touchstart",(ev)=>{ const t=ev.touches[0]; sx=t.clientX; sy=t.clientY; dx=0; dragging=true; node.classList.add("drag"); },{passive:true});
+  node.addEventListener("touchmove",(ev)=>{ if(!dragging) return; const t=ev.touches[0]; if(Math.abs(t.clientY-sy)>14) return;
+    dx=t.clientX-sx; node.style.transform=`translateX(${dx}px) rotate(${dx*0.03}deg)`; node.style.opacity=String(1-Math.min(Math.abs(dx)/220,0.35)); },{passive:true});
+  node.addEventListener("touchend",()=>{ node.classList.remove("drag");
+    if(Math.abs(dx)>120){ const r=node.getBoundingClientRect();
+      if(dx>0){ store.pushLiked(item); confetti(r.left+r.width/2, r.top+scrollY); } else { dust(r.left+r.width/2, r.top+scrollY); }
+      node.remove();
+    } else { node.style.transform=""; node.style.opacity=""; }
+    dragging=false; dx=0; });
+}
+
+/* ========= load ========= */
+async function loadBatch(shuffleSources=false){
+  const allowNSFW = $("#nsfw").checked;
+  const allowSFW  = $("#allowSfw").checked;
+
+  let sources=[];
   const ov=$("#override").value.trim();
   if(ov.startsWith("reddit=")){
-    const list=ov.slice(7).split(",").map(s=>s.replace(/^r\//,"").trim()).filter(Boolean);
-    if(list.length) subs=list;
+    const subs=ov.split("=")[1].split(",").map(s=>s.replace(/^r\//,"").trim()).filter(Boolean);
+    sources=subs.map(s=>({type:"sub",value:s}));
+  }else{
+    for(const s of state.enabledSubs) sources.push({type:"sub", value:s});
+    PEOPLE.forEach(n=>sources.push({type:"search", value:n}));
   }
+  if(sources.length===0){ showToast("No sources selected. Open Filters."); return; }
 
-  // filters
-  const f = filtersGet();
-  const enabled = Object.entries(f.enabledSubs).filter(([,on])=>on).map(([s])=>s);
-  const allSubs = subs || [...enabled, ...f.customSubs.map(s=>s.replace(/^r\//,""))];
+  if(shuffleSources) shuffleArr(sources);
 
-  $("#loadMoreBtn").disabled=true;
-  let batch=[];
-  // fetch subs
-  for(const sub of allSubs){
-    try{
-      const chunk=await fetchTop(sub, allowNSFW);
-      for(const it of chunk){ if(!loadedIds.has(it.id)){ loadedIds.add(it.id); batch.push(it); } }
-    }catch(e){ /* ignore */ }
-  }
-  // fetch people searches
-  for(const name of (f.people||[])){
-    const nm=name.trim(); if(!nm) continue;
-    try{
-      const chunk=await searchPeople(nm, allowNSFW);
-      for(const it of chunk){ if(!loadedIds.has(it.id)){ loadedIds.add(it.id); batch.push(it); } }
-    }catch(e){ /* ignore */ }
-  }
+  $("#loadedNote").textContent="Fetching…";
+  const results=await Promise.all(sources.map(s => s.type==="sub" ? fetchTop(s.value,allowNSFW,allowSFW) : searchPeople(s.value,allowNSFW,allowSFW)));
+  let flat=results.flat();
 
-  if(!batch.length){ showToast("No fresh image posts found. Try again or change Filters."); }
-  else { render(batch); loaded+=batch.length; total+=batch.length; updateCount(); }
-  $("#loadMoreBtn").disabled=false;
+  // Dedup + randomize final set so feed is lively
+  const seen=new Set(), unique=[];
+  for(const it of flat){ if(seen.has(it.permalink)) continue; seen.add(it.permalink); unique.push(it); }
+  shuffleArr(unique);
+
+  if(unique.length===0){ showToast("No fresh image posts found. Try again or change Filters."); return; }
+
+  state.total+=unique.length; state.loaded+=unique.length; setCount();
+  $("#loadedNote").textContent=`Loaded ${state.total}.`;
+  renderFeed(unique);
 }
 
-function updateCount(){ $("#count").textContent=`${loaded}/${total}` }
-
-/* ===== Render feed ===== */
-function render(items){
-  const frag=document.createDocumentFragment();
-  for(const it of items){
-    const card=document.createElement("article"); card.className="card"; card.dataset.id=it.id;
-
-    const fig=document.createElement("figure");
-    const img=new Image(); img.loading="lazy"; img.src=it.img; fig.appendChild(img);
-    const ovLike=document.createElement("div"); ovLike.className="overlay";
-    const ovNo=document.createElement("div"); ovNo.className="overlay no";
-    fig.append(ovLike,ovNo);
-
-    const content=document.createElement("div"); content.className="content";
-    const title=document.createElement("h3"); title.className="title"; title.textContent=it.title;
-    const meta=document.createElement("p"); meta.className="meta"; meta.textContent=`u/${it.author} • r/${it.sub}`;
-    const badges=document.createElement("div"); badges.className="badges";
-    const b1=document.createElement("span"); b1.className="badge"; b1.textContent="Reddit";
-    const b2=document.createElement("span"); b2.className="badge"; b2.textContent=it.nsfw?"NSFW":"SFW";
-    badges.append(b1,b2);
-
-    const actions=document.createElement("div"); actions.className="actions";
-    const noBtn=document.createElement("button"); noBtn.className="iconbtn"; noBtn.innerHTML=svgX();
-    const likeBtn=document.createElement("button"); likeBtn.className="iconbtn"; likeBtn.innerHTML=svgStar();
-    actions.append(noBtn,likeBtn);
-
-    content.append(title,meta,badges);
-    card.append(fig,content,actions);
-
-    likeBtn.addEventListener("click",()=>like(card,it));
-    noBtn.addEventListener("click",()=>dismiss(card));
-    enableSwipe(card,ovLike,ovNo,()=>like(card,it),()=>dismiss(card));
-
-    frag.appendChild(card);
-  }
-  grid.appendChild(frag);
+async function loadMore(){ await loadBatch(false); }
+async function shuffleFeed(){
+  // Clear and reload with randomized sources order
+  grid.innerHTML=""; state.loaded=0; state.total=0; setCount(); $("#loadedNote").textContent="";
+  await loadBatch(true);
 }
 
-/* ===== Swipe & actions ===== */
-function enableSwipe(card, ovLike, ovNo, onLike, onDismiss){
-  let sx=0,sy=0,dx=0,dy=0,drag=false;
-  const start=(e)=>{ drag=true; card.setPointerCapture?.(e.pointerId); card.classList.add("swiping");
-    const p=pt(e); sx=p.x; sy=p.y; dx=dy=0; };
-  const move=(e)=>{ if(!drag) return; const p=pt(e); dx=p.x-sx; dy=p.y-sy;
-    card.style.transform=`translate(${dx}px, ${dy*0.15}px) rotate(${dx*0.03}deg)`;
-    const pct=Math.min(1,Math.abs(dx)/120); ovLike.style.opacity=dx>0?pct:0; ovNo.style.opacity=dx<0?pct:0; };
-  const end=()=>{ if(!drag) return; drag=false; card.classList.remove("swiping"); ovLike.style.opacity=0; ovNo.style.opacity=0;
-    if(dx>110) onLike(); else if(dx<-110) onDismiss(); else card.style.transform=""; };
-  card.addEventListener("pointerdown", start);
-  card.addEventListener("pointermove", move);
-  card.addEventListener("pointerup", end);
-  card.addEventListener("touchmove", (e)=>{ if(card.classList.contains("swiping")) e.preventDefault(); }, {passive:false});
+/* ========= Filters UI + Refresh ========= */
+function buildFilters(){
+  const host=$("#filtersGrid"); host.innerHTML="";
+  const mk=(label,val,checked=true)=>{
+    const id="f_"+val; const wrap=document.createElement("label");
+    wrap.className="chk"; wrap.innerHTML=`<input id="${id}" type="checkbox" ${checked?"checked":""}/> <div>${label}</div>`;
+    wrap.querySelector("input").addEventListener("change",(e)=>{ if(e.target.checked) state.enabledSubs.add(val); else state.enabledSubs.delete(val); });
+    host.appendChild(wrap);
+  };
+  DEFAULT_SFW_SUBS.forEach(s=>mk("r/"+s, s, state.enabledSubs.has(s)));
 }
-const pt = e => ({x: e.clientX ?? (e.touches?.[0]?.clientX||0), y: e.clientY ?? (e.touches?.[0]?.clientY||0)});
+buildFilters();
 
-function like(card,item){
-  const conf=document.createElement("div"); conf.className="confetti"; card.appendChild(conf);
-  for(let i=0;i<12;i++){
-    const dot=document.createElement("i");
-    const spread=80+Math.random()*40;
-    dot.style.setProperty("--xend",(Math.random()*2-1)*spread+"px");
-    dot.style.setProperty("--yend",-(40+Math.random()*100)+"px");
-    dot.style.left="50%"; dot.style.bottom="16%";
-    conf.appendChild(dot);
-  }
-  card.classList.add("like-anim");
-  likeStore(item);
-  vanish(card);
-}
-function dismiss(card){ card.classList.add("dismiss-anim"); vanish(card); }
-function vanish(card){ card.style.transition="transform .22s ease, opacity .22s ease";
-  card.style.transform="translateY(12px) scale(.98)"; card.style.opacity="0";
-  setTimeout(()=>card.remove(),220); }
+/* ========= modals ========= */
+const filtersModal=$("#filtersModal"), likedModal=$("#likedModal");
+$("#filtersBtn").onclick=()=>{ buildFilters(); filtersModal.classList.add("show"); }
+$("#filtersClose").onclick=async ()=>{
+  // Save & Refresh: clear current, reset counters, reload
+  filtersModal.classList.remove("show");
+  grid.innerHTML=""; state.loaded=0; state.total=0; setCount(); $("#loadedNote").textContent="";
+  await loadBatch(true);
+};
+$("#filtersClear").onclick=()=>{ state.enabledSubs.clear(); buildFilters(); }
+filtersModal.addEventListener("click",(e)=>{ if(e.target===filtersModal) filtersModal.classList.remove("show"); });
 
-/* ===== Liked view ===== */
-function renderLiked(){
-  const likes=likesGet();
-  likedGrid.innerHTML="";
-  $("#empty").style.display = likes.length ? "none" : "block";
-  for(const it of likes){
-    const card=document.createElement("article"); card.className="card";
-    const fig=document.createElement("figure"); const img=new Image(); img.loading="lazy"; img.src=it.img; fig.appendChild(img);
-    const content=document.createElement("div"); content.className="content";
-    const title=document.createElement("h3"); title.className="title"; title.textContent=it.title;
-    const meta=document.createElement("p"); meta.className="meta"; meta.textContent=`u/${it.author} • r/${it.sub}`;
-    const row=document.createElement("div"); row.className="row";
-    const open=document.createElement("a"); open.href=it.permalink; open.target="_blank"; open.className="pill"; open.textContent="Open on Reddit";
-    const rm=document.createElement("button"); rm.className="rm"; rm.textContent="Remove";
-    rm.addEventListener("click",()=>{ const rest=likesGet().filter(x=>x.id!==it.id); likesSet(rest); renderLiked(); });
-    row.append(open,rm);
-    content.append(title,meta,row);
-    card.append(fig,content);
-    likedGrid.appendChild(card);
-  }
-}
+$("#likedBtn").onclick=()=>{ renderLiked(); likedModal.classList.add("show"); }
+$("#likedClose").onclick=()=>likedModal.classList.remove("show");
+likedModal.addEventListener("click",(e)=>{ if(e.target===likedModal) likedModal.classList.remove("show"); });
+$("#undoBtn").onclick=()=>{ const last=store.popLiked(); if(last){ showToast("Undid last like"); renderLiked(); } else showToast("Nothing to undo"); };
+$("#exportBtn").onclick=()=>{
+  const blob=new Blob([JSON.stringify(store.liked,null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="liked.json"; a.click(); URL.revokeObjectURL(a.href);
+};
 
-/* ===== Filters modal ===== */
-const modalBack=$("#filtersBack"), subsList=$("#subsList"), customWrap=$("#customSubs");
-const peopleInput=$("#peopleInput"), customSubInput=$("#customSubInput");
-
-function openFilters(){
-  const f=filtersGet();
-  // default subs
-  subsList.innerHTML="";
-  for(const s of DEFAULT_SUBS){
-    const div=document.createElement("label"); div.className="ck";
-    const cb=document.createElement("input"); cb.type="checkbox"; cb.checked=!!f.enabledSubs[s]; cb.dataset.sub=s;
-    const span=document.createElement("span"); span.textContent=`r/${s}`;
-    div.append(cb,span); subsList.appendChild(div);
-  }
-  // custom subs
-  renderCustom(f.customSubs);
-  // people
-  peopleInput.value=(f.people||[]).join(", ");
-  modalBack.style.display="flex";
-}
-function closeFilters(){ modalBack.style.display="none"; }
-function renderCustom(list){
-  customWrap.innerHTML="";
-  list.forEach((s,idx)=>{
-    const tag=document.createElement("span"); tag.className="tag"; tag.textContent=`r/${s.replace(/^r\//,"")}`;
-    const x=document.createElement("button"); x.textContent="×"; x.title="Remove";
-    x.addEventListener("click",()=>{ const f=filtersGet(); f.customSubs.splice(idx,1); filtersSet(f); renderCustom(f.customSubs); });
-    tag.appendChild(x); customWrap.appendChild(tag);
-  });
-}
-$("#addSub").addEventListener("click", ()=>{
-  const raw=customSubInput.value.trim(); if(!raw) return;
-  const s=raw.replace(/^r\//,"");
-  const f=filtersGet(); if(!f.customSubs.includes(s)){ f.customSubs.push(s); filtersSet(f); }
-  customSubInput.value=""; renderCustom(filtersGet().customSubs);
-});
-$("#saveFilters").addEventListener("click", ()=>{
-  const f=filtersGet();
-  f.enabledSubs={}; subsList.querySelectorAll("input[type=checkbox]").forEach(cb=>f.enabledSubs[cb.dataset.sub]=cb.checked);
-  f.people=peopleInput.value.split(",").map(x=>x.trim()).filter(Boolean);
-  filtersSet(f); closeFilters();
-  showToast("Filters saved");
-});
-$("#clearFilters").addEventListener("click", ()=>{
-  filtersSet({
-    enabledSubs: DEFAULT_SUBS.reduce((m,s)=>(m[s]=true,m),{}),
-    customSubs: [],
-    people: ["Charli D'Amelio","Halsey","Lea Elui"]
-  });
-  openFilters();
-});
-$("#closeFilters").addEventListener("click", closeFilters);
-$("#filtersBtn").addEventListener("click", openFilters);
-
-/* ===== Icons ===== */
-function svgStar(){return `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3.5 14.9 9l6 .9-4.4 4.3 1 6-5.5-2.9-5.5 2.9 1-6L3 9.9l6-.9L12 3.5z" fill="currentColor"/></svg>`}
-function svgX(){return `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>`}
-
-/* ===== Wire up & auto-load ===== */
-$("#loadMoreBtn").addEventListener("click", loadMore);
-document.addEventListener("DOMContentLoaded", () => { route(); loadMore(); });
-$("#likedBtn").addEventListener("click", ()=>{ location.hash="#/liked"; });
+/* ========= init ========= */
+$("#nsfw").checked = true;     // NSFW default ON
+$("#allowSfw").checked = false;// SFW default OFF (you can toggle on)
+setCount();
+$("#load").onclick=loadMore;
+$("#shuffle").onclick=shuffleFeed;
 </script>
 </body>
 </html>
