@@ -1,167 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Celeb Wall — v2.8.1</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Celeb Wall — v2.8.3</title>
 <style>
   :root{
-    --bg:#0c0f14;
-    --glass:#141922cc;
-    --glass-strong:#141922f2;
-    --border:rgba(255,255,255,.08);
-    --text:#e8eef6;
-    --muted:#9fb0c4;
-    --good:#1cc5b7;
-    --bad:#ea4c5a;
-    --btn:#1a212c;
-    --pink:#f7a1d5;
-    --lav:#a3b4ff;
-    --blue:#6ec6ff;
-    --radius:18px;
-    --radius-sm:14px;
+    --bg:#0c0f14; --glass:#141922cc; --glass-strong:#141922f2;
+    --border:rgba(255,255,255,.08); --text:#e8eef6; --muted:#9fb0c4;
+    --good:#1cc5b7; --bad:#ea4c5a; --radius:18px; --radius-sm:14px;
     --shadow:0 10px 35px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.02);
   }
   html,body{height:100%}
   body{
-    margin:0;
-    font:500 16px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Inter,Arial;
-    color:var(--text);
+    margin:0; color:var(--text);
+    font:500 16px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Inter,Roboto,Arial;
     background:
       radial-gradient(1200px 500px at 30% -10%, rgba(151,124,255,.12), transparent 60%),
       radial-gradient(900px 600px at 100% 0%, rgba(255,140,180,.10), transparent 60%),
-      linear-gradient(180deg, #0b0e13, #0b0e13 40%, #0a0d12 100%);
+      linear-gradient(180deg,#0b0e13,#0b0e13 40%,#0a0d12 100%);
     background-color:var(--bg);
   }
-
-  /* --- dashboard --- */
-  .wrap{max-width:980px; margin:22px auto; padding:0 16px;}
-  .grid4{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; margin-bottom:18px}
-  .pill{
-    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.04));
-    border:1px solid var(--border);
-    border-radius:var(--radius);
-    box-shadow:var(--shadow);
-    padding:18px 16px;
-    text-align:center;
-  }
-  .pill .k{display:block; color:var(--muted); font-size:14px; letter-spacing:.1em}
-  .pill .v{display:block; font-weight:800; font-size:32px; margin-top:2px}
-
-  .progress{
-    margin:10px 0 8px;
-    padding:0 6px 0 0;
-  }
-  .bar{
-    height:10px; border-radius:999px;
-    background:rgba(255,255,255,.08);
-    position:relative; overflow:hidden;
-    border:1px solid var(--border);
-  }
-  .bar::before{
-    content:""; position:absolute; inset:0 auto 0 0; width:var(--pct,3%);
-    background:linear-gradient(90deg, #ff9ac0, #a3b4ff, #6ec6ff);
-    border-radius:999px;
-    transition:width .25s ease;
-  }
-  .pRow{display:flex; justify-content:space-between; color:var(--muted); margin-top:8px}
-
-  .center{display:flex; flex-wrap:wrap; gap:16px; justify-content:center; margin:22px 0}
-  .btn{
-    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.04));
-    border:1px solid var(--border);
-    color:var(--text);
-    padding:14px 18px;
-    border-radius:20px;
-    box-shadow:var(--shadow);
-    cursor:pointer;
-    min-width:140px;
-    text-align:center;
-    transition:transform .08s ease, filter .12s ease;
-    user-select:none;
-  }
+  .wrap{max-width:980px;margin:22px auto;padding:0 16px}
+  .grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin-bottom:18px}
+  .pill{background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.04));
+        border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);
+        padding:18px 16px;text-align:center}
+  .pill .k{display:block;color:var(--muted);font-size:14px;letter-spacing:.1em}
+  .pill .v{display:block;font-weight:800;font-size:32px;margin-top:2px}
+  .progress{margin:10px 0 8px;padding-right:6px}
+  .bar{height:10px;border-radius:999px;background:rgba(255,255,255,.08);
+       position:relative;overflow:hidden;border:1px solid var(--border)}
+  .bar::before{content:"";position:absolute;inset:0 auto 0 0;width:var(--pct,3%);
+       background:linear-gradient(90deg,#ff9ac0,#a3b4ff,#6ec6ff);border-radius:999px;transition:width .25s}
+  .pRow{display:flex;justify-content:space-between;color:var(--muted);margin-top:8px}
+  .center{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin:22px 0}
+  .btn{background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.04));
+       border:1px solid var(--border);color:var(--text);padding:14px 18px;border-radius:20px;
+       box-shadow:var(--shadow);cursor:pointer;min-width:140px;text-align:center;transition:transform .08s}
   .btn:active{transform:translateY(1px)}
-  .btn.primary{
-    background:
-      radial-gradient(120% 160% at 20% -20%, rgba(255,160,220,.25), transparent 40%),
-      linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
-  }
-  .btn.alt{
-    background:
-      radial-gradient(120% 160% at 20% -20%, rgba(150,190,255,.20), transparent 40%),
-      linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
-  }
-
-  /* --- cards --- */
-  .cards{display:grid; grid-template-columns:1fr; gap:22px; margin:26px auto 80px; max-width:980px; padding:0 16px;}
-  .card{
-    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.04));
-    border:1px solid var(--border);
-    border-radius:24px;
-    box-shadow:var(--shadow);
-    overflow:hidden;
-  }
-  .card-hd{
-    display:flex; justify-content:space-between; gap:12px;
-    align-items:center; padding:14px 16px 8px;
-    color:var(--muted); font-size:14px;
-  }
-  .card-hd .name{margin:0; font-size:18px; color:var(--text)}
-  .media{position:relative; background:#0b0f14}
-  .media img, .media video{display:block; width:100%; height:auto; max-height:76vh; object-fit:cover; background:#0b0f14}
-  .actions{
-    display:flex; gap:12px; padding:14px; justify-content:space-between; align-items:center;
-    background:linear-gradient(180deg, rgba(0,0,0,.00), rgba(0,0,0,.06));
-  }
-  .btn.like{background:linear-gradient(180deg, rgba(28,197,183,.25), rgba(28,197,183,.18)); border-color:rgba(28,197,183,.35)}
-  .btn.dismiss{background:linear-gradient(180deg, rgba(234,76,90,.25), rgba(234,76,90,.18)); border-color:rgba(234,76,90,.35)}
+  .btn.primary{background:
+    radial-gradient(120% 160% at 20% -20%, rgba(255,160,220,.25), transparent 40%),
+    linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05))}
+  .btn.alt{background:
+    radial-gradient(120% 160% at 20% -20%, rgba(150,190,255,.20), transparent 40%),
+    linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05))}
+  .cards{display:grid;grid-template-columns:1fr;gap:22px;margin:26px auto 80px;max-width:980px;padding:0 16px}
+  .card{background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.04));
+        border:1px solid var(--border);border-radius:24px;box-shadow:var(--shadow);overflow:hidden}
+  .card-hd{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:14px 16px 8px;color:var(--muted);font-size:14px}
+  .card-hd .name{margin:0;font-size:18px;color:var(--text)}
+  .media{position:relative;background:#0b0f14}
+  .media img,.media video{display:block;width:100%;height:auto;max-height:76vh;object-fit:cover;background:#0b0f14}
+  .actions{display:flex;gap:12px;padding:14px;justify-content:space-between;align-items:center;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.06))}
+  .btn.like{background:linear-gradient(180deg, rgba(28,197,183,.25), rgba(28,197,183,.18));border-color:rgba(28,197,183,.35)}
+  .btn.dismiss{background:linear-gradient(180deg, rgba(234,76,90,.25), rgba(234,76,90,.18));border-color:rgba(234,76,90,.35)}
   .btn.open{min-width:96px}
-
-  /* Troubleshoot modal */
-  .modal{position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.5); z-index:30}
+  .modal{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.5);z-index:30}
   .modal.show{display:grid}
-  .sheet{
-    width:min(820px, calc(100vw - 28px));
-    max-height:78vh; overflow:auto;
-    background:var(--glass-strong);
-    border:1px solid var(--border);
-    border-radius:22px;
-    box-shadow:var(--shadow);
-  }
-  .sheet .hd{display:flex; align-items:center; justify-content:space-between; padding:16px 18px; position:sticky; top:0; backdrop-filter:blur(8px); background:rgba(20,25,34,.9)}
+  .sheet{width:min(820px,calc(100vw - 28px));max-height:78vh;overflow:auto;background:var(--glass-strong);
+         border:1px solid var(--border);border-radius:22px;box-shadow:var(--shadow)}
+  .sheet .hd{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;position:sticky;top:0;backdrop-filter:blur(8px);background:rgba(20,25,34,.9)}
   .sheet h3{margin:0}
-  pre#log{padding:18px; margin:0; font:600 14px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color:#dfe7f4; white-space:pre-wrap}
-  .close{background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.08)); border:1px solid var(--border); color:var(--text); border-radius:999px; padding:10px 14px; cursor:pointer}
-
-  @media (min-width:700px){
-    .cards{grid-template-columns:1fr 1fr;}
-  }
-  @media (min-width:1024px){
-    .cards{grid-template-columns:1fr 1fr 1fr;}
-  }
+  pre#log{padding:18px;margin:0;font:600 14px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#dfe7f4;white-space:pre-wrap}
+  .close{background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.08));border:1px solid var(--border);color:var(--text);
+         border-radius:999px;padding:10px 14px;cursor:pointer}
+  @media (min-width:700px){.cards{grid-template-columns:1fr 1fr}}
+  @media (min-width:1024px){.cards{grid-template-columns:1fr 1fr 1fr}}
 </style>
 </head>
 <body>
-
 <div class="wrap">
-  <!-- Top counters -->
   <div class="grid4">
-    <div class="pill"><span class="k">BUILD</span><span class="v" id="build">v2.8.1</span></div>
+    <div class="pill"><span class="k">BUILD</span><span class="v" id="build">v2.8.3</span></div>
     <div class="pill"><span class="k">SHOWN</span><span class="v" id="shownCount">0</span></div>
     <div class="pill"><span class="k">POOL</span><span class="v" id="poolCount">0</span></div>
     <div class="pill"><span class="k">TOTAL</span><span class="v" id="totalCount">0</span></div>
   </div>
 
-  <!-- Progress -->
   <div class="progress">
     <div class="bar" id="progress"></div>
-    <div class="pRow">
-      <div id="sourceLabel">r/celebs</div>
-      <div id="pLabel">Idle</div>
-    </div>
+    <div class="pRow"><div id="sourceLabel">r/celebs</div><div id="pLabel">Idle</div></div>
   </div>
 
-  <!-- Dashboard buttons -->
   <div class="center">
     <button id="btn-home" class="btn">Home</button>
     <button id="btn-likes" class="btn">⭐ Likes <span id="likesCount" style="opacity:.65">0</span></button>
@@ -179,10 +100,8 @@
   </div>
 </div>
 
-<!-- Cards -->
 <section id="cards" class="cards"></section>
 
-<!-- Troubleshoot modal -->
 <div class="modal" id="modal">
   <div class="sheet">
     <div class="hd">
@@ -194,186 +113,168 @@
 </div>
 
 <script>
-/* =========================
-   v2.8.1-data (folded-in build)
-   ========================= */
-const BUILD = 'v2.8.1';
-const PROXY = 'https://r.jina.ai/http://';
-const SUBS  = [
-  'Celebs','celebritylegs','BeautifulCelebrities','celebrityhotties',
-  'CelebPortraits','TheCelebArchive','CelebGWN','celebs','CelebrityArmpits'
+/* ========= core ========= */
+const BUILD='v2.8.3';
+const PROXIES=[
+  (u)=>`https://r.jina.ai/http://${u}`,
+  (u)=>`https://r.jina.ai/http://${u}?_=${Date.now()}`,      // jitter param
+  (u)=>`https://r.jina.ai/http://${u.replace(/^www\./,'old.')}` // old.reddit trick
 ];
+const SUBS=['Celebs','celebritylegs','BeautifulCelebrities','celebrityhotties','CelebPortraits','TheCelebArchive','CelebGWN','celebs','CelebrityArmpits'];
 
-// UI refs
-const cards = document.getElementById('cards');
-const btnNew = document.getElementById('btn-new');
-const btnMore = document.getElementById('btn-more');
-const btnShuffle = document.getElementById('btn-shuffle');
-const btnTrouble = document.getElementById('btn-troubleshoot');
-const modal = document.getElementById('modal');
-const closeModal = document.getElementById('close');
-const labelSource = document.getElementById('sourceLabel');
-const likesChip = document.getElementById('likesCount');
+const cards=document.getElementById('cards');
+const btnNew=document.getElementById('btn-new');
+const btnMore=document.getElementById('btn-more');
+const btnShuffle=document.getElementById('btn-shuffle');
+const btnTrouble=document.getElementById('btn-troubleshoot');
+const modal=document.getElementById('modal');
+const closeModal=document.getElementById('close');
+const labelSource=document.getElementById('sourceLabel');
+const likesChip=document.getElementById('likesCount');
+const bar=document.getElementById('progress');
+const pLabel=document.getElementById('pLabel');
+const logEl=document.getElementById('log');
 
-// counters/progress
-const bar = document.getElementById('progress');
-const pLabel = document.getElementById('pLabel');
-const bump = (id, v) => { const el=document.getElementById(id); if(el) el.textContent=String(v); };
-function prog(p, label){ if(bar) bar.style.setProperty('--pct', Math.max(3,Math.min(100,p))+'%'); if(pLabel) pLabel.textContent=label||''; }
-function logLine(txt){ const pre=document.querySelector('#log'); if(!pre) return; pre.textContent = `[${new Date().toLocaleTimeString()}] ${txt}\n` + pre.textContent; }
+let POOL=[], SHOWN=0;
+let LIKES=JSON.parse(localStorage.getItem('likes-v1')||'[]');
+likesChip.textContent=LIKES.length;
 
-// state
-let POOL = [];
-let SHOWN = 0;
-let LIKES = JSON.parse(localStorage.getItem('likes-v1')||'[]');
-likesChip.textContent = LIKES.length;
+const wait=(ms)=>new Promise(r=>setTimeout(r,ms));
+const bump=(id,v)=>{const el=document.getElementById(id); if(el) el.textContent=String(v);};
+function counters(){bump('poolCount',POOL.length);bump('shownCount',SHOWN);bump('totalCount',POOL.length+SHOWN);}
+function prog(p,txt){ bar.style.setProperty('--pct',Math.max(3,Math.min(100,p))+'%'); pLabel.textContent=txt||''; }
+function logLine(s){ logEl.textContent=`[${new Date().toLocaleTimeString()}] ${s}\n`+logEl.textContent; }
 
-// helpers
-const delay = ms => new Promise(r=>setTimeout(r,ms));
-async function getJSON(url){
-  const res = await fetch(PROXY+url, {cache:'no-store'});
-  if(!res.ok) throw new Error(`HTTP ${res.status}`);
-  const txt = await res.text();
-  try { return JSON.parse(txt); } catch(e){ throw new Error('Parse JSON failed'); }
+/* resilient fetch with proxy rotation + backoff */
+async function fetchJSONThroughProxies(path,{retries=4, baseDelay=1200}={}){
+  let attempt=0, lastErr;
+  while(attempt<=retries){
+    for(const pxy of PROXIES){
+      try{
+        const url=pxy(path);
+        const res=await fetch(url,{cache:'no-store'});
+        if(res.status===429){ lastErr=new Error('HTTP 429'); logLine(`✖ rate-limited → backoff…`); throw lastErr; }
+        if(!res.ok){ lastErr=new Error(`HTTP ${res.status}`); throw lastErr; }
+        const txt=await res.text();
+        return JSON.parse(txt);
+      }catch(e){
+        lastErr=e;
+      }
+    }
+    attempt++;
+    const jitter = Math.random()*400;
+    const backoff = Math.min(8000, baseDelay * Math.pow(1.8, attempt)) + jitter;
+    prog(20+attempt*5, `Backoff ${Math.round(backoff/1000)}s…`);
+    await wait(backoff);
+  }
+  throw lastErr || new Error('Failed all proxies');
 }
-function listingURL(sub,{sort='hot',t='week',limit=50}={}) {
-  return `www.reddit.com/r/${sub}/${sort}.json?raw_json=1&limit=${limit}&include_over_18=on&t=${t}`;
-}
-function searchURL(sub,q,{limit=50,sort='relevance',t='year'}={}) {
-  const query = encodeURIComponent(`title:"${q}" AND (url:.jpg OR url:.png OR url:.gif OR is_video:true)`);
-  return `www.reddit.com/r/${sub}/search.json?raw_json=1&restrict_sr=1&limit=${limit}&sort=${sort}&t=${t}&q=${query}`;
-}
+
+function listingURL(sub,{sort='hot',t='week',limit=50}={}){return `www.reddit.com/r/${sub}/${sort}.json?raw_json=1&limit=${limit}&include_over_18=on&t=${t}`;}
+function searchURL(sub,q,{limit=50,sort='relevance',t='year'}={}){const qq=encodeURIComponent(`title:"${q}" AND (url:.jpg OR url:.png OR url:.gif OR is_video:true)`);return `www.reddit.com/r/${sub}/search.json?raw_json=1&restrict_sr=1&limit=${limit}&sort=${sort}&t=${t}&q=${qq}`;}
+
 function extractMedia(listing){
-  const out=[];
-  if(!listing?.data?.children) return out;
-  for(const c of listing.data.children){
-    const p = c.data;
-    if(!p) continue;
-    const url = p.url_overridden_by_dest || p.url || '';
-    const img = /\.(jpg|jpeg|png)$/i.test(url);
-    const gif = /\.(gif)$/i.test(url);
-    const gifv = /\.(gifv)$/i.test(url);
-    const redVid = p.is_video && p.media?.reddit_video?.fallback_url;
-    let media=null, type=null;
-    if(img){ media=url; type='img'; }
-    else if(gif){ media=url; type='gif'; }
-    else if(gifv){ media=url.replace(/\.gifv$/i,'.mp4'); type='mp4'; }
-    else if(redVid){ media=p.media.reddit_video.fallback_url; type='mp4'; }
-    else if(p.preview?.images?.[0]?.source?.url){ media=p.preview.images[0].source.url.replace(/&amp;/g,'&'); type='img'; }
+  const out=[]; const kids=listing?.data?.children||[];
+  for(const k of kids){
+    const d=k.data||{};
+    const url=d.url_overridden_by_dest||d.url||'';
+    const img=/\.(jpg|jpeg|png)$/i.test(url);
+    const gif=/\.gif$/i.test(url);
+    const gifv=/\.gifv$/i.test(url);
+    const redVid=d.is_video && d.media?.reddit_video?.fallback_url;
+    let media=null,type=null;
+    if(img){media=url;type='img';}
+    else if(gif){media=url;type='gif';}
+    else if(gifv){media=url.replace(/\.gifv$/i,'.mp4');type='mp4';}
+    else if(redVid){media=d.media.reddit_video.fallback_url;type='mp4';}
+    else if(d.preview?.images?.[0]?.source?.url){media=d.preview.images[0].source.url.replace(/&amp;/g,'&');type='img';}
     if(!media) continue;
-    out.push({
-      id:p.id, title:p.title||'', author:p.author||'u/unknown',
-      sub:p.subreddit_name_prefixed || `r/${p.subreddit}`,
-      permalink:'https://www.reddit.com'+(p.permalink||''),
-      media, type, nsfw: !!p.over_18
-    });
+    out.push({id:d.id,title:d.title||'',author:d.author||'u/unknown',sub:d.subreddit_name_prefixed||`r/${d.subreddit}`,permalink:'https://www.reddit.com'+(d.permalink||''),media,type,nsfw:!!d.over_18});
   }
   return out;
 }
-async function fetchBatch({names=[], perName=6, backfill=60, sort='top'}={}){
-  const all=[];
-  const totalSteps = names.length + 1;
-  let step=0;
+
+async function fetchBatch({names=[],perName=6,backfill=60,sort='top'}={}){
+  const all=[]; const steps=names.length+1; let step=0;
 
   for(const name of names){
-    step++;
-    prog(Math.round((step/totalSteps)*80), `Searching ${name}`);
+    step++; prog(Math.round((step/steps)*70), `Searching ${name}`);
     let found=[];
     for(const s of SUBS.slice(0,4)){
       try{
-        const js = await getJSON(searchURL(s,name,{limit:perName*2, t:'year'}));
+        const js=await fetchJSONThroughProxies(searchURL(s,name,{limit:perName*2,t:'year'}));
         found.push(...extractMedia(js).slice(0,perName));
       }catch(e){ logLine(`✖ ${s} (${name}): ${e.message}`); }
-      await delay(140);
+      await wait(250+Math.random()*200); // polite delay
     }
-    if(found.length){ logLine(`📦 ${name}: +${found.length}`); all.push(...found); }
+    if(found.length){ all.push(...found); logLine(`📦 ${name}: +${found.length}`); }
     else{ logLine(`${name}: none with media`); }
   }
 
-  prog(88,'Backfilling…');
+  prog(80,'Backfilling…');
   for(const s of SUBS.slice(0,6)){
     try{
-      const js = await getJSON(listingURL(s,{sort,limit:60}));
+      const js=await fetchJSONThroughProxies(listingURL(s,{sort,limit:60}));
       all.push(...extractMedia(js));
-    }catch(e){ logLine(`✖ ${s}: Load failed`); }
-    await delay(120);
-    if(all.length >= names.length*perName + backfill) break;
+    }catch(e){ logLine(`✖ ${s}: ${e.message}`); }
+    await wait(250+Math.random()*200);
+    if(all.length>=names.length*perName+backfill) break;
   }
 
   const seen=new Set();
-  return all.filter(x=>{ if(seen.has(x.media)) return false; seen.add(x.media); return true; });
+  return all.filter(x=>{if(seen.has(x.media)) return false; seen.add(x.media); return true;});
 }
 
-// rendering
-function counters(){ bump('poolCount', POOL.length); bump('shownCount', SHOWN); bump('totalCount', POOL.length+SHOWN); }
+/* render */
 function renderOne(item){
-  const el = document.createElement('article');
-  el.className = 'card glass';
-  el.innerHTML = `
-    <div class="card-hd">
-      <h3 class="name">${item.title || 'Untitled'}</h3>
-      <span class="sub">${item.sub}</span>
-    </div>
-    <div class="media">
-      ${item.type==='img'||item.type==='gif'
-        ? `<img loading="lazy" src="${item.media}" alt="">`
-        : `<video playsinline muted loop controls src="${item.media}"></video>`}
-    </div>
+  const el=document.createElement('article'); el.className='card';
+  el.innerHTML=`
+    <div class="card-hd"><h3 class="name">${item.title||'Untitled'}</h3><span class="sub">${item.sub}</span></div>
+    <div class="media">${item.type==='mp4'
+      ? `<video playsinline muted loop controls src="${item.media}"></video>`
+      : `<img loading="lazy" src="${item.media}" alt="">`}</div>
     <div class="actions">
       <button class="btn dismiss">Dismiss</button>
       <a class="btn open" href="${item.permalink}" target="_blank" rel="noopener">Open</a>
       <button class="btn like">Like</button>
     </div>`;
-  el.querySelector('.dismiss').onclick = ()=>{ el.remove(); SHOWN++; counters(); };
-  el.querySelector('.like').onclick = ()=>{
-    LIKES.unshift(item);
-    LIKES = LIKES.slice(0,500);
-    localStorage.setItem('likes-v1', JSON.stringify(LIKES));
-    likesChip.textContent = LIKES.length;
+  el.querySelector('.dismiss').onclick=()=>{el.remove();SHOWN++;counters();};
+  el.querySelector('.like').onclick=()=>{
+    LIKES.unshift(item); LIKES=LIKES.slice(0,500);
+    localStorage.setItem('likes-v1',JSON.stringify(LIKES));
+    likesChip.textContent=LIKES.length;
     el.remove(); SHOWN++; counters();
   };
   cards.appendChild(el);
 }
-function renderSome(n=8){ for(let i=0;i<n && POOL.length;i++){ renderOne(POOL.shift()); } counters(); }
+function renderSome(n=8){ for(let i=0;i<n&&POOL.length;i++){ renderOne(POOL.shift()); } counters(); }
 
-// batch
+/* flows */
 async function buildNewBatch(){
   try{
     cards.innerHTML=''; SHOWN=0; counters();
-    prog(6,'Starting…');
-    labelSource.textContent='r/celebs + more';
-    const NAMES=[
-      'Kendall Jenner','Hailey Bieber','Madison Beer','Sabrina Carpenter','Dua Lipa',
-      'Alexandra Daddario','Sydney Sweeney','Ana de Armas','Taylor Swift','Selena Gomez',
-      'Hailee Steinfeld','Irina Shayk','Emma Watson','Gal Gadot','Vanessa Hudgens'
-    ];
-    const batch = await fetchBatch({names:NAMES, perName:4, backfill:70, sort:'top'});
-    POOL = batch;
-    logLine(`📦 Batch ready: +${POOL.length} (from multiple subs)`);
-    prog(100,'Ready');
-    counters();
-    renderSome(9);
+    prog(6,'Starting…'); labelSource.textContent='r/celebs + more';
+    const NAMES=['Kendall Jenner','Hailey Bieber','Madison Beer','Sabrina Carpenter','Alexandra Daddario','Dua Lipa','Gal Gadot','Sydney Sweeney','Selena Gomez','Irina Shayk','Hailee Steinfeld','Vanessa Hudgens'];
+    const items=await fetchBatch({names:NAMES,perName:4,backfill:70,sort:'hot'});
+    POOL = items;
+    logLine(`✅ Batch ready: ${POOL.length} items`);
+    prog(100,'Ready'); renderSome(10);
   }catch(e){
-    prog(100,'Idle'); logLine('✖ Build failed: '+e.message);
+    logLine(`❌ Batch failed: ${e.message}`); prog(100,'Idle');
   }
 }
 
-// wire up
-btnNew.onclick = buildNewBatch;
-btnMore.onclick = ()=>renderSome(8);
-btnShuffle.onclick = ()=>{
-  for(let i=POOL.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [POOL[i],POOL[j]]=[POOL[j],POOL[i]]; }
-  logLine('🔀 Shuffled pool');
-};
-btnTrouble.onclick = ()=>modal.classList.add('show');
-closeModal.onclick = ()=>modal.classList.remove('show');
+/* events */
+document.getElementById('build').textContent=BUILD;
+btnNew.onclick=buildNewBatch;
+btnMore.onclick=()=>renderSome(8);
+btnShuffle.onclick=()=>{ POOL.sort(()=>Math.random()-.5); renderSome(0); };
+btnTrouble.onclick=()=>modal.classList.add('show');
+closeModal.onclick=()=>modal.classList.remove('show');
+modal.addEventListener('click',(e)=>{ if(e.target===modal) modal.classList.remove('show'); });
 
-// kick
-document.addEventListener('DOMContentLoaded', ()=>{
-  document.getElementById('build').textContent = BUILD;
-  prog(100,'Idle');
-  counters();
-});
+/* initial */
+prog(18,'Idle'); counters();
 </script>
 </body>
 </html>
