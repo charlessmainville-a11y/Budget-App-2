@@ -1,262 +1,432 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Scroll Wall</title>
+<title>Scroll Wall • Women • Models • Influencers • Actors (Reddit)</title>
 <style>
-  :root{--ink:#e9eef6;--ink-d:#aeb7c8;--bg:#0d1117;--panel:#121722;--b:#1e2a43;--hi:#182035;--accent:#ff6fa1;--accent2:#90d5ff;--ok:#67e8a5;--fail:#ff7b7b;--radius:18px;--shadow:0 8px 30px rgba(0,0,0,.35), 0 1px 2px rgba(0,0,0,.25)}
-  *{box-sizing:border-box} html,body{height:100%}
-  body{margin:0;background:radial-gradient(1200px 600px at 10% -20%, #1c2644 0%, transparent 70%),radial-gradient(1400px 700px at 110% -10%, #18213a 0%, transparent 75%),linear-gradient(#0b0f17,#0d1117 40%);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial}
-  .wrap{max-width:980px;margin:auto;padding:28px 16px 80px}
-  header{display:flex;justify-content:space-between;align-items:center;gap:12px}
-  h1{margin:0;font-weight:900;letter-spacing:.4px;font-size:clamp(28px,6vw,56px)}
-  .sub{color:var(--ink-d)}
-  .btn{appearance:none;border:1px solid #2a3552;background:#18223a;color:var(--ink);padding:14px 16px;border-radius:14px;font-weight:800;box-shadow:var(--shadow);cursor:pointer}
-  .btn.primary{background:var(--accent);border-color:transparent;color:#081019}
-  .btn.ghost{background:transparent}
-  .toolbar{margin-top:14px;background:linear-gradient(#121722,#0f1420);border:1px solid var(--b);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;display:grid;gap:12px;grid-template-columns:1fr 1fr}
-  @media(min-width:700px){.toolbar{grid-template-columns:1fr auto auto auto}}
-  .count{display:flex;align-items:center;justify-content:center;padding:14px 16px;border-radius:14px;background:#0f1522;border:1px solid #1b2233;font-weight:900;min-width:92px}
-  .help{grid-column:1/-1;color:var(--ink-d)}
-  .grid{margin-top:18px;display:grid;gap:18px}
-  @media(min-width:700px){.grid{grid-template-columns:1fr 1fr}}
-  @media(min-width:1040px){.grid{grid-template-columns:1fr 1fr 1fr}}
-  .card{position:relative;overflow:hidden;border-radius:22px;background:linear-gradient(#121a2a,#0f1624);border:1px solid #22304a;box-shadow:var(--shadow);touch-action:pan-y}
-  .media{position:relative;aspect-ratio:3/4;background:#0b101a}
-  .media img,.media video{width:100%;height:100%;object-fit:cover;display:block}
-  .body{padding:14px 14px 18px}
-  .title{font-weight:800;margin:0 0 6px}
-  .meta{color:var(--ink-d);font-size:14px;margin-bottom:8px}
-  .chips{display:flex;gap:10px;flex-wrap:wrap}
-  .chip{font-size:13px;font-weight:800;padding:8px 10px;border-radius:12px;border:1px solid #2a3348;background:#151d2b;color:var(--ink)}
-  .chip.link{cursor:pointer}
-  .cta{display:flex;align-items:center;gap:10px;margin-top:10px}
-  .star{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-size:20px;background:#141d2b;border:1px solid #2a3348;color:#ffdd66;cursor:pointer}
-  .dismiss{margin-left:auto}.dismiss .x{display:block;width:16px;height:16px;border-top:3px solid #9bb0c8;border-right:3px solid #9bb0c8;transform:rotate(45deg)}
-  .dismiss .x:before{content:"";display:block;width:16px;height:16px;border-top:3px solid #9bb0c8;border-right:3px solid #9bb0c8;transform:rotate(90deg) translate(-3px,3px)}
-  .tag{position:absolute;top:10px;right:10px;padding:6px 8px;border-radius:9px;font-size:12px;font-weight:900;display:none}
-  .tag.like{background:rgba(103,232,165,.18);color:#b4ffd9;border:1px solid #2d6b54}
-  .tag.nope{left:10px;right:auto;background:rgba(255,123,123,.18);color:#ffc1c1;border:1px solid #703b3b}
-  .burst,.dust{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:140px;height:140px;border-radius:50%;mix-blend-mode:screen;opacity:0}
-  .burst{background:radial-gradient(circle,#ffd86b 0%, rgba(255,216,107,0) 70%)}
-  .dust{background:radial-gradient(circle,#ff7b7b 0%, rgba(255,123,123,0) 70%)}
-  .ping{animation:pop .35s ease} @keyframes pop{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}60%{opacity:.9}100%{opacity:0;transform:translate(-50%,-50%) scale(1.25)}}
-  .drawer{position:fixed;inset:0;background:rgba(5,8,12,.7);backdrop-filter:saturate(1.2) blur(8px);display:none;z-index:30}
-  .drawer.on{display:block}
-  .drawer .sheet{position:absolute;inset:0;max-width:980px;margin:auto;padding:20px 16px}
-  .drawer .panel{background:linear-gradient(#111926,#0e1521);border:1px solid var(--b);border-radius:20px;padding:16px 16px 26px;box-shadow:var(--shadow)}
-  .toprow{display:flex;align-items:center;justify-content:space-between;margin:6px 2px 14px}
-  .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#2a354d;color:#ffe;border:1px solid #364363;padding:12px 14px;border-radius:12px;box-shadow:var(--shadow);display:none;z-index:50}
-  .toast.on{display:block}
-  a{color:var(--accent2);text-decoration:none}
+  :root{
+    --bg:#0b1020; --panel:#111a2c; --ink:#e8eefc; --muted:#9bb1d6; --hot:#ff6fa3; --ok:#65ffc6;
+    --card:#141e32; --chip:#16223a; --card2:#0f1627; --shadow: 0 14px 40px rgba(0,0,0,.45);
+    --like:#6dffb2; --nope:#ff7a7a;
+  }
+  html,body{height:100%;background:radial-gradient(1200px 800px at 20% -10%, #152038 15%, transparent 60%), linear-gradient(#0b1020,#0b1020);color:var(--ink);font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin:0}
+  *{box-sizing:border-box}
+
+  header{padding:28px 18px 8px}
+  h1{font-size:48px;letter-spacing:.5px;margin:0 0 8px}
+  .subhead{color:var(--muted);font-weight:600;opacity:.9;margin:0 0 10px}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .btn,button{appearance:none;border:none;background:var(--hot);color:#102; font-weight:900; padding:18px 22px;border-radius:18px; cursor:pointer; box-shadow: var(--shadow); font-size:20px}
+  .btn.secondary{background:#1a2744;color:var(--ink);font-weight:800}
+  .btn.ghost{background:#0f1a30;border:2px solid #233255;color:var(--ink);box-shadow:none}
+  .badge{background:#1a2744;color:var(--ink); padding:10px 14px; border-radius:14px; font-weight:800; box-shadow:var(--shadow)}
+  .liked-open{margin-left:auto}
+
+  /* Control panel */
+  .panel{background:var(--panel);border-radius:24px; box-shadow: var(--shadow); padding:18px; margin:10px 12px}
+  .panel .grid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+  .stat{background:#0f1a30;border-radius:16px; padding:16px; text-align:center;font-weight:900;font-size:28px}
+
+  /* Feed area */
+  #feed{padding:12px; display:grid; grid-template-columns: 1fr; gap:16px; max-width:940px; margin:0 auto 120px}
+  .card{position:relative; background:linear-gradient(180deg, var(--card), var(--card2)); border-radius:22px; box-shadow: var(--shadow); overflow:hidden; touch-action:none; user-select:none}
+  .mediaWrap{position:relative; width:100%; aspect-ratio: 1/1; background:#0a1122}
+  .mediaWrap img, .mediaWrap video{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
+  .scrim{position:absolute; inset:auto 0 0 0; height:46%; background:linear-gradient(180deg, rgba(9,14,28,0), rgba(9,14,28,.9) 65%, rgba(9,14,28,1)); pointer-events:none}
+  .meta{position:absolute; left:0; right:0; bottom:0; padding:14px 16px 16px; z-index:3}
+  .title{font-size:22px; font-weight:900; margin:0 0 6px}
+  .byline{color:var(--muted); font-size:14px; margin-bottom:10px}
+  .chips{display:flex; gap:10px; flex-wrap:wrap}
+  .chip{background:var(--chip); color:#d7e3ff; padding:8px 12px; border-radius:999px; font-weight:800; font-size:14px}
+  .star{position:absolute; left:12px; top:12px; width:46px; height:46px; border-radius:12px; display:grid; place-items:center; background:rgba(10,15,30,.55); border:1px solid rgba(255,255,255,.08); color:#ffd06b; font-size:24px; font-weight:900}
+  .ghostLike{position:absolute; inset:0; display:grid; place-items:center; font-size:46px; font-weight:900; opacity:0; transition:opacity .2s}
+  .ghostLike.like{color:var(--like)}
+  .ghostLike.nope{color:var(--nope)}
+  .dragging{will-change: transform, opacity}
+  .loading{opacity:.6; filter:grayscale(.15)}
+
+  /* Like / dismiss animations */
+  @keyframes burst {0%{transform:scale(.6);opacity:.0} 50%{transform:scale(1.05);opacity:.95} 100%{transform:scale(1);opacity:0}}
+  .burst{position:absolute; inset:0;pointer-events:none}
+  .burst:after{content:"✨"; position:absolute; inset:0; display:grid; place-items:center; font-size:64px; animation: burst .6s ease-out}
+
+  @keyframes poof {0%{transform:scale(1);opacity:1} 100%{transform:scale(.85);opacity:0}}
+  .poof{position:absolute; inset:0}
+  .poof:after{content:"💨"; position:absolute; inset:0; display:grid; place-items:center; font-size:54px; animation: poof .35s ease-out}
+
+  /* Liked modal */
+  dialog{border:none; padding:0; background:transparent}
+  .sheet{background:var(--panel); border-radius:24px; box-shadow: var(--shadow); width:min(920px, 96vw); max-height:82vh; overflow:auto; padding:18px}
+  .sheet h2{margin:6px 4px 12px}
+  .likedGrid{display:grid; grid-template-columns: repeat(auto-fill,minmax(180px,1fr)); gap:12px}
+  .thumb{position:relative; border-radius:14px; overflow:hidden; background:#0b1326}
+  .thumb img, .thumb video{width:100%; height:180px; object-fit:cover; display:block}
+  .thumb .bar{display:flex; gap:8px; padding:8px; align-items:center}
+  .thumb .bar a{color:#aaccff; font-weight:800; text-decoration:none; font-size:13px}
+  .pill{padding:6px 10px; border-radius:999px; font-weight:800}
+  .pill.undo{background:#213357; color:#d6e5ff}
+  .pill.open{background:#16243f; color:#9cc1ff}
+  .closeRow{display:flex; gap:10px; justify-content:flex-end; margin:8px 0 2px}
+
+  .mono{white-space:pre-wrap; background:#0e1931;border-radius:14px; padding:12px; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:14px; color:#d7e6ff}
+
+  /* make swipe smoother on iOS */
+  .card, .mediaWrap{ -webkit-transform: translateZ(0) }
 </style>
 </head>
 <body>
-<div class="wrap">
   <header>
-    <div>
+    <div class="row">
       <h1>Scroll Wall</h1>
-      <div class="sub">Women • Models • Influencers • Actors (Reddit)</div>
+      <button id="btnLiked" class="btn secondary liked-open" title="Open liked">Liked ⭐</button>
     </div>
-    <button id="openLiked" class="btn">Liked ⭐</button>
+    <p class="subhead">Women • Models • Influencers • Actors (Reddit). Swipe right to like, left to dismiss. Videos/GIFs auto-play. NSFW is enabled.</p>
   </header>
 
-  <div class="toolbar">
-    <button id="newBatch" class="btn ghost">New batch</button>
-    <button id="loadMore" class="btn primary">Load more</button>
-    <div id="counter" class="count">0/0</div>
-    <button id="shuffle" class="btn">Shuffle 🔀</button>
-    <div class="help">Swipe a card — <b>right to like</b>, <b>left to dismiss</b>. Videos & GIFs auto-play. NSFW is enabled.</div>
-    <button id="troubleshoot" class="btn ghost" style="grid-column:1/-1">Troubleshoot 🩺</button>
-    <pre id="debug" class="help" style="white-space:pre-wrap;margin:0"></pre>
-  </div>
+  <section class="panel" style="max-width:940px;margin:0 auto">
+    <div class="grid">
+      <button id="btnNew" class="btn">New batch</button>
+      <button id="btnLoad" class="btn" style="background:var(--hot)">Load more</button>
+      <div id="stat" class="stat">0/0</div>
+      <button id="btnShuffle" class="btn ghost">Shuffle 🔀</button>
+      <button id="btnTrouble" class="btn secondary" style="grid-column:1/-1">Troubleshoot 🩺</button>
+    </div>
+    <div id="trouble" class="mono" style="display:none;margin-top:12px"></div>
+  </section>
 
-  <div id="grid" class="grid"></div>
-</div>
+  <main id="feed" aria-live="polite"></main>
 
-<!-- Liked drawer -->
-<div id="drawer" class="drawer" aria-hidden="true">
-  <div class="sheet">
-    <div class="panel">
-      <div class="toprow">
-        <div style="display:flex;gap:10px;align-items:center"><div class="btn ghost">Liked ⭐</div><button id="exportJson" class="btn ghost">Export JSON</button></div>
+  <!-- Liked modal -->
+  <dialog id="likedDlg">
+    <div class="sheet">
+      <div class="closeRow">
+        <button id="exportJson" class="btn ghost">Export JSON</button>
         <button id="closeLiked" class="btn">Close</button>
       </div>
-      <div id="likedGrid" class="grid"></div>
+      <h2>Liked ⭐</h2>
+      <div id="likedGrid" class="likedGrid"></div>
     </div>
-  </div>
-</div>
-
-<div id="toast" class="toast"></div>
+  </dialog>
 
 <script>
 (() => {
-/* ---------- config ---------- */
-const MIRROR = 'https://r.jina.ai/http://www.reddit.com';
-const TIME_RANGE = 'week';
-const CHUNK_LIMIT = 40;
-const BATCH_SIZE = 24;      // how many subs per batch
-const TITLE_WORDS = 100;
+  // === Curated list of women-only subreddits (mixed models/influencers/actors/singers) ===
+  const WOMEN_SUBS = [
+    "charlidamelio","MadisonBeer","SabrinaCarpenter","DuaLipa","EmRata","AlexisRen",
+    "SommerRay","HaileeSteinfeld","EmmaWatson","SydneySweeney","AnaDeArmas","GalGadot",
+    "SelenaGomez","ArianaGrande","GigiHadid","BellaHadid","DojaCat","MeganTheeStallion",
+    "AddisonRae","LeaElui","HaileeBieber","Zendaya","KylieJenner","KendallJenner",
+    "MilaKunis","ScarlettJohansson","AlexandraDaddario","MargotRobbie","EmilyBlunt",
+    "NataliePortman","FlorencePugh","JennaOrtega","CamilaCabello","OliviaRodrigo",
+    "Rihanna","Halsey","KarolG","AnyaTaylorJoy","MeganFox",
+    "BarbaraPalvin","CandiceSwanepoel","MirandaKerr","AdrianaLima","AlessandraAmbrosio",
+    "KarlieKloss","TaylorHill","JosephineSkriver","LilyJames","ElizabethOlsen",
+    "KiernanShipka","SophieTurner","MaisieWilliams","KristenStewart","YaraShahidi",
+    "KekePalmer","LucyHale","NinaDobrev","VictoriaJustice","AlexandraShipp",
+    "LilyCollins","MaitreyiRamakrishnan","HannahStocking","SofieDossi","PiaWurtzbach",
+    "LizaKoshy","AlishaLehmann","PaigeSpiranac","KaylaItsines","SommerRay",
+    "AddisonRae","CharliXCX","BeckyG","TateMcRae","SZA","Saweetie","ChantelJeffries",
+    "LanaDelRey","KaliUchis","SofiaVergara","SalmaHayek","PriyankaChopra",
+    "DeepikaPadukone","AliaBhatt","IU","Jisoo","Jennie","Rosé","Lisa","TwiceJihyo",
+    "MomoHirai","Tzuyu","NewJeansMinji","KarinaAespa","WinterAespa",
+    "EmmaMackey","LilyRoseDepp","AnaDeArmas","ElizabethDebicki","RachelZegler"
+  ]
+  // dedupe
+  const SUBS = [...new Set(WOMEN_SUBS)].map(s => s.replace(/^r\//,''));
 
-/* names-only subreddits (adults) */
-const NAME_SUBS = [
-  'EmRata','kendalljenner','kyliejenner','DuaLipa','sabrinacarpenter','MadisonBeer','HaileyBieber','addisonraee','CharliDamelio',
-  'BellaHadid','GigiHadid','KaiaGerber','SydneySweeney','AlexandraDaddario','AnaDeArmas','MargotRobbie','Zendaya',
-  'EmmaWatson','NataliePortman','SalmaHayek','EmilyBlunt','JessicaAlba','AlisonBrie','HayleyAtwell','MeganFox',
-  'ArianaGrande','TaylorSwift','GalGadot','AmberHeard','AnneHathaway','BrieLarson','ElizabethOlsen','KateBeckinsale',
-  'OliviaMunn','OliviaWilde','EmmaStone','AlexaDemie','FlorencePugh','AnyaTaylorJoy','SaoirseRonan','SelenaGomez',
-  'HaileeSteinfeld','CamilaMendes','VictoriaJustice','EmmaRoberts','BellaThorne','MadelainePetsch','KiernanShipka',
-  'AlexandriaOcasioCortez','LilyCollins','LilyJames','EmmaMackey','NaomiScott','RachelMcAdams','PriyankaChopra',
-  'SofiaVergara','EvaGreen','EvaMendes','BlakeLively','KeiraKnightley','NinaDobrev','CandiceSwanepoel',
-  'BarbaraPalvin','AdrianaLima','MirandaKerr','SaraSampaio','TaylorHill','JosephineSkriver','KarlieKloss',
-  'AlexandraStan','KaceyMusgraves','Halsey','BebeRexha','RitaOra','BeckyG','CamilaCabello','DemiLovato',
-  'DojaCat','MayaHawke','CamilaMorrone','AnaDeArmas','JennaOrtega','AlexandraShipp','LanaDelRey',
-  'RachelZegler','OliviaRodrigo','BillieEilish','CharithraChandran','MaitreyiRamakrishnan','YaraShahidi',
-  'KelseaBallerini','SabrinaClaudio','LaurenJauregui','Normani','SZA','KaliUchis','Saweetie','IggyAzalea',
-  'AshleyGraham','EmilyDiDonato','GizeleOliveira','WinnieHarlow','GabbieEpstein','SophieTurner','MaisieWilliams'
-];
+  // Elements
+  const feed = document.getElementById('feed');
+  const statEl = document.getElementById('stat');
+  const btnNew = document.getElementById('btnNew');
+  const btnLoad = document.getElementById('btnLoad');
+  const btnShuffle = document.getElementById('btnShuffle');
+  const btnTrouble = document.getElementById('btnTrouble');
+  const trouble = document.getElementById('trouble');
+  const likedDlg = document.getElementById('likedDlg');
+  const likedGrid = document.getElementById('likedGrid');
+  document.getElementById('btnLiked').onclick = () => openLiked();
+  document.getElementById('closeLiked').onclick = () => likedDlg.close();
+  document.getElementById('exportJson').onclick = exportLikes;
 
-/* ---------- state ---------- */
-let pool=[], shown=[], likes=loadLikes(), lastError='';
-const ui = {
-  grid: qs('#grid'), likedGrid: qs('#likedGrid'),
-  count: qs('#counter'), dbg: qs('#debug'),
-  toast: qs('#toast'), drawer: qs('#drawer')
-};
+  // State
+  let pool = [];     // posts ready to show
+  let shown = 0;     // how many rendered
+  let likes = JSON.parse(localStorage.getItem('likes_v1')||"[]");
+  let lastError = "(none)";
+  let building = false;
 
-/* ---------- helpers ---------- */
-function qs(s,el=document){return el.querySelector(s)}
-function escapeHtml(s){return (s||'').replace(/[&<>"]/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]))}
-function toast(msg,ms=1500){ui.toast.textContent=msg;ui.toast.classList.add('on');setTimeout(()=>ui.toast.classList.remove('on'),ms)}
-function saveLikes(){localStorage.setItem('sw_likes',JSON.stringify(likes))}
-function loadLikes(){try{return JSON.parse(localStorage.getItem('sw_likes')||'[]')}catch{return[]}}
-function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-function updateCount(){ui.count.textContent=`${shown.length}/${pool.length}`}
+  // Helpers
+  const sleep = ms => new Promise(r=>setTimeout(r,ms));
+  const shuffle = arr => { for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]} return arr };
 
-/* ---------- fetching ---------- */
-async function fetchSub(sub){
-  const url = `${MIRROR}/r/${encodeURIComponent(sub)}/top.json?t=${TIME_RANGE}&limit=100`;
-  const r = await fetch(url,{headers:{'Accept':'application/json'}});
-  if(!r.ok) throw new Error(`${r.status} ${r.statusText}`);
-  return (await r.json()).data?.children?.map(x=>x.data)||[];
-}
-
-function normalize(raw){
-  const out=[];
-  for(const p of raw||[]){
-    const nsfw=!!p.over_18, sub=p.subreddit||'', title=String(p.title||'').trim().slice(0,TITLE_WORDS);
-    let kind=null,src=null;
-    if(p.is_video && p.media?.reddit_video?.fallback_url){ kind='video'; src=p.media.reddit_video.fallback_url }
-    else if(p.secure_media?.reddit_video?.fallback_url){ kind='video'; src=p.secure_media.reddit_video.fallback_url }
-    else if(/\.(gif|gifv|mp4)$/i.test(p.url||'')){ kind=/\.gif$/i.test(p.url)?'gif':'video'; src=(p.url||'').replace('.gifv','.mp4') }
-    else if(/\.(jpe?g|png|webp)$/i.test(p.url||'')){ kind='image'; src=p.url }
-    else if(p.preview?.images?.[0]?.source?.url){ kind='image'; src=p.preview.images[0].source.url.replace(/&amp;/g,'&') }
-    if(!kind||!src) continue;
-    out.push({id:p.id,title,author:p.author,sub,nsfw,kind,src,permalink:`https://reddit.com${p.permalink||''}`});
+  function setStat(){
+    statEl.textContent = `${shown}/${pool.length}`;
   }
-  return out;
-}
 
-function filterPeople(items){
-  // names-only subs already strongly bias to people; still filter out obvious non-people words
-  const bad=['landscape','sunset','building','car','cat','dog','animal','mountain','meme','art','street','house','architecture'];
-  return items.filter(p=>!bad.some(w=>(p.title||'').toLowerCase().includes(w)));
-}
+  function logTrouble() {
+    const ua = navigator.userAgent;
+    const online = navigator.onLine;
+    trouble.style.display = 'block';
+    trouble.textContent =
+`Online: ${online}
+UA: ${ua}
+Pool size: ${pool.length}, shown: ${shown}, likes: ${likes.length}
+Last error: ${lastError}`;
+  }
 
-/* ---------- cards ---------- */
-function makeCard(post){
-  const el=document.createElement('article'); el.className='card'; el.dataset.id=post.id;
-  el.innerHTML=`
-    <div class="tag like">LIKE ⭐</div><div class="tag nope">NOPE</div>
-    <div class="burst"></div><div class="dust"></div>
-    <div class="media">${post.kind==='image'?`<img alt="" loading="lazy" src="${post.src}">`:`<video playsinline muted autoplay loop src="${post.src}"></video>`}</div>
-    <div class="body">
-      <h3 class="title">${escapeHtml(post.title)}</h3>
-      <div class="meta">u/${escapeHtml(post.author)} • r/${escapeHtml(post.sub)} ${post.nsfw?'• NSFW':''}</div>
-      <div class="chips">
-        <a class="chip link" href="${post.permalink}" target="_blank" rel="noopener">Reddit</a>
-        <span class="chip">${post.nsfw?'NSFW':'SFW'}</span>
-      </div>
-      <div class="cta">
-        <button class="star" title="Like">⭐</button>
-        <a class="chip link" href="${post.src}" target="_blank" rel="noopener">Open media</a>
-        <button class="star dismiss" title="Dismiss"><span class="x"></span></button>
-      </div>
-    </div>`;
-  // swipe
-  attachSwipe(el,{onLike:()=>like(post,el),onNope:()=>dismiss(el)});
-  el.querySelector('.star').onclick=()=>like(post,el);
-  el.querySelector('.dismiss').onclick=()=>dismiss(el);
-  return el;
-}
-function like(p,el){ if(!likes.some(x=>x.id===p.id)){likes.unshift(p);saveLikes()} burst(el.querySelector('.burst')); toast('Saved to Liked ⭐',900); dismiss(el) }
-function dismiss(el){ dust(el.querySelector('.dust')); el.style.transition='transform .18s ease,opacity .18s ease'; el.style.transform='translateX(-20px) scale(.98)'; el.style.opacity='.0'; setTimeout(()=>{el.remove();updateCount()},160) }
-function burst(el){el.classList.remove('ping');void el.offsetWidth;el.classList.add('ping')}
-function dust(el){el.classList.remove('ping');void el.offsetWidth;el.classList.add('ping')}
-function attachSwipe(el,{onLike,onNope}){let sx=0,dx=0,act=false;const m=el.querySelector('.media'),like=el.querySelector('.tag.like'),nope=el.querySelector('.tag.nope');const start=x=>{act=true;sx=x;dx=0;like.style.display=nope.style.display='none'};const move=x=>{if(!act)return;dx=x-sx;el.style.transform=`translateX(${dx}px) rotate(${dx/40}deg)`;like.style.display=dx>18?'block':'none';nope.style.display=dx<-18?'block':'none'};const end=()=>{if(!act)return;act=false;el.style.transition='transform .18s ease';if(dx>80)onLike();else if(dx<-80)onNope();else{el.style.transform='';like.style.display=nope.style.display='none'};setTimeout(()=>el.style.transition='',180)};m.addEventListener('touchstart',e=>start(e.touches[0].clientX),{passive:true});m.addEventListener('touchmove',e=>move(e.touches[0].clientX),{passive:true});m.addEventListener('touchend',end);m.addEventListener('mousedown',e=>{e.preventDefault();start(e.clientX)});window.addEventListener('mousemove',e=>{if(act)move(e.clientX)});window.addEventListener('mouseup',end)}
+  btnTrouble.addEventListener('click', logTrouble);
 
-/* ---------- actions ---------- */
-qs('#openLiked').onclick=()=>{renderLiked();ui.drawer.classList.add('on');ui.drawer.setAttribute('aria-hidden','false')}
-qs('#closeLiked').onclick=()=>{ui.drawer.classList.remove('on');ui.drawer.setAttribute('aria-hidden','true')}
-qs('#exportJson').onclick=()=>{const b=new Blob([JSON.stringify(likes,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='liked.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-qs('#shuffle').onclick=()=>{pool=shuffle(pool);toast('Shuffled');}
-qs('#newBatch').onclick=buildBatch;
-qs('#loadMore').onclick=loadMore;
-qs('#troubleshoot').onclick=showDebug;
+  // Build a new pool by fetching many subs' top-of-week posts
+  async function buildPool() {
+    if (building) return;
+    building = true;
+    lastError = "(none)";
+    pool.length = 0;
+    shown = 0;
+    feed.innerHTML = '';
+    setStat();
 
-function renderLiked(){
-  ui.likedGrid.innerHTML='';
-  likes.forEach(p=>ui.likedGrid.appendChild(makeCard(p)));
-}
+    const batch = shuffle([...SUBS]).slice(0, 28); // 28 random name-subs
+    // parallel fetch (but not too many at once)
+    const chunk = 7;
+    for (let i=0;i<batch.length;i+=chunk) {
+      const slice = batch.slice(i,i+chunk);
+      await Promise.all(slice.map(fetchSub));
+      await sleep(350); // gentle pacing for mobile & rate limits
+    }
 
-async function buildBatch(){
-  ui.dbg.textContent=''; toast('Building a new batch…',900);
-  pool=[]; shown=[]; updateCount(); ui.grid.innerHTML='';
-  const subs = shuffle([...NAME_SUBS]).slice(0,BATCH_SIZE);
-  let added=0;
-  for(const s of subs){
+    // If still dry, try once more with different subs
+    if (pool.length === 0) {
+      const retry = shuffle([...SUBS]).slice(0, 28);
+      for (let i=0;i<retry.length;i+=chunk) {
+        const slice = retry.slice(i,i+chunk);
+        await Promise.all(slice.map(fetchSub));
+        await sleep(350);
+      }
+    }
+
+    shuffle(pool);
+    setStat();
+    building = false;
+    if (pool.length === 0) toast("No fresh posts found. Try again in a bit.");
+  }
+
+  async function fetchSub(sub) {
     try{
-      const raw = await fetchSub(s);
-      const norm = filterPeople(normalize(raw));
-      pool.push(...norm);
-      added+=norm.length;
-      if(pool.length>120) break;
-      await nap(200); // be gentle to mirror; avoids 429
-    }catch(e){ lastError = `/${s}: ${e.message}`; }
+      // public JSON, top this week, prefer media, include raw_json for emojis etc
+      const url = `https://www.reddit.com/r/${encodeURIComponent(sub)}/top.json?limit=25&t=week&raw_json=1`;
+      const t0 = performance.now();
+      const r = await fetch(url, {headers:{'Accept':'application/json'}});
+      if (!r.ok) { lastError = `Fetch ${sub}: ${r.status}`; return }
+      const json = await r.json();
+
+      const items = (json.data?.children||[])
+        .map(n=>n.data)
+        .filter(d => !d.stickied && !d.removed_by_category && !d.is_gallery) // keep simple
+        .map(toPost)
+        .filter(Boolean);
+
+      // prefer image/video hosts we can display
+      pool.push(...items);
+    }catch(e){
+      lastError = `Fetch ${sub} error: ${e.message}`;
+    }
   }
-  pool = dedupe(pool,'id');
-  if(pool.length===0){ toast('No fresh posts. Tap again.',1500); }
-  else{ toast(`Ready: ${pool.length} posts`); }
-  updateCount();
-}
 
-function loadMore(){
-  if(pool.length===0){ toast('No pool yet — hit New batch',1200); return }
-  const take = pool.splice(0, Math.min(CHUNK_LIMIT, pool.length));
-  take.forEach(p=>{ const card=makeCard(p); ui.grid.appendChild(card); shown.push(p); });
-  updateCount();
-}
+  function toPost(d){
+    // accept: image previews (i.redd.it) or native reddit_video (v.redd.it)
+    let mediaUrl='', kind='image';
+    if (d.is_video && d.media?.reddit_video?.fallback_url){
+      mediaUrl = d.media.reddit_video.fallback_url; // mp4
+      kind = 'video';
+    } else if (d.preview?.images?.[0]?.source?.url){
+      mediaUrl = d.preview.images[0].source.url.replace(/&amp;/g,'&');
+      kind = 'image';
+    } else if (/^https?:\/\/i\.redd\.it\//.test(d.url)){
+      mediaUrl = d.url; kind='image';
+    } else {
+      return null;
+    }
+    return {
+      id: d.id,
+      title: d.title || "(untitled)",
+      author: d.author, sub: d.subreddit, over18: !!d.over_18,
+      permalink: `https://www.reddit.com${d.permalink}`,
+      url: mediaUrl, kind
+    }
+  }
 
-function showDebug(){
-  const ua = navigator.userAgent;
-  const msg = [
-    `Online: ${navigator.onLine}`,
-    `UA: ${ua}`,
-    `Pool size: ${pool.length}, shown: ${shown.length}, likes: ${likes.length}`,
-    `Last error: ${lastError || '(none)'}`,
-  ].join('\n');
-  ui.dbg.textContent = msg;
-  toast('Troubleshoot opened');
-}
+  // Render next N cards
+  function renderMore(n=6){
+    if (shown>=pool.length){ toast("No more right now."); return }
+    const next = pool.slice(shown, shown+n);
+    next.forEach(renderCard);
+    shown += next.length;
+    setStat();
+  }
 
-/* utils */
-function nap(ms){ return new Promise(r=>setTimeout(r,ms)) }
-function dedupe(arr,key){const m=new Map();for(const x of arr){m.set(x[key],x)}return [...m.values()]}
+  function renderCard(post){
+    const card = document.createElement('article');
+    card.className = 'card';
+    card.dataset.id = post.id;
 
-/* boot */
-buildBatch();
+    const media = document.createElement('div');
+    media.className = 'mediaWrap';
+    media.innerHTML = (post.kind==='video')
+      ? `<video playsinline muted loop autoplay disablepictureinpicture controlslist="nodownload noplaybackrate noremoteplayback" class="v">
+           <source src="${post.url}" type="video/mp4">
+         </video>`
+      : `<img loading="lazy" src="${post.url}" alt="">`;
 
+    const star = document.createElement('button');
+    star.className = 'star'; star.textContent = '⭐';
+    star.title = 'Like';
+    star.addEventListener('click', (e)=>{ e.stopPropagation(); likeCard(card, post) });
+
+    const ghostLike = document.createElement('div');
+    ghostLike.className='ghostLike like'; ghostLike.textContent='LIKE';
+
+    const ghostNope = document.createElement('div');
+    ghostNope.className='ghostLike nope'; ghostNope.textContent='NOPE';
+
+    const scrim = document.createElement('div'); scrim.className='scrim';
+    const meta = document.createElement('div'); meta.className='meta';
+    meta.innerHTML = `
+      <h3 class="title">${escapeHtml(post.title)}</h3>
+      <div class="byline">by u/${escapeHtml(post.author)} • r/${escapeHtml(post.sub)} ${post.over18?'<span class="chip">NSFW</span>':''}</div>
+      <div class="chips">
+        <a class="chip" href="${post.permalink}" target="_blank" rel="noopener">Reddit</a>
+      </div>`;
+
+    card.append(media, star, ghostLike, ghostNope, scrim, meta);
+    feed.append(card);
+
+    enableSwipe(card, ghostLike, ghostNope, post);
+  }
+
+  function escapeHtml(s){ return s.replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])) }
+
+  // Swipe interactions
+  function enableSwipe(card, ghostLike, ghostNope, post){
+    let startX=0, startY=0, dx=0, dy=0, dragging=false;
+
+    const onStart = (e)=>{
+      dragging=true; card.classList.add('dragging');
+      const t = e.touches? e.touches[0] : e;
+      startX=t.clientX; startY=t.clientY;
+    };
+    const onMove = (e)=>{
+      if(!dragging) return;
+      const t = e.touches? e.touches[0] : e;
+      dx = t.clientX-startX; dy = t.clientY-startY;
+      const rot = (dx/16);
+      card.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
+      const p = Math.min(1, Math.abs(dx)/120);
+      ghostLike.style.opacity = dx>0? p : 0;
+      ghostNope.style.opacity = dx<0? p : 0;
+      e.preventDefault(); // stop page scroll while dragging
+    };
+    const onEnd = ()=>{
+      if(!dragging) return;
+      dragging=false; card.classList.remove('dragging');
+      ghostLike.style.opacity=0; ghostNope.style.opacity=0;
+
+      const threshold = 110;
+      if (dx>threshold){ likeCard(card, post, true); }
+      else if (dx<-threshold){ dismissCard(card); }
+      else { // snap back
+        card.style.transition='transform .18s ease-out';
+        card.style.transform='translate(0,0) rotate(0)';
+        setTimeout(()=>{ card.style.transition=''; }, 180);
+      }
+      dx=dy=0;
+    };
+
+    card.addEventListener('mousedown', onStart);
+    card.addEventListener('touchstart', onStart, {passive:false});
+    window.addEventListener('mousemove', onMove, {passive:false});
+    window.addEventListener('touchmove', onMove, {passive:false});
+    window.addEventListener('mouseup', onEnd);
+    window.addEventListener('touchend', onEnd);
+  }
+
+  function likeCard(card, post, viaSwipe=false){
+    if (!likes.find(x=>x.id===post.id)) likes.unshift(post);
+    localStorage.setItem('likes_v1', JSON.stringify(likes.slice(0,500)));
+    card.append(el('div','burst'));
+    if (viaSwipe) slideOut(card, +1); else fadeAway(card);
+    updateLikedBadge();
+  }
+  function dismissCard(card){
+    card.append(el('div','poof'));
+    slideOut(card, -1);
+  }
+  function slideOut(card, dir){
+    card.style.transition='transform .22s ease-out, opacity .22s ease-out';
+    card.style.transform=`translate(${dir*260}px, -16px) rotate(${dir*10}deg)`;
+    card.style.opacity='.0';
+    setTimeout(()=> card.remove(), 240);
+  }
+  function fadeAway(card){
+    card.style.transition='opacity .18s'; card.style.opacity='.0';
+    setTimeout(()=> card.remove(), 200);
+  }
+  function el(tag, cls){ const n=document.createElement(tag); n.className=cls; return n }
+
+  function updateLikedBadge(){
+    document.getElementById('btnLiked').textContent = `Liked ⭐ (${likes.length})`;
+  }
+
+  function openLiked(){
+    likedGrid.innerHTML = '';
+    if (likes.length===0) likedGrid.innerHTML = '<p style="color:var(--muted)">No likes yet.</p>';
+    likes.forEach(item=>{
+      const wrap = document.createElement('div'); wrap.className='thumb';
+      wrap.innerHTML = (item.kind==='video'
+        ? `<video playsinline muted loop autoplay src="${item.url}"></video>`
+        : `<img src="${item.url}" alt="">`)
+        + `<div class="bar">
+            <button class="pill undo">Undo</button>
+            <a class="pill open" href="${item.permalink}" target="_blank" rel="noopener">Reddit ↗</a>
+           </div>`;
+      wrap.querySelector('.undo').onclick = ()=>{
+        likes = likes.filter(x=>x.id!==item.id);
+        localStorage.setItem('likes_v1', JSON.stringify(likes));
+        wrap.remove(); updateLikedBadge();
+      }
+      likedGrid.append(wrap);
+    });
+    likedDlg.showModal();
+  }
+
+  function exportLikes(){
+    const blob = new Blob([JSON.stringify(likes,null,2)], {type:'application/json'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='likes.json'; a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  // Toast helper
+  let toastTimer=null;
+  function toast(msg){
+    const t=document.createElement('div');
+    t.textContent=msg; Object.assign(t.style,{
+      position:'fixed', left:'50%', bottom:'22px', transform:'translateX(-50%)',
+      background:'#2a0f14', color:'#ffcaca', padding:'12px 14px', borderRadius:'12px',
+      fontWeight:'800', boxShadow: '0 10px 26px rgba(0,0,0,.45)', zIndex:99
+    });
+    document.body.append(t);
+    clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.remove(), 2200);
+  }
+
+  // Wire buttons
+  btnNew.onclick = async () => { toast('Building a new batch…'); await buildPool(); if(pool.length) toast('Batch ready — Load more!') };
+  btnLoad.onclick = () => renderMore(6);
+  btnShuffle.onclick = () => { pool = shuffle(pool); shown=0; feed.innerHTML=''; renderMore(6); setStat(); toast('Shuffled'); }
+
+  // Initial build on first open (so there’s something)
+  buildPool().then(()=> { if(pool.length) renderMore(6) });
+  updateLikedBadge();
 })();
 </script>
 </body>
