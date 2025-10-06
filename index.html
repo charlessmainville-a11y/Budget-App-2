@@ -1,29 +1,26 @@
+
 <!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Wall</title>
+<title>Wall v15</title>
 <style>
-  :root{
-    --bg:#0b0f14; --ink:#eaf0ff; --muted:#9fb0c9; --accent:#ff6fa3;
-    --panel:#141c28; --chip:#213048; --polaroid:#0f141f; --shadow:#000000aa;
-  }
+  :root{--bg:#0b0f14;--ink:#eaf0ff;--muted:#9fb0c9;--accent:#ff6fa3;--panel:#141c28;--chip:#213048;--polaroid:#0f141f;--shadow:#000000aa}
   *{box-sizing:border-box}
   html,body{margin:0;height:100%;background:radial-gradient(1200px 700px at 50% -200px,#162132 0,#0b0f14 55%);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Inter,Roboto,Helvetica,Arial}
   a{color:inherit;text-decoration:none}
-
-  .wrap{max-width:980px;margin:20px auto 120px;padding:0 14px}
-  .nav{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .wrap{max-width:980px;margin:16px auto 120px;padding:0 14px}
+  .nav{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
   .btn{appearance:none;border:none;cursor:pointer;border-radius:14px;padding:12px 16px;font-weight:800;background:#101824;color:var(--ink);box-shadow:0 0 0 1px #26354f inset}
   .btn.pink{background:var(--accent);color:#0b0f14}
   .btn.ghost{background:transparent;box-shadow:0 0 0 1px #2a3a58 inset}
   .right{margin-left:auto}
+  .badgeok{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid #274064;background:#0e1726}
   .bar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;background:linear-gradient(180deg,#131b28,#0f1521);padding:12px;border-radius:16px;box-shadow:0 10px 26px var(--shadow),0 0 0 1px #ffffff10 inset}
   .counter{min-width:88px;text-align:center;font-weight:900;border-radius:12px;background:#0b1220;border:1px solid #1e2c45;padding:10px 12px}
   .tiny{font-size:12px;color:var(--muted)}
   .hidden{display:none!important}
-
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:14px}
   .card{position:relative;border-radius:18px;background:var(--polaroid);box-shadow:0 24px 44px #0009,0 0 0 1px #ffffff12 inset;overflow:hidden;transform:rotate(var(--tilt,0deg))}
   .frame{position:relative;aspect-ratio:4/5;background:#0a0f18}
@@ -34,13 +31,14 @@
   .star{width:42px;height:42px;border-radius:12px;border:1px solid #26354f;background:#0e1521;display:grid;place-items:center;font-size:22px}
   .star.liked{background:#ffe9f1;border-color:#ffc1d6;color:#9c0040}
   .pill{padding:8px 12px;border-radius:999px;background:#0e1726;color:#cfe0ff;border:1px solid #26354f}
-  .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#23141c;color:#ffd8e6;border:1px solid #4a2633;border-radius:12px;padding:10px 14px;font-weight:800;box-shadow:0 8px 30px rgba(0,0,0,.35);z-index:30}
-  .sheet{position:fixed;inset:auto 0 0 0;background:linear-gradient(180deg,#141c28,#0d141f);border-top-left-radius:16px;border-top-right-radius:16px;box-shadow:0 -12px 40px #000c;border-top:1px solid #ffffff12;transform:translateY(110%);transition:transform .22s ease;max-height:84vh;overflow:auto;z-index:40}
+  .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#23141c;color:#ffd8e6;border:1px solid #4a2633;border-radius:12px;padding:10px 14px;font-weight:800;box-shadow:0 8px 30px rgba(0,0,0,.35);z-index:3000}
+  .sheet{position:fixed;inset:auto 0 0 0;background:linear-gradient(180deg,#141c28,#0d141f);border-top-left-radius:16px;border-top-right-radius:16px;box-shadow:0 -12px 40px #000c;border-top:1px solid #ffffff12;transform:translateY(110%);transition:transform .22s ease;max-height:84vh;overflow:auto;z-index:2500;pointer-events:auto}
   .sheet.open{transform:none}
-  .hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #ffffff14}
+  .hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #ffffff14;position:sticky;top:0;background:#141c28;z-index:1}
   .pad{padding:12px 14px}
   .row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
   input,textarea{width:100%;background:#0b121c;color:var(--ink);border:1px solid #24344f;border-radius:12px;padding:10px}
+  .reload{margin-left:8px}
 </style>
 </head>
 <body>
@@ -49,7 +47,8 @@
     <button class="btn ghost" data-view="home">Home</button>
     <button class="btn ghost" data-view="liked">Liked ⭐</button>
     <button class="btn ghost" data-view="subs">Subreddits ⚙️</button>
-    <span class="right tiny" id="status">NSFW enabled • people-only • spicy sprinkle</span>
+    <span class="right tiny" id="status">loading JS…</span>
+    <a class="badgeok reload" href="#" id="hardReload" title="Hard refresh (cache-bust)">Reload</a>
   </div>
 
   <div class="bar">
@@ -62,7 +61,6 @@
 
   <div class="grid" id="grid"></div>
 
-  <!-- Liked -->
   <div class="sheet" id="likedSheet">
     <div class="hdr">
       <strong>Liked ⭐</strong>
@@ -76,7 +74,6 @@
     </div>
   </div>
 
-  <!-- Subs -->
   <div class="sheet" id="subsSheet">
     <div class="hdr">
       <strong>Subreddits ⚙️</strong>
@@ -92,7 +89,6 @@
     </div>
   </div>
 
-  <!-- Troubleshoot -->
   <div class="sheet" id="troubleSheet">
     <div class="hdr">
       <strong>Troubleshoot</strong>
@@ -105,251 +101,196 @@
 <div id="toast" class="toast hidden"></div>
 
 <script>
-/* ---------- storage & state ---------- */
-const LS_SUBS = 'sw_subs_v3';
-const LS_LIKES = 'sw_likes_v3';
-let subs = loadSubs();
-let likes = loadLikes();
-let pool = [];         // queued posts
-let shown = 0;
-let lastErrors = [];
-function logErr(m){ lastErrors.unshift(m); lastErrors = lastErrors.slice(0,6); }
+/*** crash guard: log any script errors to the Troubleshoot sheet ***/
+const _errLog = [];
+window.addEventListener('error', (e)=>{ _errLog.unshift(`JS error: ${e.message}`); _refreshDiag(); }, true);
+window.addEventListener('unhandledrejection', (e)=>{ _errLog.unshift(`Promise rejection: ${e.reason}`); _refreshDiag(); });
 
-/* ---------- default people-only list (adults only) ---------- */
-const DEFAULT_SUBS = [
-  "EmilyRatajkowski","AnaDeArmas","AlexisRen","MadisonBeer","AddisonRae","HaileyBieber",
-  "BellaHadid","KylieJenner","KendallJenner","CharliDAmelio","ArianaGrande","SabrinaCarpenter",
-  "SydneySweeney","MargotRobbie","Zendaya","EmiliaClarke","JennaOrtega","FlorencePugh",
-  "AnyaTaylorJoy","AlexandraDaddario","ElizabethOlsen","GalGadot","EmmaWatson","DuaLipa",
-  "DojaCat","TaylorSwift","ScarlettJohansson","MeganFox","BarbaraPalvin","SaraSampaio",
-  "AlessandraAmbrosio","CandiceSwanepoel","GigiHadid","KaiaGerber","IrinaShayk","MirandaKerr",
-  "LilyCollins","CamilaMorrone","HaileeSteinfeld","SelenaGomez","OliviaRodrigo","Halsey",
-  "AlexandraShipp","KekePalmer","EizaGonzalez","SalmaHayek","SofiaVergara","AnaCheri",
-  "PaigeSpiranac","KatieSigmond","SommerRay","LeaElui","MadelynCline","VictoriaJustice",
-  "PeytonList","ChloeMoretz","SukiWaterhouse","RitaOra","AvaMax","BebeRexha",
-  "Jisoo","Jennie","Lisa","RoseBlackpink","KarinaAESPA","WinterAESPA","IU",
-  "NinaDobrev","KatherineLangford","PhoebeDynevor","CamilaCabello","MayaHawke","SophieTurner"
-];
-// spicy hubs sprinkled in (20% pick rate); keep tasteful
-const SPICY_HUBS = [
-  "InstagramBaddies","HotModels","SexyButNotPorn","NSFWCeleb","CelebWivesofReddit"
-];
+/*** bind after DOM is ready (and rebind if needed) ***/
+document.addEventListener('DOMContentLoaded', init);
+function init(){
+  try{
+    // ---------- storage ----------
+    const LS_SUBS='sw_subs_v3', LS_LIKES='sw_likes_v3';
+    let subs = loadSubs();
+    let likes = loadLikes();
+    let pool=[], shown=0, lastErrors=[];
 
-/* ---------- elements ---------- */
-const grid = $('#grid'), likedGridInner = $('#likedGridInner');
-const countEl = $('#count'), toastEl = $('#toast'), diagEl = $('#diag');
-$('#newBatch').onclick = ()=> newBatch();
-$('#loadMore').onclick = ()=> loadMore();
-$('#shuffle').onclick = ()=> shuffleAll();
-$('#trouble').onclick = ()=> openTrouble();
-$all('[data-view]').forEach(b=> b.onclick=()=> show(b.dataset.view));
-$('#exportLikes').onclick = exportLikes;
-$('#resetSubs').onclick = ()=>{ subs=[...DEFAULT_SUBS]; saveSubs(); renderSubs(); };
-$('#saveSubs').onclick = ()=>{ subs = parseSubs($('#subsBox').value); saveSubs(); newBatch(); };
+    function $(q,root=document){ return root.querySelector(q) }
+    function $all(q,root=document){ return [...root.querySelectorAll(q)] }
+    const grid=$('#grid'), likedGridInner=$('#likedGridInner');
+    const countEl=$('#count'), toastEl=$('#toast'), diagEl=$('#diag');
 
-function show(v){
-  if (v==='liked'){ renderLiked(); openSheet('likedSheet'); }
-  else if (v==='subs'){ renderSubs(); openSheet('subsSheet'); }
-  else { closeSheet('likedSheet'); closeSheet('subsSheet'); }
-}
-function openSheet(id){ $('#'+id).classList.add('open'); }
-function closeSheet(id){ $('#'+id).classList.remove('open'); }
-function openTrouble(){
-  const info = [
-    `Online: ${navigator.onLine}`,
-    `UA: ${navigator.userAgent}`,
-    `Pool: ${pool.length}, shown: ${shown}, likes: ${likes.length}`,
-    `Recent errors:`,
-    ...(lastErrors.length? lastErrors.map(e=>' - '+e) : [' - (none)'])
-  ].join('\n');
-  diagEl.textContent = info;
-  openSheet('troubleSheet');
-}
+    // mark JS ready
+    $('#status').textContent='NSFW enabled • people-only • spicy sprinkle';
+    $('#hardReload').onclick=(e)=>{ e.preventDefault(); location.replace(location.pathname+'?v='+(Date.now())); };
 
-/* ---------- utils ---------- */
-function $(q,root=document){ return root.querySelector(q); }
-function $all(q,root=document){ return [...root.querySelectorAll(q)]; }
-function toast(msg){ toastEl.textContent=msg; toastEl.classList.remove('hidden'); clearTimeout(toast._t); toast._t=setTimeout(()=>toastEl.classList.add('hidden'),1600); }
-function parseSubs(text){ return [...new Set(text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).map(s=>s.replace(/^r\//i,'')))] }
-function saveSubs(){ localStorage.setItem(LS_SUBS, JSON.stringify(subs)); $('#subsNote').textContent = `${subs.length} subs saved`; }
-function loadSubs(){ try{ return JSON.parse(localStorage.getItem(LS_SUBS)) || [...DEFAULT_SUBS]; }catch{ return [...DEFAULT_SUBS]; } }
-function loadLikes(){ try{ return JSON.parse(localStorage.getItem(LS_LIKES)) || []; }catch{ return []; } }
-function saveLikes(){ localStorage.setItem(LS_LIKES, JSON.stringify(likes)); }
-function setCount(){ countEl.textContent = `${shown}/${pool.length}`; }
+    // handlers
+    bindClicks();
+    function bindClicks(){
+      $('#newBatch').onclick=()=>newBatch();
+      $('#loadMore').onclick=()=>loadMore();
+      $('#shuffle').onclick=()=>shuffleAll();
+      $('#trouble').onclick=()=>openTrouble();
+      $all('[data-view]').forEach(b=> b.onclick=()=>show(b.dataset.view));
+      $('#exportLikes').onclick=exportLikes;
+      $('#resetSubs').onclick=()=>{ subs=[...DEFAULT_SUBS]; saveSubs(); renderSubs(); };
+      $('#saveSubs').onclick=()=>{ subs = parseSubs($('#subsBox').value); saveSubs(); newBatch(); };
+    }
 
-/* ---------- robust fetching ---------- */
-function subToUrls(sub){
-  const s = encodeURIComponent(sub);
-  return [
-    `https://www.reddit.com/r/${s}/hot.json?limit=25&raw_json=1`,
-    `https://www.reddit.com/r/${s}/new.json?limit=25&raw_json=1`,
-    `https://www.reddit.com/r/${s}/top.json?limit=25&t=day&raw_json=1`,
-    `https://api.reddit.com/r/${s}/hot?limit=25&raw_json=1`,
-    `https://api.reddit.com/r/${s}/top?limit=25&t=day&raw_json=1`,
-    `https://r.jina.ai/http://www.reddit.com/r/${s}/hot.json?limit=25&raw_json=1`,
-    `https://r.jina.ai/http://www.reddit.com/r/${s}/top.json?limit=25&t=day&raw_json=1`
-  ];
-}
-async function fetchOne(sub){
-  const urls = subToUrls(sub);
-  const timeout = (ms)=> new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms));
-  for(let attempt=0; attempt<3; attempt++){
-    for(const url of urls){
-      try{
-        const ctrl = new AbortController();
-        const t = setTimeout(()=>ctrl.abort(), 6000);
-        const res = await Promise.race([
-          fetch(url,{signal:ctrl.signal,cache:'no-store',credentials:'omit',headers:{'Accept':'application/json'}}),
-          timeout(6500)
-        ]);
-        clearTimeout(t);
-        if(!res || !res.ok){ logErr(`${sub}: ${res?res.status:'nores'}`); continue; }
-        const json = await res.json();
-        const kids = json?.data?.children || [];
-        if(!kids.length){ logErr(`${sub}: empty`); continue; }
-        const out=[];
-        for(const k of kids){
-          const d=k.data;
-          if(d.is_self||d.is_gallery) continue;
-          let src=null, kind='img';
-          const rv = d.secure_media?.reddit_video?.fallback_url || d.media?.reddit_video?.fallback_url;
-          if(rv){ src=rv; kind='vid'; }
-          else if(/\.(mp4|webm|gifv)(\?|$)/i.test(d.url||'')){ src=(d.url||'').replace(/\.gifv$/i,'.mp4'); kind='vid'; }
-          else{
-            const p=d.preview?.images?.[0]?.source?.url?.replace(/&amp;/g,'&');
-            if(p){ src=p; kind='img'; }
-            else if(/\.(jpg|jpeg|png|webp)(\?|$)/i.test(d.url||'')){ src=d.url; kind='img'; }
-          }
-          if(!src) continue;
-          out.push({ id:d.id, sub:d.subreddit, nsfw:!!d.over_18, media:{type:kind,src}, permalink:`https://reddit.com${d.permalink}` });
+    // defaults
+    const DEFAULT_SUBS = [
+      "EmilyRatajkowski","AnaDeArmas","AlexisRen","MadisonBeer","AddisonRae","HaileyBieber",
+      "BellaHadid","KylieJenner","KendallJenner","CharliDAmelio","ArianaGrande","SabrinaCarpenter",
+      "SydneySweeney","MargotRobbie","Zendaya","EmiliaClarke","JennaOrtega","FlorencePugh",
+      "AnyaTaylorJoy","AlexandraDaddario","ElizabethOlsen","GalGadot","EmmaWatson","DuaLipa",
+      "DojaCat","TaylorSwift","ScarlettJohansson","MeganFox","BarbaraPalvin","SaraSampaio",
+      "AlessandraAmbrosio","CandiceSwanepoel","GigiHadid","KaiaGerber","IrinaShayk","MirandaKerr",
+      "LilyCollins","CamilaMorrone","HaileeSteinfeld","SelenaGomez","OliviaRodrigo","Halsey",
+      "LeaElui","MadelynCline","VictoriaJustice","PeytonList","ChloeMoretz","SukiWaterhouse",
+      "RitaOra","AvaMax","BebeRexha","Jisoo","Jennie","Lisa","RoseBlackpink","KarinaAESPA",
+      "WinterAESPA","NinaDobrev","KatherineLangford","PhoebeDynevor","CamilaCabello",
+      "MayaHawke","SophieTurner"
+    ];
+    const SPICY_HUBS=["InstagramBaddies","HotModels","SexyButNotPorn","NSFWCeleb","CelebWivesofReddit"];
+
+    // utils
+    function toast(msg){ toastEl.textContent=msg; toastEl.classList.remove('hidden'); clearTimeout(toast._t); toast._t=setTimeout(()=>toastEl.classList.add('hidden'),1600); }
+    function parseSubs(text){ return [...new Set(text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).map(s=>s.replace(/^r\//i,'')))] }
+    function saveSubs(){ localStorage.setItem(LS_SUBS, JSON.stringify(subs)); $('#subsNote').textContent=`${subs.length} subs saved` }
+    function loadSubs(){ try{ return JSON.parse(localStorage.getItem(LS_SUBS)) || [...DEFAULT_SUBS] }catch{ return [...DEFAULT_SUBS] } }
+    function loadLikes(){ try{ return JSON.parse(localStorage.getItem(LS_LIKES)) || [] }catch{ return [] } }
+    function saveLikes(){ localStorage.setItem(LS_LIKES, JSON.stringify(likes)) }
+    function setCount(){ countEl.textContent=`${shown}/${pool.length}` }
+    function logErr(m){ lastErrors.unshift(m); lastErrors=lastErrors.slice(0,6); _refreshDiag(); }
+
+    function subToUrls(sub){
+      const s=encodeURIComponent(sub);
+      return [
+        `https://www.reddit.com/r/${s}/hot.json?limit=25&raw_json=1`,
+        `https://www.reddit.com/r/${s}/new.json?limit=25&raw_json=1`,
+        `https://www.reddit.com/r/${s}/top.json?limit=25&t=day&raw_json=1`,
+        `https://api.reddit.com/r/${s}/hot?limit=25&raw_json=1`,
+        `https://api.reddit.com/r/${s}/top?limit=25&t=day&raw_json=1`,
+        `https://r.jina.ai/http://www.reddit.com/r/${s}/hot.json?limit=25&raw_json=1`,
+        `https://r.jina.ai/http://www.reddit.com/r/${s}/top.json?limit=25&t=day&raw_json=1`
+      ];
+    }
+    async function fetchOne(sub){
+      const urls=subToUrls(sub);
+      const timeout=(ms)=>new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms));
+      for(let attempt=0;attempt<3;attempt++){
+        for(const url of urls){
+          try{
+            const res = await Promise.race([fetch(url,{cache:'no-store',credentials:'omit',headers:{'Accept':'application/json'}}), timeout(6500)]);
+            if(!res || !res.ok){ logErr(`${sub}: ${res?res.status:'nores'}`); continue; }
+            const json = await res.json();
+            const kids = json?.data?.children || [];
+            if(!kids.length){ logErr(`${sub}: empty`); continue; }
+            const out=[];
+            for(const k of kids){
+              const d=k.data; if(d.is_self||d.is_gallery) continue;
+              let src=null, kind='img';
+              const rv=d.secure_media?.reddit_video?.fallback_url||d.media?.reddit_video?.fallback_url;
+              if(rv){ src=rv; kind='vid'; }
+              else if(/\.(mp4|webm|gifv)(\?|$)/i.test(d.url||'')){ src=(d.url||'').replace(/\.gifv$/i,'.mp4'); kind='vid'; }
+              else{
+                const p=d.preview?.images?.[0]?.source?.url?.replace(/&amp;/g,'&');
+                if(p){ src=p; }
+                else if(/\.(jpe?g|png|webp)(\?|$)/i.test(d.url||'')){ src=d.url; }
+              }
+              if(!src) continue;
+              out.push({id:d.id,sub:d.subreddit,nsfw:!!d.over_18,media:{type:kind,src},permalink:`https://reddit.com${d.permalink}`});
+            }
+            if(out.length) return out;
+            logErr(`${sub}: no media`);
+          }catch(e){ logErr(`${sub}: ${e.message}`); }
         }
-        if(out.length) return out;
-        logErr(`${sub}: no media`);
-      }catch(e){ logErr(`${sub}: ${e.message}`); }
+        await new Promise(r=>setTimeout(r,700*(attempt+1)));
+      }
+      return [];
     }
-    await new Promise(r=>setTimeout(r, 700*(attempt+1)));
-  }
-  return [];
-}
 
-/* ---------- batching ---------- */
-async function newBatch(){
-  if (window.__buildingBatch) return;
-  window.__buildingBatch = true;
-  grid.innerHTML=''; pool=[]; shown=0; setCount(); lastErrors=[];
-  toast('Building batch…');
-
-  // pick 10 sources: ~80% names, 20% spicy hubs
-  const names = [...(subs?.length?subs:DEFAULT_SUBS)];
-  names.sort(()=>Math.random()-.5);
-  const pickCount = Math.min(10, Math.max(6, names.length));
-  const picks = [];
-  for(let i=0;i<pickCount;i++){
-    if(Math.random()<0.2 && SPICY_HUBS.length) picks.push(SPICY_HUBS[Math.floor(Math.random()*SPICY_HUBS.length)]);
-    else picks.push(names[i]);
-  }
-  const unique = [...new Set(picks)];
-
-  for(const s of unique){
-    const items = await fetchOne(s);
-    if(items.length){
-      items.sort(()=>Math.random()-.5);
-      pool.push(...items.slice(0,6));
+    async function newBatch(){
+      if(window.__buildingBatch) return;
+      window.__buildingBatch=true;
+      grid.innerHTML=''; pool=[]; shown=0; setCount(); lastErrors.length=0;
+      toast('Building batch…');
+      const names=[...(subs?.length?subs:DEFAULT_SUBS)]; names.sort(()=>Math.random()-.5);
+      const picks=[]; const pickCount=Math.min(10,Math.max(6,names.length));
+      for(let i=0;i<pickCount;i++){
+        if(Math.random()<0.2 && SPICY_HUBS.length) picks.push(SPICY_HUBS[Math.floor(Math.random()*SPICY_HUBS.length)]);
+        else picks.push(names[i]);
+      }
+      const unique=[...new Set(picks)];
+      for(const s of unique){ const it=await fetchOne(s); if(it.length){ it.sort(()=>Math.random()-.5); pool.push(...it.slice(0,6)); } await new Promise(r=>setTimeout(r,160)); }
+      const seen=new Set(), out=[]; for(const p of pool){ if(!seen.has(p.id)){seen.add(p.id); out.push(p);} }
+      pool=out.sort(()=>Math.random()-.5); setCount();
+      if(!pool.length) toast('No fresh posts. Tap New batch again.');
+      window.__buildingBatch=false;
     }
-    await new Promise(r=>setTimeout(r,160)); // gentle pacing
+    function loadMore(n=6){ if(!pool.length){ toast('Nothing queued. Tap New batch.'); return } const take=pool.slice(shown,shown+n); take.forEach(p=>grid.appendChild(renderCard(p))); shown+=take.length; setCount(); }
+    function shuffleAll(){ pool=pool.slice(0,shown).concat(pool.slice(shown).sort(()=>Math.random()-.5)); const nodes=[...grid.children]; nodes.sort(()=>Math.random()-.5).forEach(n=>grid.appendChild(n)); toast('Shuffled'); }
+
+    function renderCard(p){
+      const tilt=((Math.random()-.5)*1.2).toFixed(2)+'deg';
+      const card=document.createElement('div'); card.className='card'; card.style.setProperty('--tilt',tilt);
+      const fr=document.createElement('div'); fr.className='frame';
+      if(p.media.type==='vid'){ const v=document.createElement('video'); v.src=p.media.src; v.autoplay=true; v.loop=true; v.muted=true; v.playsInline=true; v.controls=false; v.addEventListener('error',()=>v.classList.add('hidden')); fr.appendChild(v); }
+      else { const img=new Image(); img.loading='lazy'; img.src=p.media.src; fr.appendChild(img); }
+      const sub=document.createElement('div'); sub.className='badge'; sub.textContent=`r/${p.sub}`; fr.appendChild(sub);
+      if(p.nsfw){ const ns=document.createElement('div'); ns.className='badge nsfw'; ns.textContent='NSFW'; fr.appendChild(ns); }
+      card.appendChild(fr);
+      const acts=document.createElement('div'); acts.className='acts';
+      const star=document.createElement('button'); star.className='star'; star.textContent='⭐';
+      if(likes.some(x=>x.id===p.id)) star.classList.add('liked');
+      star.onclick=()=>toggleLike(p,star);
+      const open=document.createElement('a'); open.className='pill'; open.target='_blank'; open.rel='noopener'; open.href=p.permalink; open.textContent='Reddit';
+      acts.append(star,open); card.appendChild(acts);
+      enableSwipe(card,(dir)=>{ card.style.transition='transform .22s ease, opacity .22s ease'; card.style.transform=`translateX(${dir==='right'?240:-240}px) rotate(${dir==='right'?7:-7}deg)`; card.style.opacity='0'; setTimeout(()=>card.remove(),180); if(dir==='right') toggleLike(p,star,true); });
+      return card;
+    }
+    function enableSwipe(el,onDone){
+      let sx=null,dx=0;
+      el.addEventListener('pointerdown',e=>{ sx=e.clientX; el.setPointerCapture(e.pointerId); el.style.transition=''; });
+      el.addEventListener('pointermove',e=>{ if(sx==null) return; dx=e.clientX-sx; el.style.transform=`translateX(${dx}px) rotate(${dx*.02}deg)`; el.style.opacity=String(1-Math.min(Math.abs(dx)/240,.35)); });
+      const end=()=>{ if(sx==null)return; const w=el.clientWidth; if(dx>w*0.28) onDone('right'); else if(dx<-w*0.28) onDone('left'); else { el.style.transition='transform .18s ease, opacity .18s ease'; el.style.transform=''; el.style.opacity='1'; } sx=null; dx=0; };
+      el.addEventListener('pointerup',end); el.addEventListener('pointercancel',end);
+    }
+    function toggleLike(p,star,silent=false){ const i=likes.findIndex(x=>x.id===p.id); if(i>=0){ likes.splice(i,1); star?.classList.remove('liked'); if(!silent) toast('Removed'); } else { likes.unshift(p); star?.classList.add('liked'); if(!silent) toast('Liked'); } saveLikes(); }
+    function renderLiked(){ likedGridInner.innerHTML=''; if(!likes.length){ likedGridInner.innerHTML='<div class="tiny">No likes yet.</div>'; return } likes.forEach(p=>likedGridInner.appendChild(renderCard(p))); }
+    function exportLikes(){ const blob=new Blob([JSON.stringify(likes,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='likes.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
+    function renderSubs(){ $('#subsBox').value=(subs&&subs.length?subs:DEFAULT_SUBS).join('\n'); $('#subsNote').textContent=`${(subs&&subs.length?subs:DEFAULT_SUBS).length} subs`; }
+    function show(v){ if(v==='liked'){ renderLiked(); openSheet('likedSheet'); } else if(v==='subs'){ renderSubs(); openSheet('subsSheet'); } else { closeSheet('likedSheet'); closeSheet('subsSheet'); } }
+    function openSheet(id){ $('#'+id).classList.add('open'); }
+    window.closeSheet=(id)=>$('#'+id).classList.remove('open');
+
+    function _diagText(){
+      return [
+        `Online: ${navigator.onLine}`,
+        `UA: ${navigator.userAgent}`,
+        `Pool size: ${pool.length}, shown: ${shown}, likes: ${likes.length}`,
+        `Recent errors:`,
+        ...(_errLog.length?_errLog.map(x=>' - '+x):[' - (none)']),
+        ...(lastErrors.length?['--- Reddit fetch:'].concat(lastErrors.map(x=>' - '+x)):[])
+      ].join('\n');
+    }
+    window._refreshDiag = function(){ $('#diag') && ($('#diag').textContent=_diagText()); }
+    function openTrouble(){ _refreshDiag(); openSheet('troubleSheet'); }
+
+    // initial
+    (async()=>{ await newBatch(); loadMore(8) })();
+
+    // expose for crash-guard rebinding
+    window.__rebinder = bindClicks;
+  }catch(e){
+    _errLog.unshift('init failed: '+e.message);
+    _refreshDiag();
   }
-
-  // final dedupe and shuffle
-  const seen=new Set(), out=[];
-  for(const p of pool){ if(!seen.has(p.id)){ seen.add(p.id); out.push(p);} }
-  pool = out.sort(()=>Math.random()-.5);
-  setCount();
-  if(!pool.length) toast('No fresh posts. Tap New batch again.');
-  window.__buildingBatch = false;
-}
-function loadMore(n=6){
-  if(pool.length===0){ toast('Nothing queued. Tap New batch.'); return; }
-  const take = pool.slice(shown, shown+n);
-  take.forEach(p=> grid.appendChild(renderCard(p)));
-  shown += take.length; setCount();
-}
-function shuffleAll(){
-  // reshuffle remaining pool and visible cards
-  pool = pool.slice(0,shown).concat(pool.slice(shown).sort(()=>Math.random()-.5));
-  const nodes=[...grid.children]; nodes.sort(()=>Math.random()-.5).forEach(n=>grid.appendChild(n));
-  toast('Shuffled');
 }
 
-/* ---------- rendering & gestures ---------- */
-function renderCard(p){
-  const tilt=((Math.random()-.5)*1.2).toFixed(2)+'deg';
-  const card=document.createElement('div'); card.className='card'; card.style.setProperty('--tilt',tilt);
-  const fr=document.createElement('div'); fr.className='frame';
-  if(p.media.type==='vid'){
-    const v=document.createElement('video');
-    v.src=p.media.src; v.autoplay=true; v.loop=true; v.muted=true; v.playsInline=true; v.controls=false;
-    v.addEventListener('error',()=>v.classList.add('hidden'));
-    fr.appendChild(v);
-  }else{
-    const img=new Image(); img.loading='lazy'; img.src=p.media.src; fr.appendChild(img);
-  }
-  const sub=document.createElement('div'); sub.className='badge'; sub.textContent=`r/${p.sub}`;
-  fr.appendChild(sub);
-  if(p.nsfw){ const ns=document.createElement('div'); ns.className='badge nsfw'; ns.textContent='NSFW'; fr.appendChild(ns); }
-  card.appendChild(fr);
-
-  const acts=document.createElement('div'); acts.className='acts';
-  const star=document.createElement('button'); star.className='star'; star.textContent='⭐';
-  if(likes.some(x=>x.id===p.id)) star.classList.add('liked');
-  star.onclick=()=> toggleLike(p, star);
-  const open=document.createElement('a'); open.className='pill'; open.target='_blank'; open.rel='noopener'; open.href=p.permalink; open.textContent='Reddit';
-  acts.append(star, open); card.appendChild(acts);
-
-  enableSwipe(card, (dir)=>{
-    card.style.transition='transform .22s ease, opacity .22s ease';
-    card.style.transform=`translateX(${dir==='right'?240:-240}px) rotate(${dir==='right'?7:-7}deg)`; card.style.opacity='0';
-    setTimeout(()=>card.remove(), 180);
-    if(dir==='right') toggleLike(p, star, true);
-  });
-  return card;
-}
-function enableSwipe(el, onDone){
-  let sx=null, dx=0;
-  el.addEventListener('pointerdown',e=>{ sx=e.clientX; el.setPointerCapture(e.pointerId); el.style.transition=''; });
-  el.addEventListener('pointermove',e=>{ if(sx==null) return; dx=e.clientX-sx; el.style.transform=`translateX(${dx}px) rotate(${dx*.02}deg)`; el.style.opacity=String(1-Math.min(Math.abs(dx)/240,.35)); });
-  const end=()=>{ if(sx==null) return; const w=el.clientWidth; if(dx>w*0.28) onDone('right'); else if(dx<-w*0.28) onDone('left'); else { el.style.transition='transform .18s ease, opacity .18s ease'; el.style.transform=''; el.style.opacity='1'; } sx=null; dx=0; };
-  el.addEventListener('pointerup',end); el.addEventListener('pointercancel',end);
-}
-
-/* ---------- likes ---------- */
-function toggleLike(p, star, silent=false){
-  const i = likes.findIndex(x=>x.id===p.id);
-  if(i>=0){ likes.splice(i,1); star?.classList.remove('liked'); if(!silent) toast('Removed'); }
-  else { likes.unshift(p); star?.classList.add('liked'); if(!silent) toast('Liked'); }
-  saveLikes();
-}
-function renderLiked(){
-  likedGridInner.innerHTML='';
-  if(!likes.length){ likedGridInner.innerHTML='<div class="tiny">No likes yet.</div>'; return; }
-  likes.forEach(p=> likedGridInner.appendChild(renderCard(p)));
-}
-function exportLikes(){
-  const blob=new Blob([JSON.stringify(likes,null,2)],{type:'application/json'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='likes.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-}
-
-/* ---------- subs UI ---------- */
-function renderSubs(){
-  $('#subsBox').value = (subs && subs.length ? subs : DEFAULT_SUBS).join('\n');
-  $('#subsNote').textContent = `${(subs&&subs.length?subs:DEFAULT_SUBS).length} subs`;
-}
-
-/* ---------- init ---------- */
-(async function init(){
-  $('#status').textContent='NSFW enabled • people-only • spicy sprinkle';
-  await newBatch();
-  loadMore(8);
-})();
+// if something prevented binding, try once more after load
+window.addEventListener('load', ()=>{ if (window.__rebinder) window.__rebinder(); });
 </script>
 </body>
 </html>
