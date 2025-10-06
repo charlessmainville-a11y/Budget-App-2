@@ -2,305 +2,443 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Scroll Wall — v4.1</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Scroll Wall • Build v4.2</title>
 <style>
-:root{
-  --bg:#0c1116; --ink:#e9eef4; --muted:#a3afbf;
-  --panel:#141a22; --panel2:#0f141a; --accent:#ff7aa2;
-  --accent-ink:#1b0c13; --ring:rgba(255,255,255,.12);
-}
-*{box-sizing:border-box}
-html,body{margin:0;height:100%;background:radial-gradient(1200px 600px at 30% -10%, #1b2430 0%, #0c1116 60%) fixed, var(--bg);color:var(--ink);font:16px/1.35 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
-button{cursor:pointer;border:0;background:transparent;color:inherit}
-.app{max-width:860px;margin:18px auto 120px;padding:0 16px}
-.header{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
-.badge{background:linear-gradient(180deg,#1a212b,#111820);border:1px solid var(--ring);padding:10px 16px;border-radius:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
-.badge.pink{background:linear-gradient(180deg,#ff99b5,#ff7aa2);color:#1a0e15;border-color:#ffb0c6}
-.hint{color:var(--muted);opacity:.8}
-.controls{background:linear-gradient(180deg,#111821,#0d1218);border:1px solid var(--ring);border-radius:22px;padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;position:sticky;top:0;z-index:5;backdrop-filter:blur(10px)}
-.controls .big{grid-column:1/3;background:linear-gradient(180deg,#ff99b5,#ff7aa2);color:#1b0c13;border:1px solid #ffb0c6;border-radius:18px;padding:14px 18px;font-weight:800;font-size:20px}
-.controls .pill{background:linear-gradient(180deg,#1a212b,#111820);border:1px solid var(--ring);border-radius:16px;padding:12px 16px;font-weight:700;text-align:center}
-.counter{font-weight:900;font-size:22px;letter-spacing:.5px;text-align:center}
-.grid{display:grid;gap:18px;margin-top:18px}
-.card{background:linear-gradient(180deg,#121922,#0f141b);border:1px solid var(--ring);border-radius:26px;padding:14px 14px 12px;box-shadow:0 14px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04)}
-.frame{position:relative;border-radius:18px;overflow:hidden;background:#0a0f14}
-.media{width:100%;height:64vh;max-height:560px;object-fit:contain;background:#0a0f14;display:block}
-.stamp{position:absolute;top:10px;left:12px;background:rgba(0,0,0,.35);padding:6px 10px;border-radius:12px;font-weight:700;font-size:13px;backdrop-filter:blur(6px)}
-.actions{display:flex;gap:10px;align-items:center;margin-top:10px}
-.tag{background:linear-gradient(180deg,#1a212b,#111820);border:1px solid var(--ring);border-radius:12px;padding:10px 14px;font-weight:800;color:#cfe6ff}
-.star,.nope{flex:0 0 auto;padding:12px 16px;border-radius:14px;font-size:18px;font-weight:900}
-.star{background:linear-gradient(180deg,#ffafc5,#ff7aa2);color:#291018;border:1px solid #ffc2d3}
-.nope{background:linear-gradient(180deg,#ffb2a6,#ff8b7e);color:#2a0e0a;border:1px solid #ffc3bb}
-@keyframes pop {0%{transform:scale(.9);opacity:.0} 50%{transform:scale(1.05);opacity:1} 100%{transform:scale(1);opacity:1}}
-.pop{animation:pop .28s ease-out}
-.sheet{position:fixed;inset:0;background:rgba(8,12,16,.7);backdrop-filter:blur(8px);display:none;align-items:flex-start;justify-content:center;padding:20px;z-index:50}
-.sheet .box{max-width:860px;width:100%;background:linear-gradient(180deg,#101620,#0d1218);border:1px solid var(--ring);border-radius:20px;padding:16px}
-.sheet.open{display:flex}
-.sheet .title{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.code{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;white-space:pre-wrap;background:#0a0f14;border:1px solid var(--ring);border-radius:14px;padding:12px;color:#cfe6ff}
-.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#2a171b;border:1px solid #6f2f3a;color:#ffb3c2;padding:12px 16px;border-radius:14px;display:none}
-.toast.show{display:block}
-@media (max-width:480px){ .media{height:60vh} }
+  :root{
+    --ink:#e9eef5; --ink-dim:#b9c2cf;
+    --bg:#0a0f14; --bg2:#0e141c; --panel:#121a23;
+    --accent:#ff6fa0; --accent-ink:#200914;
+    --good:#ffd24d; --bad:#ff8a7a; --ok:#79d2ff;
+    --ring:#2a3a4f; --ring2:#3a4f6a; --shadow:#000000aa;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif;
+    color:var(--ink); background:
+      radial-gradient(1200px 600px at 50% -200px,#1a2230 0%,#0d1218 60%,#0a0f14 100%),
+      linear-gradient(#0e141c,#0a0f14);
+    background-attachment:fixed;
+  }
+  .wrap{max-width:820px;margin:18px auto 80px;padding:0 14px}
+  header{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0 14px}
+  header .ver{margin-left:auto;opacity:.7;font-weight:600}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
+    padding:.9rem 1.2rem;border-radius:16px;background:linear-gradient(180deg,#182231,#111821);
+    color:var(--ink); border:1px solid var(--ring); box-shadow:0 6px 20px -10px #000;
+    user-select:none; -webkit-tap-highlight-color:transparent; cursor:pointer;
+    transition:.2s transform,.2s background,.2s border-color,.2s opacity;
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{background:linear-gradient(180deg,#ff7cab,#ff6fa0); color:var(--accent-ink); font-weight:800}
+  .btn.badge{position:relative}
+  .badge-dot{position:absolute;top:-6px;right:-6px;height:12px;width:12px;background:var(--good);border-radius:50%;box-shadow:0 0 0 2px #0a0f14}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .stat{min-width:92px;text-align:center;border:1px dashed var(--ring);border-radius:16px;padding:.9rem 1.1rem;color:var(--ink-dim)}
+  .toast{
+    position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#1b2431;color:#ffdede;
+    border:1px solid #563549;border-radius:14px;padding:.8rem 1rem;box-shadow:0 10px 30px var(--shadow);
+    max-width:90vw;z-index:60;display:none
+  }
+  .panel{background:linear-gradient(180deg,#111922,#0f1720);border:1px solid var(--ring);border-radius:20px;padding:16px;box-shadow:0 10px 40px #00000055}
+  .grid{display:grid;gap:18px;margin-top:16px}
+  .card{
+    position:relative;background:linear-gradient(180deg,#121c27,#0f171f); border:1px solid var(--ring2);
+    border-radius:22px; padding:14px 14px 12px; box-shadow:0 20px 60px #00000066;
+    overflow:hidden; touch-action:pan-y; /* allow vertical scroll; we handle horizontal swipe */
+  }
+  .polaroid{
+    background:#121820;border-radius:16px;padding:10px;border:1px solid #223144;
+    box-shadow:0 12px 24px #00000066 inset, 0 18px 50px #00000088;
+  }
+  .media{
+    width:100%;max-height:68vh;object-fit:cover;border-radius:12px;display:block;background:#0c131a;
+  }
+  .meta{display:flex;gap:10px;align-items:center;margin:10px 2px 0}
+  .chip{padding:.45rem .8rem;border-radius:999px;background:#162233;border:1px solid #253549;color:#cfe4ff}
+  .actions{display:flex;gap:10px;margin-left:auto}
+  .like,.dislike{
+    height:44px;width:58px;border-radius:14px;border:1px solid #2a3b51;display:inline-flex;align-items:center;justify-content:center;
+    background:linear-gradient(180deg,#182231,#111821); box-shadow:0 8px 28px #00000066; font-size:22px
+  }
+  .like{background:linear-gradient(180deg,#ffd680,#ffc54a);color:#3a2600;border-color:#6a5220}
+  .dislike{background:linear-gradient(180deg,#ff9e90,#ff8576);color:#3a1010;border-color:#6a3030}
+  .ghost{opacity:.55;pointer-events:none}
+  /* swipe cues */
+  .cue{position:absolute;top:12px;left:12px;padding:.35rem .6rem;border-radius:999px;font-weight:700;backdrop-filter:blur(6px);display:none}
+  .cue.like{background:#ffd24d; color:#201400}
+  .cue.dislike{background:#ff8a7a;color:#200707}
+  /* Troubleshoot modal */
+  dialog{border:none;background:#0e1520;padding:0;border-radius:18px;box-shadow:0 30px 90px #000}
+  dialog::backdrop{background:#0008}
+  .diag-body{padding:14px}
+  pre{white-space:pre-wrap;max-height:55vh;overflow:auto;background:#0c121a;border:1px solid #223044;border-radius:12px;padding:12px}
+  .verbar{opacity:.7;margin:0 8px}
 </style>
 </head>
 <body>
-<div class="app" id="app">
-  <div class="header">
-    <div class="badge">Build <strong>v4.1</strong></div>
-    <button class="badge" id="btnHome">Home</button>
-    <button class="badge" id="btnLiked">Liked ⭐</button>
-    <button class="badge" id="btnTrouble">Troubleshoot 🩺</button>
-    <div class="hint" id="modeHint">NSFW enabled · people-only · spicy sprinkle</div>
+  <div class="wrap">
+    <header>
+      <button id="homeBtn" class="btn">Home</button>
+      <button id="likedBtn" class="btn badge">Liked ⭐<span id="likedDot" class="badge-dot" style="display:none"></span></button>
+      <button id="tsBtn" class="btn">Troubleshoot 🩺</button>
+      <span class="ver">NSFW enabled<span class="verbar">•</span>people-only<span class="verbar">•</span>Build v4.2</span>
+    </header>
+
+    <div class="panel row">
+      <button id="newBatch" class="btn">New batch</button>
+      <button id="loadMore" class="btn primary">Load more</button>
+      <div id="counter" class="stat">0/0</div>
+      <button id="shuffle" class="btn">Shuffle 🔀</button>
+    </div>
+
+    <div id="list" class="grid"></div>
   </div>
 
-  <div class="controls">
-    <button class="big" id="btnLoad">Load more</button>
-    <div class="pill counter" id="counter">0/0</div>
-    <button class="pill" id="btnNew">New batch</button>
-    <button class="pill" id="btnShuffle">Shuffle 🔀</button>
-  </div>
+  <div id="toast" class="toast"></div>
 
-  <div class="grid" id="feed"></div>
-</div>
-
-<div class="sheet" id="likedSheet" aria-hidden="true">
-  <div class="box">
-    <div class="title">
-      <strong>Liked ⭐</strong>
-      <div>
-        <button class="badge" id="btnExport">Export JSON</button>
-        <button class="badge" id="btnClearLikes">Clear</button>
-        <button class="badge pink" id="btnCloseLiked">Close</button>
+  <dialog id="diag">
+    <div class="diag-body">
+      <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px">
+        <strong style="font-size:18px">Troubleshoot</strong>
+        <button id="diagClose" class="btn primary" style="padding:.5rem 1rem">Close</button>
       </div>
+      <pre id="logBox">Loading…</pre>
     </div>
-    <div id="likedGrid" class="grid"></div>
-  </div>
-</div>
-
-<div class="sheet" id="troubleSheet" aria-hidden="true">
-  <div class="box">
-    <div class="title">
-      <strong>Troubleshoot</strong>
-      <button class="badge pink" id="btnCloseTrouble">Close</button>
-    </div>
-    <div class="code" id="diag">Loading…</div>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
+  </dialog>
 
 <script>
-/* ===== Config ===== */
-const BUILD = "v4.1";
-const TARGET_BATCH = 6;
-const PAGE_SIZE = 3;
-const HOSTS = ["https://api.redgifs.com","https://api-cdn.redgifs.com"];
-const NAME_BIAS = 1.0;
+(() => {
+  // ----------------------------
+  // Config
+  // ----------------------------
+  const BUILD = '4.2';
+  const NAMES = [
+    // keep it people-only; mostly models / influencers / actors (adult-only content intended)
+    "Alexis Ren","Ana de Armas","Anya Taylor-Joy","Addison Rae","Amelia Gray","Barbara Palvin","Bella Hadid","Camila Morrone",
+    "Camila Cabello","Candice Swanepoel","Charli D'Amelio","Dua Lipa","Emily Ratajkowski","Emilia Clarke","Hailee Steinfeld",
+    "Hailey Bieber","Jenna Ortega","Jennie Blackpink","Kendall Jenner","Kylie Jenner","Kaia Gerber","Lily-Rose Depp","Madelyn Cline",
+    "Madison Beer","Megan Fox","Mia Khalifa","Nina Dobrev","Rita Ora","Sabrina Carpenter","Sydney Sweeney","Taylor Hill","Zendaya",
+    "Sommer Ray","Alexandra Daddario","Salma Hayek","Gal Gadot","Sofia Vergara","Doja Cat","Kali Uchis","Iggy Azalea","Lais Ribeiro",
+    "Bruna Marquezine","Sophie Turner","Gigi Hadid","Dixie D'Amelio","Alessandra Ambrosio","Rosie Huntington-Whiteley","Karlie Kloss",
+    "Irina Shayk","Olivia Rodrigo","Lana Del Rey","Ariana Grande","Maitreyi Ramakrishnan","Rachel Cook","Madi Edwards","Lexi Rivera",
+    "Pia Wurtzbach","Hannah Palmer","Violet Myers","Sophie Mudd","Paige Spiranac","Natalie Roush","Hana Bunny","Lindsey Pelas",
+    "Lyna Perez","Abigail Ratchford","Charly Jordan","Tana Mongeau","Lauren Summer","Jailyne Ojeda"
+  ];
+  const REDGIFS_HOST = 'https://api.redgifs.com';
+  const FETCH_TIMEOUT = 12000;         // ms for each HTTP call
+  const PER_PULL = 6;                   // try to fetch up to this many items per "Load more"
+  const MAX_POOL = 60;                  // cap in-memory pool
 
-const NAMES = [
-"Addison Rae","Adriana Lima","Alexandra Daddario","Alexis Ren","Alisha Lehmann","Alix Earle",
-"Ana de Armas","Ananya Panday","Anne Hathaway","Anya Taylor-Joy","Ariana Grande","Ashley Graham",
-"Barbara Palvin","Bella Hadid","Bebe Rexha","Blake Lively","Camila Cabello","Camila Morrone","Candice Swanepoel",
-"Charli D’Amelio","Chloe Bailey","Daisy Keech","Disha Patani","Dua Lipa","Elle Fanning","Emilia Clarke",
-"Emily Ratajkowski","Emma Chamberlain","Emma Watson","Gal Gadot","Gigi Hadid","Hailee Steinfeld","Hailey Bieber",
-"Haley Kalil","Halle Bailey","Hannah Palmer","Iggy Azalea","Irina Shayk","Jenna Ortega","Jennifer Lawrence",
-"Jessica Alba","Joey King","Josephine Skriver","Jisoo","Jourdan Dunn","Kali Uchis","Kara Del Toro","Karlie Kloss",
-"Kendall Jenner","Kim Kardashian","Kylie Jenner","Kaia Gerber","Keke Palmer","Lais Ribeiro","Lana Del Rey",
-"Lily-Rose Depp","Lily Collins","Lorena Rae","Madelyn Cline","Madison Beer","Megan Fox","Megan Thee Stallion",
-"Miranda Kerr","Molly Eskam","Naomi Scott","Natalie Portman","Nina Agdal","Nina Dobrev","Olivia Culpo","Olivia Holt",
-"Olivia Rodrigo","Paris Hilton","Rihanna","Sabrina Carpenter","Sadie Sink","Salma Hayek","Sara Sampaio",
-"Selena Gomez","Sofia Carson","Sofia Vergara","Sommer Ray","Sydney Sweeney","Taylor Hill","Taylor Swift",
-"Vanessa Hudgens","Victoria Justice","Yara Shahidi","Zendaya","Loren Gray","Lea Elui","Kendall Vertes",
-"Charli Howard","Elsa Hosk","Kylie Verzosa","Pia Wurtzbach","Deepika Padukone","Janhvi Kapoor",
-"Sara Ali Khan","Anushka Sharma","Taissa Farmiga","Mila Kunis","Emmy Rossum"
-];
-const SPICY = ["lingerie","bikini","photoshoot","runway","backstage","swimsuit"];
+  // ----------------------------
+  // State
+  // ----------------------------
+  let token = null;
+  let tokenAt = 0;
+  let pool = [];   // queued media (objects with {title, mp4, poster, label})
+  let shown = 0;
+  let likes = JSON.parse(localStorage.getItem('likes.v1')||'[]');
+  let cooldownUntil = 0;
+  const logLines = [];
 
-/* ===== State ===== */
-const feedEl = document.getElementById('feed');
-const counterEl = document.getElementById('counter');
-const toastEl = document.getElementById('toast');
-const likedSheet = document.getElementById('likedSheet');
-const likedGrid = document.getElementById('likedGrid');
-const troubleSheet = document.getElementById('troubleSheet');
-const diagEl = document.getElementById('diag');
-
-let token = null, tokenTime = 0;
-let pool = [], shown = 0, likes = loadLikes();
-let lastError = "(none)";
-
-/* ===== Utils ===== */
-function showToast(m){toastEl.textContent=m;toastEl.classList.add('show');setTimeout(()=>toastEl.classList.remove('show'),1800)}
-function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-function loadLikes(){try{return JSON.parse(localStorage.getItem('likes_v1')||'[]')}catch{return[]}}
-function saveLikes(){localStorage.setItem('likes_v1',JSON.stringify(likes))}
-function setCounter(){counterEl.textContent=`${shown}/${pool.length}`}
-const age = () => Date.now()-tokenTime;
-
-/* ===== Token (auto-refresh every 5 min) ===== */
-async function ensureToken(){
-  if (token && age()<5*60*1000) return token;
-  for (const host of HOSTS){
-    try{
-      const r = await fetch(`${host}/v2/auth/temporary`,{mode:'cors'});
-      if (!r.ok) { lastError=`auth ${r.status}`; continue; }
-      const j = await r.json();
-      token = j?.token||null; tokenTime = Date.now();
-      if (token) return token;
-    }catch(e){ lastError = `auth err ${e.message||e}`; }
+  // ----------------------------
+  // Helpers
+  // ----------------------------
+  const $ = sel => document.querySelector(sel);
+  const on = (el,ev,fn) => el.addEventListener(ev,fn,{passive:true});
+  const sleep = ms => new Promise(r=>setTimeout(r,ms));
+  const now = () => Date.now();
+  function log(msg){
+    const stamp = new Date().toLocaleTimeString();
+    const line = `[${stamp}] ${msg}`;
+    logLines.push(line);
+    if(logLines.length>200) logLines.shift();
+    // also show small toasts for notable issues
+    if (/429|token|auth|failed/i.test(msg)) toast(msg.includes('429')?'Rate limited — pausing briefly':'⚠️ '+msg, 1800);
+    updateDiag();
   }
-  return null;
-}
-
-/* ===== Search (with smart retries + better diagnostics) ===== */
-async function searchOnce(host, q, count, variant=0){
-  // variant 0: default search_text
-  // variant 1: add spicy tag
-  const text = variant===1 ? `${q} ${SPICY[Math.floor(Math.random()*SPICY.length)]}` : q;
-  const url = `${host}/v2/gifs/search?search_text=${encodeURIComponent(text)}&order=trending&count=${count}&from=0`;
-  const t = await ensureToken(); if(!t) throw new Error("token missing");
-  const r = await fetch(url,{headers:{Authorization:`Bearer ${t}`},mode:'cors'});
-  if (!r.ok){ const msg = `HTTP ${r.status}`; if (r.status===429) throw new Error("429 rate limited"); throw new Error(msg); }
-  const j = await r.json();
-  return (j?.gifs||[]).map(g=>({
-    id:g.id,
-    url:g?.urls?.hd||g?.urls?.sd||g?.urls?.gif||"",
-    preview:g?.urls?.poster||"",
-    width:g?.width,height:g?.height,
-    author:g?.userName||"", title:g?.title||"",
-    source:"RedGifs", query:text
-  })).filter(x=>x.url);
-}
-
-async function searchRedgifs(q, count=24){
-  let last = "";
-  for (const host of HOSTS){
-    try { const a = await searchOnce(host,q,count,0); if (a.length) return a; last=`${host} empty`; }
-    catch(e){ lastError = `${q}: ${e.message||e}`; last = lastError;}
-    // try a spicy variant before switching host again
-    try { const b = await searchOnce(host,q,count,1); if (b.length) return b; }
-    catch(e){ last = `${q}: ${e.message||e}`; }
+  function toast(text, ms=1600){
+    const t = $('#toast');
+    t.textContent = text;
+    t.style.display='block';
+    clearTimeout(t._h);
+    t._h=setTimeout(()=>t.style.display='none', ms);
   }
-  throw new Error(last||"no results");
-}
+  function setBusy(btn, busy=true){
+    btn.classList.toggle('ghost',busy);
+    btn.disabled = busy;
+  }
+  function updateCounter(){ $('#counter').textContent = `${shown}/${pool.length}`; }
+  function updateLikedDot(){ $('#likedDot').style.display = likes.length? 'block':'none'; }
 
-/* ===== Batch ===== */
-function pickQueries(n){
-  const names = shuffle([...NAMES]).slice(0, Math.ceil(n*NAME_BIAS));
-  const extra = Array.from({length:Math.max(0,n-names.length)}, ()=>`${NAMES[Math.floor(Math.random()*NAMES.length)]} ${SPICY[Math.floor(Math.random()*SPICY.length)]}`);
-  return shuffle([...names,...extra]);
-}
-
-async function buildBatch(){
-  pool.length=0; shown=0; setCounter(); feedEl.innerHTML="";
-  const want = TARGET_BATCH;
-  const queries = pickQueries(Math.max(6,want*3));
-  for (const q of queries){
-    if (pool.length>=want) break;
+  // ----------------------------
+  // Token & fetch with timeout
+  // ----------------------------
+  async function ensureToken(force=false){
+    if(!force && token && (now()-tokenAt)<(4*60*1000)) return token; // 4 min
     try{
-      const items = await searchRedgifs(q, 24);
-      // Looser filter now – only require we have a usable url
-      shuffle(items).slice(0,2).forEach(it=>pool.push(it));
+      const res = await fetch(`${REDGIFS_HOST}/v2/auth/temporary`, {method:'POST', headers:{'Content-Type':'application/json'}});
+      if(!res.ok){ log(`Auth error ${res.status}`); throw new Error('auth '+res.status); }
+      const data = await res.json();
+      token = data?.access_token || data?.token || null;
+      tokenAt = now();
+      log('Got new RedGifs token');
+      return token;
     }catch(e){
-      lastError = `${q}: ${e.message||e}`;
-      if (String(e).includes("429")) await new Promise(r=>setTimeout(r, 900));
+      log('Token fetch failed: '+e.message);
+      throw e;
     }
   }
-  shuffle(pool); setCounter();
-  if(!pool.length) showToast("No posts yet. Tap Shuffle, then Load more, or try again in ~30–60s.");
-}
-
-/* ===== Render ===== */
-function cardTemplate(item, idx){
-  const isVideo = /\.mp4|\.webm/i.test(item.url);
-  const media = isVideo
-    ? `<video class="media" playsinline muted loop controls preload="metadata" poster="${item.preview||''}">
-         <source src="${item.url}" type="video/mp4"></video>`
-    : `<img class="media" src="${item.url}" alt="">`;
-  return `<div class="card" data-idx="${idx}">
-    <div class="frame">
-      ${media}
-      <div class="stamp">${item.query} · ${item.source}</div>
-    </div>
-    <div class="actions">
-      <div class="tag">${item.source}</div><div style="flex:1"></div>
-      <button class="star" title="Like">⭐</button>
-      <button class="nope" title="Remove">👎</button>
-    </div>
-  </div>`;
-}
-
-function renderMore(n=PAGE_SIZE){
-  const end = Math.min(pool.length, shown+n);
-  for(let i=shown;i<end;i++){
-    const html = cardTemplate(pool[i], i);
-    const wrap = document.createElement('div'); wrap.innerHTML = html;
-    const card = wrap.firstElementChild;
-    feedEl.appendChild(card);
-
-    const media = card.querySelector('.media');
-    if (media && media.tagName==='VIDEO'){
-      media.addEventListener('canplay', ()=>media.play().catch(()=>{}), {once:true});
-      setTimeout(()=>media.play().catch(()=>{}), 40);
-    }
-
-    card.querySelector('.star').addEventListener('click', ()=>{ likeItem(pool[i]); card.classList.add('pop'); showToast("Saved to Liked ⭐"); });
-    card.querySelector('.nope').addEventListener('click', ()=> card.remove());
+  async function xfetch(url, opt={}){
+    const ctrl = new AbortController();
+    const t = setTimeout(()=>ctrl.abort(), opt.timeout||FETCH_TIMEOUT);
+    try{
+      const res = await fetch(url, { ...opt, signal: ctrl.signal });
+      return res;
+    } finally { clearTimeout(t); }
   }
-  shown=end; setCounter();
-}
 
-/* ===== Likes ===== */
-function likeItem(it){
-  likes.unshift({t:Date.now(),url:it.url,preview:it.preview,where:it.source,query:it.query});
-  likes=likes.slice(0,500); saveLikes();
-}
-function openLiked(){
-  likedGrid.innerHTML = likes.length?"":"<div class='hint'>No likes yet.</div>";
-  likes.forEach((it,i)=>{
-    const isVideo=/\.mp4|\.webm/i.test(it.url);
-    const media=isVideo?`<video class="media" playsinline muted loop controls preload="metadata" poster="${it.preview||''}"><source src="${it.url}" type="video/mp4"></video>`:`<img class="media" src="${it.url}" alt="">`;
-    const row=document.createElement('div'); row.className='card';
-    row.innerHTML=`<div class="frame">${media}<div class="stamp">${it.query||''} · ${it.where||''}</div></div>
-                   <div class="actions"><div class="tag">${new Date(it.t).toLocaleString()}</div><div style="flex:1"></div><button class="nope">Remove</button></div>`;
-    row.querySelector('.nope').addEventListener('click',()=>{likes.splice(i,1);saveLikes();row.remove();});
-    const v=row.querySelector('video'); if(v){setTimeout(()=>v.play().catch(()=>{}),50);}
-    likedGrid.appendChild(row);
-  });
-  likedSheet.classList.add('open');
-}
+  // ----------------------------
+  // Search RedGifs for a person name
+  // ----------------------------
+  function nameVariants(name){
+    // a few query variations to improve hit rate
+    const base = name.replace(/[^\w\s']/g,' ').replace(/\s+/g,' ').trim();
+    const parts = [base, `${base} model`, `${base} instagram`, `${base} bikini`];
+    // randomize order each time
+    return parts.sort(()=>Math.random()-.5);
+  }
+  async function searchOne(name){
+    const tok = await ensureToken();
+    const headers = { Authorization: 'Bearer '+tok };
+    const variants = nameVariants(name);
+    for (let i=0;i<variants.length;i++){
+      const q = encodeURIComponent(variants[i]);
+      const url = `${REDGIFS_HOST}/v2/gifs/search?search_text=${q}&order=trending&count=30`;
+      try{
+        const res = await xfetch(url,{headers});
+        if(res.status===429){ cooldownUntil = now()+ (1000 + Math.random()*1500); log(`429 from RedGifs (query "${variants[i]}")`); await sleep(400); continue; }
+        if(res.status===401 || res.status===403){ log('Token rejected — refreshing'); await ensureToken(true); i--; continue; }
+        if(!res.ok){ log(`Search ${variants[i]}: ${res.status}`); continue; }
+        const data = await res.json();
+        const arr = (data?.gifs)||[];
+        const mapped = arr.map(g => {
+          const mp4 = g?.urls?.hd || g?.urls?.sd || '';
+          const poster = g?.urls?.poster || g?.urls?.thumbnail || '';
+          return mp4 ? { title: g?.title || name, mp4, poster, label: name } : null;
+        }).filter(Boolean);
+        if(mapped.length){ return mapped; }
+      }catch(e){
+        if(e.name==='AbortError'){ log('Timeout on '+variants[i]); }
+        else log('Fetch error: '+e.message);
+      }
+    }
+    log(`${name}: Load failed`);
+    return [];
+  }
 
-/* ===== Troubleshoot ===== */
-function openTrouble(){
-  const log = `Online: ${navigator.onLine}
-UA: ${navigator.userAgent}
+  // ----------------------------
+  // Pool management
+  // ----------------------------
+  async function fillPool(amount=PER_PULL){
+    if(now()<cooldownUntil){ const wait= cooldownUntil-now(); log(`Cooling down ${Math.ceil(wait)}ms`); await sleep(wait); }
+    const need = Math.max(0, amount - (pool.length - shown));
+    if(need<=0) return;
+    const names = [...NAMES].sort(()=>Math.random()-.5).slice(0, need*2); // extra to absorb misses
+    const batches = [];
+    for (const nm of names){
+      batches.push(searchOne(nm));
+      if (batches.length>=3){ // limit parallelism
+        const packs = await Promise.all(batches.splice(0));
+        for (const p of packs) pushToPool(p);
+      }
+    }
+    if (batches.length){
+      const packs = await Promise.all(batches);
+      for (const p of packs) pushToPool(p);
+    }
+  }
+  function pushToPool(items){
+    if(!items?.length) return;
+    pool.push(...items);
+    // cap
+    if(pool.length>MAX_POOL) pool = pool.slice(-MAX_POOL);
+    updateCounter();
+  }
+
+  // ----------------------------
+  // UI rendering
+  // ----------------------------
+  function makeCard(item){
+    const card = document.createElement('div'); card.className='card';
+    const cueLike = Object.assign(document.createElement('div'),{className:'cue like',textContent:'LIKE'});
+    const cueDis = Object.assign(document.createElement('div'),{className:'cue dislike',textContent:'NOPE'});
+    const frame = document.createElement('div'); frame.className='polaroid';
+    const v = document.createElement('video');
+    v.className='media';
+    v.muted = true; v.playsInline = true; v.autoplay = true; v.loop = true; v.controls = false;
+    v.src = item.mp4; if(item.poster) v.poster = item.poster;
+    v.addEventListener('error', () => { log('Video error '+item.label); });
+    v.addEventListener('play', () => { v.classList.remove('ghost'); });
+
+    frame.appendChild(v);
+    const meta = document.createElement('div'); meta.className='meta';
+    const chip = Object.assign(document.createElement('div'),{className:'chip',textContent:item.label});
+    const actions = Object.assign(document.createElement('div'),{className:'actions'});
+    const likeBtn = Object.assign(document.createElement('button'),{className:'like',innerHTML:'⭐'});
+    const disBtn  = Object.assign(document.createElement('button'),{className:'dislike',innerHTML:'👎'});
+    actions.append(likeBtn,disBtn); meta.append(chip,actions);
+
+    card.append(cueLike,cueDis,frame,meta);
+
+    // Buttons
+    likeBtn.addEventListener('click', ()=> doLike(card,item));
+    disBtn.addEventListener('click',  ()=> doDismiss(card));
+
+    // Swipe (horizontal) without hijacking page scroll
+    let sx=0, sy=0, dragging=false;
+    card.addEventListener('touchstart', e=>{ if(e.touches.length!==1) return; sx=e.touches[0].clientX; sy=e.touches[0].clientY; dragging=true; });
+    card.addEventListener('touchmove', e=>{
+      if(!dragging) return;
+      const dx = e.touches[0].clientX - sx;
+      const dy = e.touches[0].clientY - sy;
+      if(Math.abs(dx)>Math.abs(dy)*1.5){
+        e.preventDefault(); // horizontal swipe wins
+        card.style.transform = `translateX(${dx}px) rotate(${dx*0.03}deg)`;
+        cueLike.style.display = dx>30 ? 'inline-flex':'none';
+        cueDis.style.display  = dx<-30 ? 'inline-flex':'none';
+        card.style.opacity = 1-Math.min(Math.abs(dx)/600, .35);
+      }
+    }, {passive:false});
+    card.addEventListener('touchend', e=>{
+      if(!dragging) return; dragging=false;
+      const dx = (e.changedTouches[0].clientX - sx);
+      cueLike.style.display = cueDis.style.display = 'none';
+      if(dx>120){ doLike(card,item,true); return; }
+      if(dx<-120){ doDismiss(card,true); return; }
+      card.style.transition='transform .2s ease,opacity .2s ease';
+      card.style.transform='none'; card.style.opacity='1';
+      setTimeout(()=>{card.style.transition=''},220);
+    });
+
+    return card;
+  }
+
+  function doLike(card,item,swiped=false){
+    likes.unshift({t:now(), label:item.label, mp4:item.mp4, poster:item.poster||'', build:BUILD});
+    localStorage.setItem('likes.v1', JSON.stringify(likes.slice(0,500)));
+    updateLikedDot();
+    animateCard(card, true, swiped);
+  }
+  function doDismiss(card,swiped=false){
+    animateCard(card, false, swiped);
+  }
+  function animateCard(card, liked, swiped){
+    const dir = liked? 1 : -1;
+    card.style.transition='transform .22s ease,opacity .22s ease';
+    card.style.transform=`translateX(${dir*160}px) rotate(${dir*6}deg)`;
+    card.style.opacity='0';
+    setTimeout(()=>{ card.remove(); }, 230);
+  }
+
+  async function renderMore(count=3){
+    await fillPool(count);
+    const list = $('#list');
+    let added = 0;
+    while (shown < pool.length && added < count){
+      const item = pool[shown++];
+      list.appendChild( makeCard(item) );
+      added++;
+    }
+    if(added===0) toast('Nothing else in this batch — tap New batch.');
+    updateCounter();
+  }
+
+  function resetBatch(){
+    shown=0; pool=[]; updateCounter(); $('#list').innerHTML='';
+  }
+
+  // ----------------------------
+  // Troubleshoot modal
+  // ----------------------------
+  function updateDiag(){
+    const tokAge = token? Math.round((now()-tokenAt)/1000)+'s':'none';
+    const cd = cooldownUntil>now()? (cooldownUntil-now())+'ms' : 'none';
+    const lines = logLines.slice(-15).join('\n');
+    $('#logBox').textContent =
+`Online: true
+Token age: ${tokAge}
+Cooldown: ${cd}
 Pool size: ${pool.length}, shown: ${shown}, likes: ${likes.length}
-Last error: ${lastError}
+Last lines:
+${lines || '(none)'}
+`;
+  }
 
-If “429 rate limited” appears, RedGifs is throttling.
-Tap Shuffle or wait ~30–60s and try again.`;
-  diagEl.textContent = log;
-  troubleSheet.classList.add('open');
-}
+  // ----------------------------
+  // Init + events
+  // ----------------------------
+  updateLikedDot(); updateCounter(); updateDiag();
 
-/* ===== Wire-up ===== */
-document.getElementById('btnLoad').addEventListener('click', ()=>renderMore());
-document.getElementById('btnNew').addEventListener('click', async()=>{showToast("Building a new batch…");await buildBatch();renderMore();});
-document.getElementById('btnShuffle').addEventListener('click', ()=>{shuffle(pool);feedEl.innerHTML="";shown=0;renderMore();});
-document.getElementById('btnLiked').addEventListener('click', openLiked);
-document.getElementById('btnCloseLiked').addEventListener('click', ()=>likedSheet.classList.remove('open'));
-document.getElementById('btnExport').addEventListener('click', ()=>{
-  const blob=new Blob([JSON.stringify(likes,null,2)],{type:"application/json"});
-  const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='liked.json'; a.click(); URL.revokeObjectURL(url);
-});
-document.getElementById('btnClearLikes').addEventListener('click', ()=>{ if(confirm("Clear all likes?")){likes=[];saveLikes();openLiked();} });
-document.getElementById('btnTrouble').addEventListener('click', openTrouble);
-document.getElementById('btnCloseTrouble').addEventListener('click', ()=>troubleSheet.classList.remove('open'));
-document.getElementById('btnHome').addEventListener('click', ()=>{likedSheet.classList.remove('open'); troubleSheet.classList.remove('open'); window.scrollTo({top:0,behavior:'smooth'});});
+  on($('#diagClose'),'click',()=>$('#diag').close());
+  on($('#tsBtn'),'click',()=>{ updateDiag(); $('#diag').showModal(); });
 
-/* First run */
-(async function init(){ await buildBatch(); renderMore(); })();
+  on($('#likedBtn'),'click',()=>{
+    // lightweight liked page: render likes as cards with only video/poster
+    const list = $('#list'); list.innerHTML='';
+    if(!likes.length){ toast('No likes yet'); return; }
+    likes.slice(0,80).forEach(l=>{
+      const card = document.createElement('div'); card.className='card';
+      const p = document.createElement('div'); p.className='polaroid';
+      const v = document.createElement('video'); v.className='media'; v.muted=true; v.playsInline=true; v.loop=true; v.autoplay=true; v.src=l.mp4; if(l.poster) v.poster=l.poster;
+      p.appendChild(v);
+      const meta = document.createElement('div'); meta.className='meta';
+      const chip = Object.assign(document.createElement('div'),{className:'chip',textContent:l.label||'Liked'});
+      const actions = Object.assign(document.createElement('div'),{className:'actions'});
+      const del = Object.assign(document.createElement('button'),{className:'dislike',innerHTML:'🗑️'});
+      del.addEventListener('click',()=>{
+        likes = likes.filter(x=>x!==l); localStorage.setItem('likes.v1',JSON.stringify(likes)); card.remove(); updateLikedDot();
+      });
+      actions.append(del); meta.append(chip,actions);
+      card.append(p,meta); list.append(card);
+    });
+  });
+
+  on($('#homeBtn'),'click',()=>{ $('#list').innerHTML=''; shown=0; updateCounter(); });
+
+  on($('#newBatch'),'click', async ()=>{
+    setBusy($('#newBatch'),true); setBusy($('#loadMore'),true);
+    resetBatch();
+    try{
+      await ensureToken(true);
+      await fillPool(6);
+      await renderMore(3);
+    } finally {
+      setBusy($('#newBatch'),false); setBusy($('#loadMore'),false);
+    }
+  });
+
+  on($('#loadMore'),'click', async ()=>{
+    setBusy($('#loadMore'),true);
+    try{
+      await renderMore(3);
+    } finally { setBusy($('#loadMore'),false); }
+  });
+
+  on($('#shuffle'),'click', async ()=>{
+    pool = pool.slice(shown); // keep only remaining
+    // random shuffle
+    for(let i=pool.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
+    shown = 0; const cur = $('#list'); cur.innerHTML=''; updateCounter();
+    toast('Shuffled batch', 900);
+    await renderMore(3);
+  });
+
+  // Kick-off: acquire token but don’t block the UI
+  ensureToken().catch(()=>{});
+})();
 </script>
 </body>
 </html>
