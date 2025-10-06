@@ -1,378 +1,379 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Celeb Wall — v2.8</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Celeb Wall — v2.8.1</title>
 <style>
   :root{
-    --bg:#0e1116; --card:#141821e6; --glass:#1a1f29cc; --text:#e9eef6; --muted:#97a1b3;
-    --pill:#1c2230cc; --pillBorder:#2a3242; --good0:#2dd4bf; --bad0:#ef476f;
-    --grad1:#c084fc; --grad2:#60a5fa; --shadow:0 8px 28px rgba(0,0,0,.45);
-    --round:18px;
+    --bg:#0c0f14;
+    --glass:#141922cc;
+    --glass-strong:#141922f2;
+    --border:rgba(255,255,255,.08);
+    --text:#e8eef6;
+    --muted:#9fb0c4;
+    --good:#1cc5b7;
+    --bad:#ea4c5a;
+    --btn:#1a212c;
+    --pink:#f7a1d5;
+    --lav:#a3b4ff;
+    --blue:#6ec6ff;
+    --radius:18px;
+    --radius-sm:14px;
+    --shadow:0 10px 35px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.02);
   }
-  *{box-sizing:border-box}
-  body{margin:0;background:radial-gradient(1200px 700px at 50% -20%,#1a2030 0%,#0e1116 70%),var(--bg);color:var(--text);font:500 16px/1.5 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto}
-  a{color:inherit}
-  .wrap{max-width:900px;margin:22px auto;padding:0 16px}
-  /* dashboard */
-  .dash{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;place-items:center}
-  @media (max-width:720px){.dash{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font:500 16px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Inter,Arial;
+    color:var(--text);
+    background:
+      radial-gradient(1200px 500px at 30% -10%, rgba(151,124,255,.12), transparent 60%),
+      radial-gradient(900px 600px at 100% 0%, rgba(255,140,180,.10), transparent 60%),
+      linear-gradient(180deg, #0b0e13, #0b0e13 40%, #0a0d12 100%);
+    background-color:var(--bg);
+  }
+
+  /* --- dashboard --- */
+  .wrap{max-width:980px; margin:22px auto; padding:0 16px;}
+  .grid4{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; margin-bottom:18px}
   .pill{
-    width:100%; padding:14px 16px; border-radius:16px; background:var(--pill);
-    border:1px solid var(--pillBorder); backdrop-filter:blur(8px);
-    box-shadow:var(--shadow); text-align:center
+    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.04));
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:18px 16px;
+    text-align:center;
   }
-  .pill .big{font:700 22px/1.1 ui-sans-serif}
-  .pill.grad{background:linear-gradient(90deg,var(--grad1),var(--grad2)); color:#0b1020; font-weight:800}
-  .barWrap{margin:18px 0 8px}
-  .bar{height:10px;border-radius:99px;background:#202737;border:1px solid #2a3242;overflow:hidden}
-  .bar > span{display:block;height:100%;width:0;background:linear-gradient(90deg,#f2a6ff,#9ad7ff);transition:width .25s ease}
-  .phase{display:flex;justify-content:space-between;color:var(--muted);font-weight:700;margin-top:8px}
-  .topButtons{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:22px 0 8px}
+  .pill .k{display:block; color:var(--muted); font-size:14px; letter-spacing:.1em}
+  .pill .v{display:block; font-weight:800; font-size:32px; margin-top:2px}
+
+  .progress{
+    margin:10px 0 8px;
+    padding:0 6px 0 0;
+  }
+  .bar{
+    height:10px; border-radius:999px;
+    background:rgba(255,255,255,.08);
+    position:relative; overflow:hidden;
+    border:1px solid var(--border);
+  }
+  .bar::before{
+    content:""; position:absolute; inset:0 auto 0 0; width:var(--pct,3%);
+    background:linear-gradient(90deg, #ff9ac0, #a3b4ff, #6ec6ff);
+    border-radius:999px;
+    transition:width .25s ease;
+  }
+  .pRow{display:flex; justify-content:space-between; color:var(--muted); margin-top:8px}
+
+  .center{display:flex; flex-wrap:wrap; gap:16px; justify-content:center; margin:22px 0}
   .btn{
-    border:none;border-radius:16px;padding:14px 18px;background:var(--pill);color:var(--text);
-    border:1px solid var(--pillBorder);backdrop-filter:blur(8px);box-shadow:var(--shadow);
-    font-weight:800;letter-spacing:.2px;cursor:pointer;transition:transform .06s ease,filter .2s ease,opacity .2s ease
+    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.04));
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:14px 18px;
+    border-radius:20px;
+    box-shadow:var(--shadow);
+    cursor:pointer;
+    min-width:140px;
+    text-align:center;
+    transition:transform .08s ease, filter .12s ease;
+    user-select:none;
   }
   .btn:active{transform:translateY(1px)}
-  .btn.primary{background:linear-gradient(90deg,#c084fc,#60a5fa); color:#0b1020}
-  .btn:disabled{opacity:.5;pointer-events:none}
-  .caps{text-transform:uppercase;letter-spacing:.4px;font-weight:900;color:#9fb0c6}
+  .btn.primary{
+    background:
+      radial-gradient(120% 160% at 20% -20%, rgba(255,160,220,.25), transparent 40%),
+      linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
+  }
+  .btn.alt{
+    background:
+      radial-gradient(120% 160% at 20% -20%, rgba(150,190,255,.20), transparent 40%),
+      linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
+  }
 
-  /* cards */
-  #cards{display:grid;gap:18px;margin:26px 0}
+  /* --- cards --- */
+  .cards{display:grid; grid-template-columns:1fr; gap:22px; margin:26px auto 80px; max-width:980px; padding:0 16px;}
   .card{
-    border-radius:20px; overflow:hidden; background:var(--card); border:1px solid #232a38; box-shadow:var(--shadow)
+    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.04));
+    border:1px solid var(--border);
+    border-radius:24px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
   }
-  .card .top{
-    display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #222a38;background:#0f141d99;backdrop-filter:blur(8px)
+  .card-hd{
+    display:flex; justify-content:space-between; gap:12px;
+    align-items:center; padding:14px 16px 8px;
+    color:var(--muted); font-size:14px;
   }
-  .name{font:800 18px/1.2 ui-sans-serif}
-  .source{color:var(--muted);font-size:13px}
-  .media{aspect-ratio:1/1.1; background:#11161f; display:flex;align-items:center;justify-content:center}
-  .media img,.media video{width:100%;height:100%;object-fit:cover;background:#0d121a}
-  .actions{display:flex;gap:12px;justify-content:space-between;padding:14px;border-top:1px solid #222a38;background:#0f141d99;backdrop-filter:blur(8px)}
-  .act{flex:1;text-align:center;padding:12px 10px;border-radius:14px;font-weight:900;border:1px solid #223043;cursor:pointer}
-  .act.like{background:linear-gradient(90deg,#22d3ee,#34d399); color:#0a1220}
-  .act.dis{background:linear-gradient(90deg,#fb7185,#ef4444); color:#0a1220}
-  .badge{display:inline-flex;align-items:center;gap:8px;background:#0f141d99;border:1px solid #2a3242;padding:8px 12px;border-radius:999px}
-  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .card-hd .name{margin:0; font-size:18px; color:var(--text)}
+  .media{position:relative; background:#0b0f14}
+  .media img, .media video{display:block; width:100%; height:auto; max-height:76vh; object-fit:cover; background:#0b0f14}
+  .actions{
+    display:flex; gap:12px; padding:14px; justify-content:space-between; align-items:center;
+    background:linear-gradient(180deg, rgba(0,0,0,.00), rgba(0,0,0,.06));
+  }
+  .btn.like{background:linear-gradient(180deg, rgba(28,197,183,.25), rgba(28,197,183,.18)); border-color:rgba(28,197,183,.35)}
+  .btn.dismiss{background:linear-gradient(180deg, rgba(234,76,90,.25), rgba(234,76,90,.18)); border-color:rgba(234,76,90,.35)}
+  .btn.open{min-width:96px}
 
-  /* modal */
-  .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px}
-  .modal.show{display:flex}
-  .sheet{width:min(820px,94vw);max-height:80vh;overflow:auto;background:#121723;border:1px solid #293243;border-radius:18px;box-shadow:var(--shadow);padding:18px}
-  .sheet .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-  .sheet pre{white-space:pre-wrap;color:#dbe7ff}
+  /* Troubleshoot modal */
+  .modal{position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.5); z-index:30}
+  .modal.show{display:grid}
+  .sheet{
+    width:min(820px, calc(100vw - 28px));
+    max-height:78vh; overflow:auto;
+    background:var(--glass-strong);
+    border:1px solid var(--border);
+    border-radius:22px;
+    box-shadow:var(--shadow);
+  }
+  .sheet .hd{display:flex; align-items:center; justify-content:space-between; padding:16px 18px; position:sticky; top:0; backdrop-filter:blur(8px); background:rgba(20,25,34,.9)}
+  .sheet h3{margin:0}
+  pre#log{padding:18px; margin:0; font:600 14px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color:#dfe7f4; white-space:pre-wrap}
+  .close{background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.08)); border:1px solid var(--border); color:var(--text); border-radius:999px; padding:10px 14px; cursor:pointer}
+
+  @media (min-width:700px){
+    .cards{grid-template-columns:1fr 1fr;}
+  }
+  @media (min-width:1024px){
+    .cards{grid-template-columns:1fr 1fr 1fr;}
+  }
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <!-- Dashboard row -->
-    <div class="dash" id="dash">
-      <div class="pill"><div class="caps">Build</div><div class="big" id="build">v2.8</div></div>
-      <div class="pill"><div class="caps">Shown</div><div class="big" id="shown">0</div></div>
-      <div class="pill"><div class="caps">Pool</div><div class="big" id="pool">0</div></div>
-      <div class="pill"><div class="caps">Total</div><div class="big" id="total">0</div></div>
-    </div>
 
-    <div class="barWrap">
-      <div class="bar"><span id="bar"></span></div>
-      <div class="phase"><span id="phaseLabel">Idle</span><span id="phasePct">100%</span></div>
-    </div>
+<div class="wrap">
+  <!-- Top counters -->
+  <div class="grid4">
+    <div class="pill"><span class="k">BUILD</span><span class="v" id="build">v2.8.1</span></div>
+    <div class="pill"><span class="k">SHOWN</span><span class="v" id="shownCount">0</span></div>
+    <div class="pill"><span class="k">POOL</span><span class="v" id="poolCount">0</span></div>
+    <div class="pill"><span class="k">TOTAL</span><span class="v" id="totalCount">0</span></div>
+  </div>
 
-    <!-- Top controls -->
-    <div class="topButtons">
-      <button class="btn" id="homeBtn">Home</button>
-      <button class="btn" id="likesBtn">⭐ Likes <span class="badge" id="likeCount">0</span></button>
-      <button class="btn primary" id="newBatchBtn">New batch</button>
-      <button class="btn" id="shuffleBtn">Shuffle feed</button>
-      <button class="btn" id="loadMoreBtn">Load more</button>
-      <button class="btn" id="sourcesBtn">r/celebs + more</button>
-      <button class="btn" id="logBtn">Troubleshoot</button>
-    </div>
-
-    <!-- Cards -->
-    <section id="cards"></section>
-
-    <div style="text-align:center;margin:28px 0">
-      <label class="badge">
-        <input type="checkbox" id="autoScroll" checked style="transform:scale(1.2)">&nbsp; Auto-load on scroll
-      </label>
+  <!-- Progress -->
+  <div class="progress">
+    <div class="bar" id="progress"></div>
+    <div class="pRow">
+      <div id="sourceLabel">r/celebs</div>
+      <div id="pLabel">Idle</div>
     </div>
   </div>
 
-  <!-- Troubleshoot modal -->
-  <div class="modal" id="modal">
-    <div class="sheet">
-      <div class="hd">
-        <div class="pill">Troubleshoot</div>
-        <button class="btn" id="closeModal">Close</button>
-      </div>
-      <pre id="log" class="mono"></pre>
-    </div>
+  <!-- Dashboard buttons -->
+  <div class="center">
+    <button id="btn-home" class="btn">Home</button>
+    <button id="btn-likes" class="btn">⭐ Likes <span id="likesCount" style="opacity:.65">0</span></button>
   </div>
+  <div class="center">
+    <button id="btn-new" class="btn primary">New batch</button>
+    <button id="btn-shuffle" class="btn alt">Shuffle feed</button>
+  </div>
+  <div class="center">
+    <button id="btn-more" class="btn">Load more</button>
+    <button id="btn-sources" class="btn">r/celebs + more</button>
+  </div>
+  <div class="center">
+    <button id="btn-troubleshoot" class="btn">Troubleshoot</button>
+  </div>
+</div>
+
+<!-- Cards -->
+<section id="cards" class="cards"></section>
+
+<!-- Troubleshoot modal -->
+<div class="modal" id="modal">
+  <div class="sheet">
+    <div class="hd">
+      <h3>Troubleshoot</h3>
+      <button class="close" id="close">Close</button>
+    </div>
+    <pre id="log"></pre>
+  </div>
+</div>
 
 <script>
-/* ===== Utilities ===== */
-const $ = sel => document.querySelector(sel);
-const logEl = $("#log");
-function logMsg(msg){
-  const line = `[${new Date().toLocaleTimeString()}] ${msg}`;
-  console.log(line);
-  logEl.textContent = `${line}\n${logEl.textContent}`.slice(0, 20000);
-}
-function setPhase(name, pct){
-  $("#phaseLabel").textContent = name;
-  $("#phasePct").textContent = `${Math.round(pct)}%`;
-  $("#bar").style.width = `${pct}%`;
-}
-function shuffle(arr){
-  for(let i=arr.length-1;i>0;i--){
-    const j = Math.floor(Math.random()*(i+1));
-    [arr[i],arr[j]]=[arr[j],arr[i]];
-  }
-  return arr;
-}
-
-/* ===== Data & State ===== */
-const CELEBS = [
-  "Alexandra Daddario","Madison Beer","Kendall Jenner","Hailey Bieber",
-  "Dua Lipa","Gigi Hadid","Bella Hadid","Sydney Sweeney","Emma Watson",
-  "Margot Robbie","Ana de Armas","Sabrina Carpenter","Taylor Swift",
-  "Vanessa Hudgens","Salma Hayek","Kylie Jenner","Gal Gadot","Emily Ratajkowski",
-  "Rachel Cook","Alexandra Stan","Ariana Grande","Sofía Vergara","Rita Ora",
-  "Anya Taylor-Joy","Irina Shayk","Keke Palmer","Sophie Turner"
+/* =========================
+   v2.8.1-data (folded-in build)
+   ========================= */
+const BUILD = 'v2.8.1';
+const PROXY = 'https://r.jina.ai/http://';
+const SUBS  = [
+  'Celebs','celebritylegs','BeautifulCelebrities','celebrityhotties',
+  'CelebPortraits','TheCelebArchive','CelebGWN','celebs','CelebrityArmpits'
 ];
-const SUBS = ["Celebs","BeautifulCelebrities","TheCelebArchive","celebs","LadiesOfWrestling"]; // lightweight mix
-let pool = [];           // not-yet-shown items
-let shown = [];          // rendered items (ids)
-let likes = JSON.parse(localStorage.getItem("likes.v1")||"[]");
-let mode = "home";       // "home" or "likes"
 
-/* ===== Counters ===== */
-function updateCounters(){
-  $("#shown").textContent = shown.length;
-  $("#pool").textContent  = pool.length;
-  $("#total").textContent = shown.length + pool.length;
-  $("#likeCount").textContent = likes.length;
+// UI refs
+const cards = document.getElementById('cards');
+const btnNew = document.getElementById('btn-new');
+const btnMore = document.getElementById('btn-more');
+const btnShuffle = document.getElementById('btn-shuffle');
+const btnTrouble = document.getElementById('btn-troubleshoot');
+const modal = document.getElementById('modal');
+const closeModal = document.getElementById('close');
+const labelSource = document.getElementById('sourceLabel');
+const likesChip = document.getElementById('likesCount');
+
+// counters/progress
+const bar = document.getElementById('progress');
+const pLabel = document.getElementById('pLabel');
+const bump = (id, v) => { const el=document.getElementById(id); if(el) el.textContent=String(v); };
+function prog(p, label){ if(bar) bar.style.setProperty('--pct', Math.max(3,Math.min(100,p))+'%'); if(pLabel) pLabel.textContent=label||''; }
+function logLine(txt){ const pre=document.querySelector('#log'); if(!pre) return; pre.textContent = `[${new Date().toLocaleTimeString()}] ${txt}\n` + pre.textContent; }
+
+// state
+let POOL = [];
+let SHOWN = 0;
+let LIKES = JSON.parse(localStorage.getItem('likes-v1')||'[]');
+likesChip.textContent = LIKES.length;
+
+// helpers
+const delay = ms => new Promise(r=>setTimeout(r,ms));
+async function getJSON(url){
+  const res = await fetch(PROXY+url, {cache:'no-store'});
+  if(!res.ok) throw new Error(`HTTP ${res.status}`);
+  const txt = await res.text();
+  try { return JSON.parse(txt); } catch(e){ throw new Error('Parse JSON failed'); }
 }
-
-/* ===== Fetch / Parse ===== */
-async function fetchFromReddit(sub, limit=50){
-  try{
-    const url = `https://www.reddit.com/r/${sub}/hot.json?limit=${limit}`;
-    const res = await fetch(url, {headers:{'User-Agent':'web'}});   // reddit allows anon JSON
-    const data = await res.json();
-    const kids = data?.data?.children || [];
-    const posts = kids.map(k=>k.data).filter(p=>{
-      // media-ish
-      const u = p.url_overridden_by_dest || "";
-      return p.post_hint?.includes("image") || u.match(/\.(jpg|jpeg|png|gif)$/i) || p.preview?.images?.length;
-    }).map(p=>{
-      let media = p.url_overridden_by_dest || (p.preview?.images?.[0]?.source?.url ?? "");
-      // fix &amp; etc
-      media = media.replace(/&amp;/g,"&");
-      return {
-        id: p.id,
-        name: (p.title||"").replace(/\s*\(.*?\)\s*$/,""),
-        subreddit: p.subreddit,
-        url: media,
-        thumb: (p.thumbnail||"").startsWith("http") ? p.thumbnail : null
-      };
+function listingURL(sub,{sort='hot',t='week',limit=50}={}) {
+  return `www.reddit.com/r/${sub}/${sort}.json?raw_json=1&limit=${limit}&include_over_18=on&t=${t}`;
+}
+function searchURL(sub,q,{limit=50,sort='relevance',t='year'}={}) {
+  const query = encodeURIComponent(`title:"${q}" AND (url:.jpg OR url:.png OR url:.gif OR is_video:true)`);
+  return `www.reddit.com/r/${sub}/search.json?raw_json=1&restrict_sr=1&limit=${limit}&sort=${sort}&t=${t}&q=${query}`;
+}
+function extractMedia(listing){
+  const out=[];
+  if(!listing?.data?.children) return out;
+  for(const c of listing.data.children){
+    const p = c.data;
+    if(!p) continue;
+    const url = p.url_overridden_by_dest || p.url || '';
+    const img = /\.(jpg|jpeg|png)$/i.test(url);
+    const gif = /\.(gif)$/i.test(url);
+    const gifv = /\.(gifv)$/i.test(url);
+    const redVid = p.is_video && p.media?.reddit_video?.fallback_url;
+    let media=null, type=null;
+    if(img){ media=url; type='img'; }
+    else if(gif){ media=url; type='gif'; }
+    else if(gifv){ media=url.replace(/\.gifv$/i,'.mp4'); type='mp4'; }
+    else if(redVid){ media=p.media.reddit_video.fallback_url; type='mp4'; }
+    else if(p.preview?.images?.[0]?.source?.url){ media=p.preview.images[0].source.url.replace(/&amp;/g,'&'); type='img'; }
+    if(!media) continue;
+    out.push({
+      id:p.id, title:p.title||'', author:p.author||'u/unknown',
+      sub:p.subreddit_name_prefixed || `r/${p.subreddit}`,
+      permalink:'https://www.reddit.com'+(p.permalink||''),
+      media, type, nsfw: !!p.over_18
     });
-    logMsg(`✅ r/${sub}: ${posts.length} media`);
-    return posts;
-  }catch(e){
-    logMsg(`❌ r/${sub}: ${e.message}`);
-    return [];
   }
+  return out;
 }
+async function fetchBatch({names=[], perName=6, backfill=60, sort='top'}={}){
+  const all=[];
+  const totalSteps = names.length + 1;
+  let step=0;
 
-async function buildBatch(){
-  setPhase("Fetching", 8);
-  const names = shuffle([...CELEBS]).slice(0, 10);   // sample of the list to keep it snappy
-  const subs  = shuffle([...SUBS]).slice(0, 3);
-
-  // Step 1: fetch subreddit pages
-  const subPromises = subs.map((s,i)=> (async()=>{
-    setPhase(`r/${s}`, 10 + i*8);
-    return await fetchFromReddit(s, 50);
-  })());
-  const subResults = (await Promise.all(subPromises)).flat();
-
-  // Step 2: keyword filter to favor celeb names
-  setPhase("Filtering", 40);
-  const lowered = names.map(n=>n.toLowerCase());
-  let picked = subResults.filter(p=>{
-    const t = (p.name||"").toLowerCase();
-    return lowered.some(n=>t.includes(n));
-  });
-
-  // If too few, keep generic images too
-  if(picked.length < 12){
-    const needed = 24 - picked.length;
-    picked = picked.concat(subResults.filter(p=>!picked.find(x=>x.id===p.id)).slice(0, needed));
-  }
-
-  // Dedup & keep unseen and not disliked
-  const disliked = new Set(JSON.parse(localStorage.getItem("dislikes.v1")||"[]"));
-  const existing = new Set(pool.map(x=>x.id).concat(shown));
-  const unique = [];
-  for(const p of picked){
-    if(!p.url) continue;
-    if(existing.has(p.id)) continue;
-    if(disliked.has(p.id)) continue;
-    unique.push(p);
-  }
-
-  // Update pool
-  pool = pool.concat(unique);
-  updateCounters();
-  logMsg(`📦 Batch ready: +${unique.length} (from ${subs.join(", ")})`);
-  setPhase("Ready", 100);
-}
-
-/* ===== Render ===== */
-function cardEl(item){
-  const el = document.createElement("article");
-  el.className = "card";
-  el.dataset.id = item.id;
-
-  const top = document.createElement("div");
-  top.className="top";
-  top.innerHTML = `<div class="name">${item.name || "Untitled"}</div><div class="source">r/${item.subreddit}</div>`;
-
-  const media = document.createElement("div");
-  media.className = "media";
-  const img = document.createElement("img");
-  img.loading="lazy";
-  img.src = item.url;
-  img.alt = item.name || "image";
-  img.onerror = ()=>{ el.remove(); bumpShown(-1); };
-  media.appendChild(img);
-
-  const actions = document.createElement("div");
-  actions.className = "actions";
-  const dislike = document.createElement("button");
-  dislike.className = "act dis";
-  dislike.textContent = "Dismiss";
-  const like = document.createElement("button");
-  like.className = "act like";
-  like.textContent = "Like";
-
-  dislike.onclick = ()=>{
-    localStorage.setItem("dislikes.v1", JSON.stringify(
-      Array.from(new Set(JSON.parse(localStorage.getItem("dislikes.v1")||"[]").concat(item.id)))
-    ));
-    el.remove();
-    bumpShown(-1);
-    logMsg(`🗑️ dismissed ${item.name}`);
-  };
-  like.onclick = ()=>{
-    if(!likes.find(x=>x.id===item.id)){
-      likes.push(item);
-      localStorage.setItem("likes.v1", JSON.stringify(likes));
-      $("#likeCount").textContent = likes.length;
+  for(const name of names){
+    step++;
+    prog(Math.round((step/totalSteps)*80), `Searching ${name}`);
+    let found=[];
+    for(const s of SUBS.slice(0,4)){
+      try{
+        const js = await getJSON(searchURL(s,name,{limit:perName*2, t:'year'}));
+        found.push(...extractMedia(js).slice(0,perName));
+      }catch(e){ logLine(`✖ ${s} (${name}): ${e.message}`); }
+      await delay(140);
     }
-    el.remove();
-    bumpShown(-1);
-    logMsg(`⭐ liked ${item.name}`);
+    if(found.length){ logLine(`📦 ${name}: +${found.length}`); all.push(...found); }
+    else{ logLine(`${name}: none with media`); }
+  }
+
+  prog(88,'Backfilling…');
+  for(const s of SUBS.slice(0,6)){
+    try{
+      const js = await getJSON(listingURL(s,{sort,limit:60}));
+      all.push(...extractMedia(js));
+    }catch(e){ logLine(`✖ ${s}: Load failed`); }
+    await delay(120);
+    if(all.length >= names.length*perName + backfill) break;
+  }
+
+  const seen=new Set();
+  return all.filter(x=>{ if(seen.has(x.media)) return false; seen.add(x.media); return true; });
+}
+
+// rendering
+function counters(){ bump('poolCount', POOL.length); bump('shownCount', SHOWN); bump('totalCount', POOL.length+SHOWN); }
+function renderOne(item){
+  const el = document.createElement('article');
+  el.className = 'card glass';
+  el.innerHTML = `
+    <div class="card-hd">
+      <h3 class="name">${item.title || 'Untitled'}</h3>
+      <span class="sub">${item.sub}</span>
+    </div>
+    <div class="media">
+      ${item.type==='img'||item.type==='gif'
+        ? `<img loading="lazy" src="${item.media}" alt="">`
+        : `<video playsinline muted loop controls src="${item.media}"></video>`}
+    </div>
+    <div class="actions">
+      <button class="btn dismiss">Dismiss</button>
+      <a class="btn open" href="${item.permalink}" target="_blank" rel="noopener">Open</a>
+      <button class="btn like">Like</button>
+    </div>`;
+  el.querySelector('.dismiss').onclick = ()=>{ el.remove(); SHOWN++; counters(); };
+  el.querySelector('.like').onclick = ()=>{
+    LIKES.unshift(item);
+    LIKES = LIKES.slice(0,500);
+    localStorage.setItem('likes-v1', JSON.stringify(LIKES));
+    likesChip.textContent = LIKES.length;
+    el.remove(); SHOWN++; counters();
   };
-
-  actions.append(dislike, like);
-  el.append(top, media, actions);
-  return el;
+  cards.appendChild(el);
 }
+function renderSome(n=8){ for(let i=0;i<n && POOL.length;i++){ renderOne(POOL.shift()); } counters(); }
 
-function bumpShown(delta){
-  // called after removal or failure
-  if(delta<0){ shown.pop(); }
-  $("#shown").textContent = shown.length;
-  $("#total").textContent = shown.length + pool.length;
-}
-
-/* Paint next N from pool */
-function renderMore(n=6){
-  if(mode==="likes"){
-    // show likes in feed style
-    $("#cards").innerHTML = "";
-    const items = shuffle([...likes]).slice(0,n);
-    for(const it of items){ $("#cards").appendChild(cardEl(it)); }
-    shown = items.map(x=>x.id);
-    updateCounters();
-    return;
+// batch
+async function buildNewBatch(){
+  try{
+    cards.innerHTML=''; SHOWN=0; counters();
+    prog(6,'Starting…');
+    labelSource.textContent='r/celebs + more';
+    const NAMES=[
+      'Kendall Jenner','Hailey Bieber','Madison Beer','Sabrina Carpenter','Dua Lipa',
+      'Alexandra Daddario','Sydney Sweeney','Ana de Armas','Taylor Swift','Selena Gomez',
+      'Hailee Steinfeld','Irina Shayk','Emma Watson','Gal Gadot','Vanessa Hudgens'
+    ];
+    const batch = await fetchBatch({names:NAMES, perName:4, backfill:70, sort:'top'});
+    POOL = batch;
+    logLine(`📦 Batch ready: +${POOL.length} (from multiple subs)`);
+    prog(100,'Ready');
+    counters();
+    renderSome(9);
+  }catch(e){
+    prog(100,'Idle'); logLine('✖ Build failed: '+e.message);
   }
-
-  const take = pool.splice(0, n);
-  for(const item of take){
-    $("#cards").appendChild(cardEl(item));
-    shown.push(item.id);
-  }
-  updateCounters();
 }
 
-/* Shuffle visible feed (not the pool itself) */
-function shuffleFeed(){
-  const cont = $("#cards");
-  const nodes = Array.from(cont.children);
-  shuffle(nodes);
-  cont.innerHTML = "";
-  nodes.forEach(n=>cont.appendChild(n));
-}
+// wire up
+btnNew.onclick = buildNewBatch;
+btnMore.onclick = ()=>renderSome(8);
+btnShuffle.onclick = ()=>{
+  for(let i=POOL.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [POOL[i],POOL[j]]=[POOL[j],POOL[i]]; }
+  logLine('🔀 Shuffled pool');
+};
+btnTrouble.onclick = ()=>modal.classList.add('show');
+closeModal.onclick = ()=>modal.classList.remove('show');
 
-/* ===== Events ===== */
-$("#newBatchBtn").onclick = async ()=>{
-  $("#cards").innerHTML = "";
-  shown = [];
-  updateCounters();
-  setPhase("Starting", 5);
-  await buildBatch();
-  renderMore(8);
-};
-$("#loadMoreBtn").onclick = ()=>{
-  if(pool.length<6){
-    // automatically top-up silently
-    buildBatch().then(()=>renderMore(8));
-  }else{
-    renderMore(8);
-  }
-};
-$("#shuffleBtn").onclick = ()=> shuffleFeed();
-$("#homeBtn").onclick = ()=>{
-  mode="home";
-  $("#cards").innerHTML = "";
-  shown=[]; updateCounters();
-};
-$("#likesBtn").onclick = ()=>{
-  mode="likes";
-  $("#cards").innerHTML = "";
-  shown=[]; updateCounters();
-  renderMore(12);
-};
-$("#sourcesBtn").onclick = ()=>{
-  alert(`Active subreddits:\n• ${SUBS.join("\n• ")}`);
-};
-$("#logBtn").onclick = ()=> $("#modal").classList.add("show");
-$("#closeModal").onclick = ()=> $("#modal").classList.remove("show");
-
-/* Auto-load on scroll */
-window.addEventListener("scroll", ()=>{
-  if(!$("#autoScroll").checked || mode!=="home") return;
-  const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 400;
-  if(nearBottom) $("#loadMoreBtn").click();
+// kick
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('build').textContent = BUILD;
+  prog(100,'Idle');
+  counters();
 });
-
-/* ===== Boot ===== */
-(async function init(){
-  updateCounters();
-  setPhase("Idle", 100);
-  logMsg("Build v2.8 — ready");
-  // first touch – quick warmup batch so UI feels alive
-  await buildBatch();
-  renderMore(6);
-})();
 </script>
 </body>
 </html>
