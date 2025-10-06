@@ -2,396 +2,262 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Scroll Wall</title>
 <style>
-  :root{
-    --bg:#0d0f12; --bg2:#14171c; --panel:#1c222b; --ink:#f3f4f6; --ink2:#c7cbd3;
-    --accent:#ff6ea2; --accent-ink:#1c0b12; --muted:#6b7380; --ok:#27d48c; --warn:#ffcc66;
-    --card:#1a1f27; --shadow: rgba(0,0,0,.35);
-  }
-  *{box-sizing:border-box} html,body{margin:0;background:radial-gradient(1200px 600px at 50% -200px,#151a21 0%,#0d0f12 60%);color:var(--ink);font:500 16px/1.45 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Inter,system-ui,sans-serif}
-  h1{font-weight:900;letter-spacing:.5px;font-size:clamp(28px,6vw,56px);margin:20px 20px 8px}
-  .subtle{color:var(--ink2)}
-  .bar{background:linear-gradient(180deg,var(--panel),#141821);border:1px solid #222834;box-shadow:0 8px 30px var(--shadow), inset 0 1px 0 rgba(255,255,255,.03);border-radius:22px;margin:14px 16px;padding:16px;display:grid;gap:12px}
-  .controls{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-  .btn{appearance:none;border:0;cursor:pointer;padding:16px 18px;border-radius:18px;background:var(--accent);color:#111;font-weight:900;box-shadow:0 8px 20px rgba(255,110,162,.25);transition:.15s transform, .2s box-shadow}
-  .btn:active{transform:translateY(1px);box-shadow:0 4px 10px rgba(255,110,162,.2)}
-  .btn-ghost{background:#0f1319;border:1px solid #2a3140;color:var(--ink);box-shadow:none}
-  .chip{padding:10px 14px;border-radius:14px;background:#0f1319;border:1px solid #29313f}
-  .count{font-weight:900;background:#0f1319;padding:14px 16px;border-radius:14px;border:1px solid #29313f;min-width:86px;text-align:center}
-  .grid{display:grid;gap:16px;padding:10px 14px 120px}
-  @media (min-width:700px){ .grid{grid-template-columns:repeat(2,1fr)} }
-  @media (min-width:1000px){ .grid{grid-template-columns:repeat(3,1fr)} }
-  .card{background:linear-gradient(180deg,#1b212b 0%, #12161d 100%);border:1px solid #232a36;border-radius:22px;overflow:hidden;box-shadow:0 14px 40px var(--shadow);position:relative;touch-action:pan-y}
-  .media-wrap{position:relative;aspect-ratio:4/5;background:#0b0e13}
-  .media-wrap img,.media-wrap video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-  .grad{position:absolute;inset:auto 0 0 0;height:130px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.6) 40%, rgba(0,0,0,.9))}
-  .pad{padding:16px}
-  .title{font-weight:800;font-size:20px;margin:4px 0 10px}
-  .meta{color:var(--ink2);font-size:14px;margin-bottom:10px}
-  .pill{display:inline-flex;gap:8px;align-items:center;border-radius:14px;border:1px solid #2a3140;background:#0f1319;padding:8px 12px;margin-right:8px}
-  .star{font-size:24px;line-height:1}
-  .like-burst{position:absolute;inset:0;pointer-events:none;background:radial-gradient(400px 160px at center, rgba(39,212,140,.18), transparent 60%)}
-  .dismiss-fade{position:absolute;inset:0;background:linear-gradient(0deg,rgba(255,110,162,.12),transparent 40%)}
-  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;background:#2a1215;border:1px solid #4b2328;color:#ffd9de;padding:14px 16px;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.4);z-index:50}
-  .likedBtn{position:fixed;right:16px;top:16px;background:#12161d;border:1px solid #29313f;border-radius:16px;padding:12px 16px;box-shadow:0 10px 25px rgba(0,0,0,.3)}
-  dialog{border:1px solid #2a3140;border-radius:18px;background:linear-gradient(180deg,#12161d,#0b0f14);color:var(--ink);width:min(880px,92vw);padding:0;overflow:clip}
-  dialog::backdrop{background:rgba(0,0,0,.6)}
-  .dlg-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #242c39;background:#0f1319}
-  .dlg-body{padding:16px}
-  .list{display:grid;gap:12px;max-height:60vh;overflow:auto}
-  .small{font-size:13px;color:var(--muted)}
-  .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#10141a;border:1px solid #2a3140;padding:2px 6px;border-radius:6px}
-  .mono{font:500 13px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap}
+  :root{--ink:#e9eef6;--ink-d:#aeb7c8;--bg:#0d1117;--panel:#121722;--b:#1e2a43;--hi:#182035;--accent:#ff6fa1;--accent2:#90d5ff;--ok:#67e8a5;--fail:#ff7b7b;--radius:18px;--shadow:0 8px 30px rgba(0,0,0,.35), 0 1px 2px rgba(0,0,0,.25)}
+  *{box-sizing:border-box} html,body{height:100%}
+  body{margin:0;background:radial-gradient(1200px 600px at 10% -20%, #1c2644 0%, transparent 70%),radial-gradient(1400px 700px at 110% -10%, #18213a 0%, transparent 75%),linear-gradient(#0b0f17,#0d1117 40%);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+  .wrap{max-width:980px;margin:auto;padding:28px 16px 80px}
+  header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  h1{margin:0;font-weight:900;letter-spacing:.4px;font-size:clamp(28px,6vw,56px)}
+  .sub{color:var(--ink-d)}
+  .btn{appearance:none;border:1px solid #2a3552;background:#18223a;color:var(--ink);padding:14px 16px;border-radius:14px;font-weight:800;box-shadow:var(--shadow);cursor:pointer}
+  .btn.primary{background:var(--accent);border-color:transparent;color:#081019}
+  .btn.ghost{background:transparent}
+  .toolbar{margin-top:14px;background:linear-gradient(#121722,#0f1420);border:1px solid var(--b);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;display:grid;gap:12px;grid-template-columns:1fr 1fr}
+  @media(min-width:700px){.toolbar{grid-template-columns:1fr auto auto auto}}
+  .count{display:flex;align-items:center;justify-content:center;padding:14px 16px;border-radius:14px;background:#0f1522;border:1px solid #1b2233;font-weight:900;min-width:92px}
+  .help{grid-column:1/-1;color:var(--ink-d)}
+  .grid{margin-top:18px;display:grid;gap:18px}
+  @media(min-width:700px){.grid{grid-template-columns:1fr 1fr}}
+  @media(min-width:1040px){.grid{grid-template-columns:1fr 1fr 1fr}}
+  .card{position:relative;overflow:hidden;border-radius:22px;background:linear-gradient(#121a2a,#0f1624);border:1px solid #22304a;box-shadow:var(--shadow);touch-action:pan-y}
+  .media{position:relative;aspect-ratio:3/4;background:#0b101a}
+  .media img,.media video{width:100%;height:100%;object-fit:cover;display:block}
+  .body{padding:14px 14px 18px}
+  .title{font-weight:800;margin:0 0 6px}
+  .meta{color:var(--ink-d);font-size:14px;margin-bottom:8px}
+  .chips{display:flex;gap:10px;flex-wrap:wrap}
+  .chip{font-size:13px;font-weight:800;padding:8px 10px;border-radius:12px;border:1px solid #2a3348;background:#151d2b;color:var(--ink)}
+  .chip.link{cursor:pointer}
+  .cta{display:flex;align-items:center;gap:10px;margin-top:10px}
+  .star{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-size:20px;background:#141d2b;border:1px solid #2a3348;color:#ffdd66;cursor:pointer}
+  .dismiss{margin-left:auto}.dismiss .x{display:block;width:16px;height:16px;border-top:3px solid #9bb0c8;border-right:3px solid #9bb0c8;transform:rotate(45deg)}
+  .dismiss .x:before{content:"";display:block;width:16px;height:16px;border-top:3px solid #9bb0c8;border-right:3px solid #9bb0c8;transform:rotate(90deg) translate(-3px,3px)}
+  .tag{position:absolute;top:10px;right:10px;padding:6px 8px;border-radius:9px;font-size:12px;font-weight:900;display:none}
+  .tag.like{background:rgba(103,232,165,.18);color:#b4ffd9;border:1px solid #2d6b54}
+  .tag.nope{left:10px;right:auto;background:rgba(255,123,123,.18);color:#ffc1c1;border:1px solid #703b3b}
+  .burst,.dust{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:140px;height:140px;border-radius:50%;mix-blend-mode:screen;opacity:0}
+  .burst{background:radial-gradient(circle,#ffd86b 0%, rgba(255,216,107,0) 70%)}
+  .dust{background:radial-gradient(circle,#ff7b7b 0%, rgba(255,123,123,0) 70%)}
+  .ping{animation:pop .35s ease} @keyframes pop{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}60%{opacity:.9}100%{opacity:0;transform:translate(-50%,-50%) scale(1.25)}}
+  .drawer{position:fixed;inset:0;background:rgba(5,8,12,.7);backdrop-filter:saturate(1.2) blur(8px);display:none;z-index:30}
+  .drawer.on{display:block}
+  .drawer .sheet{position:absolute;inset:0;max-width:980px;margin:auto;padding:20px 16px}
+  .drawer .panel{background:linear-gradient(#111926,#0e1521);border:1px solid var(--b);border-radius:20px;padding:16px 16px 26px;box-shadow:var(--shadow)}
+  .toprow{display:flex;align-items:center;justify-content:space-between;margin:6px 2px 14px}
+  .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#2a354d;color:#ffe;border:1px solid #364363;padding:12px 14px;border-radius:12px;box-shadow:var(--shadow);display:none;z-index:50}
+  .toast.on{display:block}
+  a{color:var(--accent2);text-decoration:none}
 </style>
 </head>
 <body>
-  <h1>Scroll Wall</h1>
-  <div class="subtle" style="margin:0 20px 6px">Women • Models • Influencers • Actors (Reddit)</div>
-
-  <button id="openLiked" class="likedBtn">Liked ⭐ <span id="likedCount">(0)</span></button>
-
-  <section class="bar" aria-label="controls">
-    <div class="controls">
-      <button id="newBatch" class="btn btn-ghost">New batch</button>
-      <button id="loadMore" class="btn">Load more</button>
-      <div class="count" id="counter">0/0</div>
-      <button id="shuffle" class="btn btn-ghost">Shuffle 🔀</button>
-      <button id="troubleshoot" class="btn btn-ghost" style="grid-column:1/-1">Troubleshoot 🩺</button>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Scroll Wall</h1>
+      <div class="sub">Women • Models • Influencers • Actors (Reddit)</div>
     </div>
-    <div id="status" class="small"></div>
-  </section>
+    <button id="openLiked" class="btn">Liked ⭐</button>
+  </header>
 
-  <main id="grid" class="grid" aria-live="polite"></main>
-  <div id="toaster" class="toast" hidden></div>
+  <div class="toolbar">
+    <button id="newBatch" class="btn ghost">New batch</button>
+    <button id="loadMore" class="btn primary">Load more</button>
+    <div id="counter" class="count">0/0</div>
+    <button id="shuffle" class="btn">Shuffle 🔀</button>
+    <div class="help">Swipe a card — <b>right to like</b>, <b>left to dismiss</b>. Videos & GIFs auto-play. NSFW is enabled.</div>
+    <button id="troubleshoot" class="btn ghost" style="grid-column:1/-1">Troubleshoot 🩺</button>
+    <pre id="debug" class="help" style="white-space:pre-wrap;margin:0"></pre>
+  </div>
 
-  <!-- Liked overlay -->
-  <dialog id="likedDlg">
-    <div class="dlg-head">
-      <strong>Liked ⭐</strong>
-      <div class="small">Tap a card’s ⭐ again to undo</div>
-      <button id="closeLiked" class="btn btn-ghost">Close</button>
-    </div>
-    <div class="dlg-body">
-      <div id="likedList" class="list"></div>
-      <div class="small" style="margin-top:8px">Export liked as JSON: <button id="exportLiked" class="btn btn-ghost">Export</button></div>
-    </div>
-  </dialog>
+  <div id="grid" class="grid"></div>
+</div>
 
-  <!-- Troubleshoot -->
-  <dialog id="tsDlg">
-    <div class="dlg-head">
-      <strong>Troubleshoot</strong>
-      <button id="tsClose" class="btn btn-ghost">Close</button>
+<!-- Liked drawer -->
+<div id="drawer" class="drawer" aria-hidden="true">
+  <div class="sheet">
+    <div class="panel">
+      <div class="toprow">
+        <div style="display:flex;gap:10px;align-items:center"><div class="btn ghost">Liked ⭐</div><button id="exportJson" class="btn ghost">Export JSON</button></div>
+        <button id="closeLiked" class="btn">Close</button>
+      </div>
+      <div id="likedGrid" class="grid"></div>
     </div>
-    <div class="dlg-body">
-      <div class="mono" id="tsOut"></div>
-    </div>
-  </dialog>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
 
 <script>
-/* ------------------------ knobs ------------------------ */
-const ALLOW_NSFW_DEFAULT = true; // default include over_18 posts
-const MAX_PER_LOAD = 18;         // posts per "Load more"
-const NAMES = [
-  // a small seed list; discovery finds their appreciation subs dynamically
-  "Emily Ratajkowski","Charli D'Amelio","Lea Elui","Addison Rae","Madison Beer","Margot Robbie",
-  "Alexis Ren","Ana de Armas","Kylie Jenner","Kendall Jenner","Hailee Steinfeld","Dua Lipa",
-  "Sydney Sweeney","Florence Pugh","Sabrina Carpenter","Selena Gomez","Zendaya","Bella Hadid",
-  "Sommer Ray","Hailey Bieber","Camila Cabello","Emma Watson","Jenna Ortega","Ariana Grande",
-  "Gal Gadot","Lily Collins","Alexandra Daddario","Emilia Clarke","Scarlett Johansson","Kate Upton",
-  "Ana Cheri","Joey King","Eiza Gonzalez","Riley Keough","Sofie Dossi","Barbara Palvin",
-  "Kaia Gerber","Megan Fox","Alix Earle","Jodie Comer","Elizabeth Olsen","Anya Taylor-Joy"
+(() => {
+/* ---------- config ---------- */
+const MIRROR = 'https://r.jina.ai/http://www.reddit.com';
+const TIME_RANGE = 'week';
+const CHUNK_LIMIT = 40;
+const BATCH_SIZE = 24;      // how many subs per batch
+const TITLE_WORDS = 100;
+
+/* names-only subreddits (adults) */
+const NAME_SUBS = [
+  'EmRata','kendalljenner','kyliejenner','DuaLipa','sabrinacarpenter','MadisonBeer','HaileyBieber','addisonraee','CharliDamelio',
+  'BellaHadid','GigiHadid','KaiaGerber','SydneySweeney','AlexandraDaddario','AnaDeArmas','MargotRobbie','Zendaya',
+  'EmmaWatson','NataliePortman','SalmaHayek','EmilyBlunt','JessicaAlba','AlisonBrie','HayleyAtwell','MeganFox',
+  'ArianaGrande','TaylorSwift','GalGadot','AmberHeard','AnneHathaway','BrieLarson','ElizabethOlsen','KateBeckinsale',
+  'OliviaMunn','OliviaWilde','EmmaStone','AlexaDemie','FlorencePugh','AnyaTaylorJoy','SaoirseRonan','SelenaGomez',
+  'HaileeSteinfeld','CamilaMendes','VictoriaJustice','EmmaRoberts','BellaThorne','MadelainePetsch','KiernanShipka',
+  'AlexandriaOcasioCortez','LilyCollins','LilyJames','EmmaMackey','NaomiScott','RachelMcAdams','PriyankaChopra',
+  'SofiaVergara','EvaGreen','EvaMendes','BlakeLively','KeiraKnightley','NinaDobrev','CandiceSwanepoel',
+  'BarbaraPalvin','AdrianaLima','MirandaKerr','SaraSampaio','TaylorHill','JosephineSkriver','KarlieKloss',
+  'AlexandraStan','KaceyMusgraves','Halsey','BebeRexha','RitaOra','BeckyG','CamilaCabello','DemiLovato',
+  'DojaCat','MayaHawke','CamilaMorrone','AnaDeArmas','JennaOrtega','AlexandraShipp','LanaDelRey',
+  'RachelZegler','OliviaRodrigo','BillieEilish','CharithraChandran','MaitreyiRamakrishnan','YaraShahidi',
+  'KelseaBallerini','SabrinaClaudio','LaurenJauregui','Normani','SZA','KaliUchis','Saweetie','IggyAzalea',
+  'AshleyGraham','EmilyDiDonato','GizeleOliveira','WinnieHarlow','GabbieEpstein','SophieTurner','MaisieWilliams'
 ];
 
-/* ------------------------ state ------------------------ */
-const state = {
-  allowNSFW: ALLOW_NSFW_DEFAULT,
-  chosenSubs: new Set(),  // discovered appreciation subs
-  pool: [],               // fetched but not yet shown
-  shown: 0,
-  liked: JSON.parse(localStorage.getItem('liked_v1')||'[]'),
-  lastErr: '',
+/* ---------- state ---------- */
+let pool=[], shown=[], likes=loadLikes(), lastError='';
+const ui = {
+  grid: qs('#grid'), likedGrid: qs('#likedGrid'),
+  count: qs('#counter'), dbg: qs('#debug'),
+  toast: qs('#toast'), drawer: qs('#drawer')
 };
 
-/* ------------------------ helpers ------------------------ */
-const el = s => document.querySelector(s);
-const fmt = n => new Intl.NumberFormat().format(n);
-const toast = (msg)=>{const t=el('#toaster');t.textContent=msg;t.hidden=false;setTimeout(()=>t.hidden=true,2200)};
-const updateCounter = ()=> el('#counter').textContent = `${state.shown}/${state.pool.length}`;
-const saveLikes = ()=> localStorage.setItem('liked_v1', JSON.stringify(state.liked));
-const addLiked = (it)=>{ if(!state.liked.find(x=>x.id===it.id)){ state.liked.unshift(it); saveLikes(); refreshLikedBadge(); }};
-const removeLiked = (id)=>{ state.liked = state.liked.filter(x=>x.id!==id); saveLikes(); refreshLikedBadge(); };
-const refreshLikedBadge = ()=> el('#likedCount').textContent = `(${state.liked.length})`;
+/* ---------- helpers ---------- */
+function qs(s,el=document){return el.querySelector(s)}
+function escapeHtml(s){return (s||'').replace(/[&<>"]/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]))}
+function toast(msg,ms=1500){ui.toast.textContent=msg;ui.toast.classList.add('on');setTimeout(()=>ui.toast.classList.remove('on'),ms)}
+function saveLikes(){localStorage.setItem('sw_likes',JSON.stringify(likes))}
+function loadLikes(){try{return JSON.parse(localStorage.getItem('sw_likes')||'[]')}catch{return[]}}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function updateCount(){ui.count.textContent=`${shown.length}/${pool.length}`}
 
-/* Reddit fetch wrappers with gentle delays to avoid 429s */
-const wait = ms => new Promise(r=>setTimeout(r,ms));
-const fetchJSON = async (url) => {
-  try {
-    const res = await fetch(url, {headers:{'User-Agent':'scrollwall/0.1 (web)'}});
-    if(!res.ok){ throw new Error(`${res.status} ${res.statusText}`); }
-    return await res.json();
-  } catch(e){ state.lastErr = `${url}\n${e.message}`; throw e; }
-};
-
-/* Discover appreciation subs for given names */
-const APPRE_PAT = /(appreciation|hq|hott?ie|fans|only|celebs?|pics?|models?|goddess|babes?)$/i;
-const NOT_APPRE = /(music|musician|art|draw|fanart|news|discussion|memes?|gaming|quotes?|coloring|hair|nails|makeup|wardrobe|merch|updates?|snark|drama)/i;
-
-async function discoverSubs(names){
-  state.chosenSubs.clear();
-  const wantNSFW = state.allowNSFW ? 'on' : 'off';
-
-  for (const name of names){
-    // build search query biasing toward appreciation keywords
-    const q = encodeURIComponent(`${name} appreciation OR HQ OR pics`);
-    const url = `https://www.reddit.com/subreddits/search.json?q=${q}&include_over_18=${wantNSFW}&limit=8`;
-    try{
-      const j = await fetchJSON(url);
-      const hits = (j?.data?.children||[])
-        .map(x=>x.data)
-        .filter(d=>{
-          const nm = (d.display_name||'');
-          const title = (d.title||'');
-          const desc = (d.public_description||'');
-          const hay = `${nm} ${title} ${desc}`.toLowerCase();
-          const hasName = name.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean).some(tok=>hay.includes(tok));
-          const looksApp = APPRE_PAT.test(nm) || APPRE_PAT.test(title) || /appreciation|pics|fans|photos/i.test(desc);
-          const notBad = !NOT_APPRE.test(hay);
-          return hasName && looksApp && notBad && !/mod|meta|rules|wiki|bots?/i.test(hay);
-        })
-        // prefer larger/active subs
-        .sort((a,b)=> (b.subscribers||0) - (a.subscribers||0));
-      if(hits[0]){
-        state.chosenSubs.add(hits[0].display_name_prefixed.replace(/^r\//,''));
-      }
-    }catch(e){
-      // ignore; continue discovery
-    }
-    await wait(250); // small delay to reduce 429
-  }
+/* ---------- fetching ---------- */
+async function fetchSub(sub){
+  const url = `${MIRROR}/r/${encodeURIComponent(sub)}/top.json?t=${TIME_RANGE}&limit=100`;
+  const r = await fetch(url,{headers:{'Accept':'application/json'}});
+  if(!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+  return (await r.json()).data?.children?.map(x=>x.data)||[];
 }
 
-/* Pull posts from selected subs (images/gifs/videos only) */
-function postToItem(p){
-  // choose media url
-  const d = p.data;
-  let mediaUrl = null, isVideo = false;
-
-  if (d.secure_media?.reddit_video?.fallback_url){
-    mediaUrl = d.secure_media.reddit_video.fallback_url; isVideo = true;
-  } else if (d.is_video && d.media?.reddit_video?.fallback_url){
-    mediaUrl = d.media.reddit_video.fallback_url; isVideo = true;
-  } else if (d.preview?.images?.[0]?.source?.url){
-    mediaUrl = d.preview.images[0].source.url.replace(/&amp;/g,'&');
-  } else if (d.url_overridden_by_dest){
-    mediaUrl = d.url_overridden_by_dest.replace(/&amp;/g,'&');
-    if (/\.(gifv)$/.test(mediaUrl)){ mediaUrl = mediaUrl.replace(/\.gifv$/i,'.mp4'); isVideo = true; }
+function normalize(raw){
+  const out=[];
+  for(const p of raw||[]){
+    const nsfw=!!p.over_18, sub=p.subreddit||'', title=String(p.title||'').trim().slice(0,TITLE_WORDS);
+    let kind=null,src=null;
+    if(p.is_video && p.media?.reddit_video?.fallback_url){ kind='video'; src=p.media.reddit_video.fallback_url }
+    else if(p.secure_media?.reddit_video?.fallback_url){ kind='video'; src=p.secure_media.reddit_video.fallback_url }
+    else if(/\.(gif|gifv|mp4)$/i.test(p.url||'')){ kind=/\.gif$/i.test(p.url)?'gif':'video'; src=(p.url||'').replace('.gifv','.mp4') }
+    else if(/\.(jpe?g|png|webp)$/i.test(p.url||'')){ kind='image'; src=p.url }
+    else if(p.preview?.images?.[0]?.source?.url){ kind='image'; src=p.preview.images[0].source.url.replace(/&amp;/g,'&') }
+    if(!kind||!src) continue;
+    out.push({id:p.id,title,author:p.author,sub,nsfw,kind,src,permalink:`https://reddit.com${p.permalink||''}`});
   }
-
-  if(!mediaUrl) return null;
-  if(!state.allowNSFW && d.over_18) return null;
-
-  return {
-    id: d.id,
-    sub: d.subreddit,
-    author: d.author,
-    title: d.title || 'Untitled',
-    url: `https://reddit.com${d.permalink}`,
-    media: mediaUrl,
-    isVideo
-  };
+  return out;
 }
 
-async function loadPosts(limit=MAX_PER_LOAD){
-  if (state.chosenSubs.size===0) throw new Error('No appreciation subs discovered yet.');
-  const subs = Array.from(state.chosenSubs);
-  const t = 'week'; // top this week
-  const want = Math.max(6, limit);
-  const bucket = [];
-
-  // round-robin through subs to diversify
-  for (let i=0; bucket.length<want && i<subs.length*3; i++){
-    const sub = subs[i % subs.length];
-    const url = `https://www.reddit.com/r/${sub}/top.json?t=${t}&limit=12`;
-    try{
-      const j = await fetchJSON(url);
-      const kids = j?.data?.children || [];
-      for (const p of kids){
-        const item = postToItem(p);
-        if (item && !bucket.find(x=>x.id===item.id) && !state.pool.find(x=>x.id===item.id)){
-          bucket.push(item);
-          if (bucket.length>=want) break;
-        }
-      }
-    }catch(e){/* keep trying others */}
-    await wait(200);
-  }
-
-  state.pool.push(...bucket);
+function filterPeople(items){
+  // names-only subs already strongly bias to people; still filter out obvious non-people words
+  const bad=['landscape','sunset','building','car','cat','dog','animal','mountain','meme','art','street','house','architecture'];
+  return items.filter(p=>!bad.some(w=>(p.title||'').toLowerCase().includes(w)));
 }
 
-/* -------------- UI: render cards, swipe, like -------------- */
-function cardEl(item){
-  const li = document.createElement('article');
-  li.className='card'; li.setAttribute('data-id', item.id);
-
-  const mw = document.createElement('div'); mw.className='media-wrap';
-  if (item.isVideo){
-    const v = document.createElement('video');
-    v.src = item.media; v.autoplay = true; v.muted = true; v.loop = true; v.playsInline = true; v.controls = false;
-    mw.appendChild(v);
-  } else {
-    const img = new Image(); img.loading='lazy'; img.src = item.media; mw.appendChild(img);
-  }
-  mw.appendChild(Object.assign(document.createElement('div'),{className:'grad'}));
-  li.appendChild(mw);
-
-  const pd = document.createElement('div'); pd.className='pad';
-  const h = document.createElement('div'); h.className='title'; h.textContent=item.title.slice(0,120);
-  const meta = document.createElement('div'); meta.className='meta'; meta.textContent = `r/${item.sub} • u/${item.author}`;
-  const row = document.createElement('div');
-  const star = Object.assign(document.createElement('button'), {className:'pill', innerHTML:`<span class="star">⭐</span> Save`});
-  const link = Object.assign(document.createElement('a'), {className:'pill', href:item.url, target:'_blank', rel:'noopener', textContent:'Reddit'});
-
-  star.addEventListener('click', ()=>{
-    // toggle like
-    if (state.liked.find(x=>x.id===item.id)){ removeLiked(item.id); star.innerHTML=`<span class="star">⭐</span> Save`; }
-    else { addLiked(item); star.innerHTML=`<span class="star">⭐</span> Saved`; burst(li); }
-  });
-
-  row.append(star,link);
-  pd.append(h,meta,row);
-  li.appendChild(pd);
-
+/* ---------- cards ---------- */
+function makeCard(post){
+  const el=document.createElement('article'); el.className='card'; el.dataset.id=post.id;
+  el.innerHTML=`
+    <div class="tag like">LIKE ⭐</div><div class="tag nope">NOPE</div>
+    <div class="burst"></div><div class="dust"></div>
+    <div class="media">${post.kind==='image'?`<img alt="" loading="lazy" src="${post.src}">`:`<video playsinline muted autoplay loop src="${post.src}"></video>`}</div>
+    <div class="body">
+      <h3 class="title">${escapeHtml(post.title)}</h3>
+      <div class="meta">u/${escapeHtml(post.author)} • r/${escapeHtml(post.sub)} ${post.nsfw?'• NSFW':''}</div>
+      <div class="chips">
+        <a class="chip link" href="${post.permalink}" target="_blank" rel="noopener">Reddit</a>
+        <span class="chip">${post.nsfw?'NSFW':'SFW'}</span>
+      </div>
+      <div class="cta">
+        <button class="star" title="Like">⭐</button>
+        <a class="chip link" href="${post.src}" target="_blank" rel="noopener">Open media</a>
+        <button class="star dismiss" title="Dismiss"><span class="x"></span></button>
+      </div>
+    </div>`;
   // swipe
-  makeSwipeable(li, ()=>{ addLiked(item); burst(li); li.remove(); }, ()=>{ fade(li); li.remove(); });
+  attachSwipe(el,{onLike:()=>like(post,el),onNope:()=>dismiss(el)});
+  el.querySelector('.star').onclick=()=>like(post,el);
+  el.querySelector('.dismiss').onclick=()=>dismiss(el);
+  return el;
+}
+function like(p,el){ if(!likes.some(x=>x.id===p.id)){likes.unshift(p);saveLikes()} burst(el.querySelector('.burst')); toast('Saved to Liked ⭐',900); dismiss(el) }
+function dismiss(el){ dust(el.querySelector('.dust')); el.style.transition='transform .18s ease,opacity .18s ease'; el.style.transform='translateX(-20px) scale(.98)'; el.style.opacity='.0'; setTimeout(()=>{el.remove();updateCount()},160) }
+function burst(el){el.classList.remove('ping');void el.offsetWidth;el.classList.add('ping')}
+function dust(el){el.classList.remove('ping');void el.offsetWidth;el.classList.add('ping')}
+function attachSwipe(el,{onLike,onNope}){let sx=0,dx=0,act=false;const m=el.querySelector('.media'),like=el.querySelector('.tag.like'),nope=el.querySelector('.tag.nope');const start=x=>{act=true;sx=x;dx=0;like.style.display=nope.style.display='none'};const move=x=>{if(!act)return;dx=x-sx;el.style.transform=`translateX(${dx}px) rotate(${dx/40}deg)`;like.style.display=dx>18?'block':'none';nope.style.display=dx<-18?'block':'none'};const end=()=>{if(!act)return;act=false;el.style.transition='transform .18s ease';if(dx>80)onLike();else if(dx<-80)onNope();else{el.style.transform='';like.style.display=nope.style.display='none'};setTimeout(()=>el.style.transition='',180)};m.addEventListener('touchstart',e=>start(e.touches[0].clientX),{passive:true});m.addEventListener('touchmove',e=>move(e.touches[0].clientX),{passive:true});m.addEventListener('touchend',end);m.addEventListener('mousedown',e=>{e.preventDefault();start(e.clientX)});window.addEventListener('mousemove',e=>{if(act)move(e.clientX)});window.addEventListener('mouseup',end)}
 
-  return li;
+/* ---------- actions ---------- */
+qs('#openLiked').onclick=()=>{renderLiked();ui.drawer.classList.add('on');ui.drawer.setAttribute('aria-hidden','false')}
+qs('#closeLiked').onclick=()=>{ui.drawer.classList.remove('on');ui.drawer.setAttribute('aria-hidden','true')}
+qs('#exportJson').onclick=()=>{const b=new Blob([JSON.stringify(likes,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='liked.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+qs('#shuffle').onclick=()=>{pool=shuffle(pool);toast('Shuffled');}
+qs('#newBatch').onclick=buildBatch;
+qs('#loadMore').onclick=loadMore;
+qs('#troubleshoot').onclick=showDebug;
+
+function renderLiked(){
+  ui.likedGrid.innerHTML='';
+  likes.forEach(p=>ui.likedGrid.appendChild(makeCard(p)));
 }
 
-function burst(card){
-  const fx = document.createElement('div'); fx.className='like-burst'; card.appendChild(fx);
-  setTimeout(()=>fx.remove(),650);
-}
-function fade(card){
-  const fx = document.createElement('div'); fx.className='dismiss-fade'; card.appendChild(fx);
-  card.style.transform='scale(.985)'; card.style.opacity='.6';
-  setTimeout(()=>fx.remove(),450);
-}
-
-function makeSwipeable(el, onRight, onLeft){
-  let startX=0, curX=0, dragging=false;
-  const thresh = 70;
-
-  el.addEventListener('pointerdown', e=>{
-    dragging=true; startX=e.clientX; el.setPointerCapture(e.pointerId);
-    el.style.transition='none';
-  });
-  el.addEventListener('pointermove', e=>{
-    if(!dragging) return;
-    curX = e.clientX - startX;
-    el.style.transform=`translateX(${curX}px) rotate(${curX/60}deg)`;
-    el.style.opacity = String(1-Math.min(Math.abs(curX)/300, .35));
-  });
-  el.addEventListener('pointerup', ()=>{
-    el.style.transition='';
-    if(curX>thresh) { onRight(); }
-    else if(curX<-thresh) { onLeft(); }
-    else { el.style.transform=''; el.style.opacity=''; }
-    dragging=false; curX=0;
-  });
+async function buildBatch(){
+  ui.dbg.textContent=''; toast('Building a new batch…',900);
+  pool=[]; shown=[]; updateCount(); ui.grid.innerHTML='';
+  const subs = shuffle([...NAME_SUBS]).slice(0,BATCH_SIZE);
+  let added=0;
+  for(const s of subs){
+    try{
+      const raw = await fetchSub(s);
+      const norm = filterPeople(normalize(raw));
+      pool.push(...norm);
+      added+=norm.length;
+      if(pool.length>120) break;
+      await nap(200); // be gentle to mirror; avoids 429
+    }catch(e){ lastError = `/${s}: ${e.message}`; }
+  }
+  pool = dedupe(pool,'id');
+  if(pool.length===0){ toast('No fresh posts. Tap again.',1500); }
+  else{ toast(`Ready: ${pool.length} posts`); }
+  updateCount();
 }
 
-function renderNew(){
-  const grid = el('#grid');
-  const fresh = state.pool.slice(state.shown);
-  for (const it of fresh){ grid.appendChild(cardEl(it)); }
-  state.shown = state.pool.length;
-  updateCounter();
+function loadMore(){
+  if(pool.length===0){ toast('No pool yet — hit New batch',1200); return }
+  const take = pool.splice(0, Math.min(CHUNK_LIMIT, pool.length));
+  take.forEach(p=>{ const card=makeCard(p); ui.grid.appendChild(card); shown.push(p); });
+  updateCount();
 }
 
-/* ---------------- liked dialog ---------------- */
-function openLiked(){
-  const dlg = el('#likedDlg'), list = el('#likedList'); list.innerHTML='';
-  state.liked.forEach(it=>{
-    const row = document.createElement('div'); row.className='card';
-    row.innerHTML = `
-      <div class="media-wrap">${it.isVideo
-        ? `<video src="${it.media}" autoplay muted loop playsinline></video>`
-        : `<img src="${it.media}" loading="lazy">`}</div>
-      <div class="pad">
-        <div class="title">${it.title.slice(0,120)}</div>
-        <div class="meta">r/${it.sub} • u/${it.author}</div>
-        <div class="row">
-          <a class="pill" target="_blank" rel="noopener" href="${it.url}">Reddit</a>
-          <button class="pill">⭐ Undo</button>
-        </div>
-      </div>`;
-    row.querySelector('button').addEventListener('click', ()=>{ removeLiked(it.id); row.remove(); });
-    list.appendChild(row);
-  });
-  dlg.showModal();
+function showDebug(){
+  const ua = navigator.userAgent;
+  const msg = [
+    `Online: ${navigator.onLine}`,
+    `UA: ${ua}`,
+    `Pool size: ${pool.length}, shown: ${shown.length}, likes: ${likes.length}`,
+    `Last error: ${lastError || '(none)'}`,
+  ].join('\n');
+  ui.dbg.textContent = msg;
+  toast('Troubleshoot opened');
 }
-
-/* ---------------- troubleshoot ---------------- */
-function openTS(){
-  const o = [];
-  o.push(`Online: ${navigator.onLine}`);
-  o.push(`UA: ${navigator.userAgent}`);
-  o.push(`Chosen subs: ${Array.from(state.chosenSubs).join(', ') || '(none)'}`);
-  o.push(`Pool size: ${state.pool.length}, shown: ${state.shown}, likes: ${state.liked.length}`);
-  if (state.lastErr) o.push(`Last error: ${state.lastErr}`);
-  el('#tsOut').textContent = o.join('\n');
-  el('#tsDlg').showModal();
-}
-
-/* ---------------- wire up ---------------- */
-el('#newBatch').addEventListener('click', async ()=>{
-  try{
-    el('#status').textContent='Discovering appreciation subs…';
-    await discoverSubs(shuffle(NAMES).slice(0, 24)); // try subset to reduce rate-limit
-    el('#status').textContent = `Found ${state.chosenSubs.size} subs: ${Array.from(state.chosenSubs).join(', ')}`;
-    state.pool = []; state.shown=0; el('#grid').innerHTML=''; updateCounter();
-    toast('Batch ready — Load more to fetch posts.');
-  }catch(e){ toast('Discovery failed. Open Troubleshoot.'); }
-});
-
-el('#loadMore').addEventListener('click', async ()=>{
-  try{
-    if (state.chosenSubs.size===0) await discoverSubs(shuffle(NAMES).slice(0, 24));
-    el('#status').textContent='Loading posts…';
-    await loadPosts(MAX_PER_LOAD);
-    renderNew();
-    el('#status').textContent='';
-    if (state.pool.length===0) toast('No fresh posts. Tap again.');
-  }catch(e){ toast('Failed. Open Troubleshoot.'); }
-});
-
-el('#shuffle').addEventListener('click', ()=>{
-  state.pool = shuffle(state.pool);
-  el('#grid').innerHTML=''; state.shown=0; renderNew();
-  toast('Shuffled.');
-});
-
-el('#openLiked').addEventListener('click', openLiked);
-el('#closeLiked').addEventListener('click', ()=>el('#likedDlg').close());
-el('#exportLiked').addEventListener('click', ()=>{
-  const blob = new Blob([JSON.stringify(state.liked,null,2)], {type:'application/json'});
-  const a = Object.assign(document.createElement('a'), {href:URL.createObjectURL(blob), download:'liked.json'});
-  a.click();
-});
-el('#troubleshoot').addEventListener('click', openTS);
-el('#tsClose').addEventListener('click', ()=>el('#tsDlg').close());
 
 /* utils */
-function shuffle(arr){ return arr.map(x=>[Math.random(),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]); }
+function nap(ms){ return new Promise(r=>setTimeout(r,ms)) }
+function dedupe(arr,key){const m=new Map();for(const x of arr){m.set(x[key],x)}return [...m.values()]}
 
 /* boot */
-refreshLikedBadge();
-el('#status').textContent = ALLOW_NSFW_DEFAULT ? 'NSFW allowed • Tap New batch, then Load more.' : 'Tap New batch, then Load more.';
+buildBatch();
+
+})();
 </script>
 </body>
 </html>
