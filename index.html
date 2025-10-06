@@ -3,117 +3,150 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Celeb Wall • v2.3 (glass)</title>
+<title>Celeb Wall • v2.6 “tinderish”</title>
 <style>
   :root{
     --bg:#0b0e13;
-    --ink:#eaf0f7;
+    --ink:#eef3fb;
     --muted:#a9b3c1;
     --glass:rgba(255,255,255,.06);
     --glassHi:rgba(255,255,255,.10);
     --stroke:rgba(255,255,255,.12);
-    --good: #20c997;   /* teal */
-    --bad:  #ff6b6b;   /* coral */
+    --good:#20c997;   /* teal */
+    --bad:#ff6b6b;    /* coral */
+    --accent:#7aa2ff; /* buttons */
+    --pink:#ff87b5;   /* progress accent */
   }
-
-  /* Base */
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
-    margin:0; color:var(--ink); background:
+    margin:0; color:var(--ink);
+    background:
       radial-gradient(1200px 700px at 20% -200px,#1a2333 0%,transparent 60%),
       radial-gradient(900px 600px at 110% -150px,#2a1740 0%,transparent 60%),
       var(--bg);
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    font-family: ui-sans-serif, -apple-system, Segoe UI, Roboto, Arial;
     -webkit-font-smoothing:antialiased;
   }
 
-  /* Header (glass) */
+  /* Header: centered dashboard (glass) */
   header{
-    position:sticky; top:0; z-index:10;
-    background:linear-gradient(180deg, rgba(10,13,19,.85), rgba(10,13,19,.55) 70%, rgba(10,13,19,0));
-    backdrop-filter: saturate(120%) blur(8px);
+    position:sticky; top:0; z-index:20;
+    background:linear-gradient(180deg, rgba(10,13,19,.95), rgba(10,13,19,.55) 70%, rgba(10,13,19,0));
     border-bottom:1px solid var(--stroke);
-  }
-  .bar{display:flex; flex-wrap:wrap; align-items:center; gap:.6rem; padding:12px clamp(12px,4vw,28px)}
-  .group{display:flex; flex-wrap:wrap; align-items:center; gap:.6rem}
-
-  /* Glass buttons */
-  .btn{
-    padding:.58rem .9rem; border-radius:12px;
-    background:var(--glass); border:1px solid var(--stroke);
-    color:var(--ink); cursor:pointer; user-select:none;
-    box-shadow: 0 6px 20px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.05);
     backdrop-filter: blur(10px) saturate(120%);
-    transition: transform .09s ease, background .2s ease, border-color .2s ease;
+  }
+  .hdr-inner{
+    padding:12px clamp(12px,4vw,28px);
+    display:grid; gap:10px;
+    grid-template-columns:1fr minmax(260px,900px) 1fr;
+    align-items:center;
+  }
+  .left, .right{display:flex; gap:8px; align-items:center; justify-content:flex-start}
+  .right{justify-content:flex-end}
+  .center{
+    display:flex; gap:10px; align-items:center; justify-content:center; flex-wrap:wrap;
+  }
+
+  .chip, .btn{
+    border-radius:12px; border:1px solid var(--stroke);
+    background:var(--glass);
+    box-shadow:0 6px 20px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.05);
+    backdrop-filter: blur(10px) saturate(120%);
+  }
+  .chip{padding:.5rem .7rem; color:var(--muted)}
+  .btn{
+    padding:.65rem 1rem; cursor:pointer; user-select:none; color:var(--ink);
+    transition:transform .08s ease, background .2s ease, border-color .2s ease;
   }
   .btn:hover{ background:var(--glassHi) }
   .btn:active{ transform:translateY(1px) }
-  .chip{ opacity:.9 }
 
-  /* Counters */
-  .counter{display:inline-flex; gap:.45rem; align-items:center}
-  .counter b{font-weight:800}
-
-  /* Main grid */
-  main{padding:12px clamp(12px,4vw,28px) 80px}
-  .grid{
-    display:grid; gap:18px;
-    grid-template-columns:repeat(auto-fill, minmax(260px,1fr));
+  /* Progress */
+  .progress{
+    width:100%; max-width:900px; margin:0 auto 6px auto;
+    padding:0 16px;
+  }
+  .barWrap{
+    height:10px; border-radius:999px; overflow:hidden;
+    border:1px solid var(--stroke); background:rgba(255,255,255,.04);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+    backdrop-filter: blur(8px) saturate(120%);
+  }
+  .bar{
+    height:100%; width:0%;
+    background:linear-gradient(90deg,var(--pink),#8dd5ff);
+    box-shadow:0 0 16px rgba(138,197,255,.45);
+    transition:width .18s ease;
+  }
+  .pText{
+    margin-top:6px; font-size:.9rem; color:var(--muted);
+    display:flex; justify-content:space-between; gap:10px;
   }
 
-  /* Glass card */
+  main{padding:12px clamp(12px,4vw,28px) 80px}
+  .grid{
+    display:grid; gap:16px;
+    grid-template-columns:repeat(auto-fill, minmax(290px,1fr));
+  }
+
+  /* Tinder-like card */
   .card{
-    border-radius:18px; overflow:hidden; display:flex; flex-direction:column;
+    border-radius:22px; overflow:hidden; display:flex; flex-direction:column;
     background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
     border:1px solid var(--stroke);
-    box-shadow: 0 12px 34px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+    box-shadow: 0 14px 34px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
     backdrop-filter: blur(8px) saturate(140%);
   }
   .frame{position:relative; aspect-ratio:4/5; background:#0d1118}
   .frame img,.frame video{width:100%; height:100%; object-fit:cover; display:block}
 
+  /* name badge on top-left like Tinder */
+  .badge{
+    position:absolute; top:10px; left:10px; z-index:2;
+    padding:.45rem .65rem; border-radius:12px;
+    background:rgba(0,0,0,.45); border:1px solid rgba(255,255,255,.2);
+    color:#fff; font-weight:900; letter-spacing:.2px;
+    backdrop-filter: blur(8px) saturate(140%);
+  }
+
   .meta{
-    display:flex; flex-direction:column; gap:8px;
-    padding:10px 12px;
+    display:flex; flex-direction:column; gap:10px;
+    padding:12px 12px 14px 12px;
     background:linear-gradient(180deg, rgba(15,18,24,.8), rgba(15,18,24,.6));
     border-top:1px solid var(--stroke);
   }
   .titleRow{display:flex; justify-content:space-between; gap:10px; align-items:baseline; flex-wrap:wrap}
-  .person{font-weight:900; letter-spacing:.2px}
   .source{color:var(--muted); font-size:.9rem}
 
-  /* Action bar (glass rectangles) */
+  /* Rect action buttons: left = Dislike, right = Like */
   .actions{display:flex; gap:10px}
   .rect{
-    flex:1; padding:.65rem .85rem; border-radius:12px;
+    flex:1; padding:.72rem .9rem; border-radius:14px;
     border:1px solid var(--stroke);
     background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
     color:var(--ink); font-weight:800; letter-spacing:.15px; cursor:pointer;
-    box-shadow: 0 6px 18px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.05);
+    box-shadow: 0 8px 18px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.05);
     backdrop-filter: blur(8px) saturate(120%);
-    transition: transform .09s ease, filter .15s ease;
+    transition: transform .08s ease, filter .15s ease;
   }
   .rect:active{ transform:translateY(1px) }
-  .badBtn{ outline: 2px solid rgba(255,107,107,.25) }
-  .goodBtn{ outline: 2px solid rgba(32,201,151,.25) }
-  .badBtn:hover{ filter: drop-shadow(0 0 10px rgba(255,107,107,.18)) }
-  .goodBtn:hover{ filter: drop-shadow(0 0 10px rgba(32,201,151,.18)) }
+  .badBtn{ outline:2px solid rgba(255,107,107,.25) }
+  .goodBtn{ outline:2px solid rgba(32,201,151,.25) }
+  .badBtn:hover{ filter: drop-shadow(0 0 10px rgba(255,107,107,.2)) }
+  .goodBtn:hover{ filter: drop-shadow(0 0 10px rgba(32,201,151,.2)) }
 
-  /* Footer counters (glass) */
   footer{
     position:sticky; bottom:0; z-index:9;
     display:flex; justify-content:center; gap:10px; padding:10px;
-    background:linear-gradient(0deg, rgba(10,13,19,.85), rgba(10,13,19,.55) 70%, rgba(10,13,19,0));
+    background:linear-gradient(0deg, rgba(10,13,19,.92), rgba(10,13,19,.55) 70%, rgba(10,13,19,0));
     border-top:1px solid var(--stroke);
     backdrop-filter: blur(8px) saturate(120%);
   }
-
-  /* Toast */
   .toast{
     position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
-    background:rgba(20,24,32,.9); border:1px solid var(--stroke);
-    padding:.7rem 1rem; border-radius:12px; display:none; z-index:20;
+    background:rgba(20,24,32,.92); border:1px solid var(--stroke);
+    padding:.7rem 1rem; border-radius:12px; display:none; z-index:50;
     box-shadow:0 10px 26px rgba(0,0,0,.35);
     backdrop-filter: blur(10px) saturate(120%);
   }
@@ -122,19 +155,29 @@
 </head>
 <body>
   <header>
-    <div class="bar">
-      <div class="group">
-        <div class="btn chip">Celeb Wall • v2.3</div>
-        <div class="btn chip counter">Shown <b id="shown">0</b></div>
-        <div class="btn chip counter">Pool <b id="pool">0</b></div>
-        <div class="btn chip counter">Total <b id="total">0</b></div>
+    <div class="hdr-inner">
+      <div class="left">
+        <div class="chip">Build v2.6</div>
+        <div class="chip">Shown <b id="shown">0</b></div>
+        <div class="chip">Pool <b id="pool">0</b></div>
+        <div class="chip">Total <b id="total">0</b></div>
       </div>
-      <div class="group" style="margin-left:auto">
+      <div class="center">
         <div class="btn" id="btnHome">Home</div>
         <div class="btn" id="btnLikes">⭐ Likes</div>
-        <div class="btn" id="btnNew">New Batch</div>
+        <div class="btn" id="btnNew">New batch</div>
         <div class="btn" id="btnShuffle">Shuffle</div>
+        <div class="btn" id="btnMore">Load more</div>
       </div>
+      <div class="right">
+        <div class="chip">r/celebs + more</div>
+      </div>
+    </div>
+
+    <!-- Progress bar + text -->
+    <div class="progress">
+      <div class="barWrap"><div class="bar" id="pbar"></div></div>
+      <div class="pText"><span id="pstep">Idle</span><span id="ppct">0%</span></div>
     </div>
   </header>
 
@@ -143,13 +186,13 @@
   </main>
 
   <footer>
-    <div class="btn chip">Auto-load is ON (scroll)</div>
+    <div class="chip">Auto-load on scroll</div>
   </footer>
 
   <div class="toast" id="toast">Done</div>
 
 <script>
-/* ---------------- State ---------------- */
+/* ========= State ========= */
 let pool=[], shown=0, view='home';
 let likes = JSON.parse(localStorage.getItem('likes_v1')||'[]');
 let hidden= new Set(JSON.parse(localStorage.getItem('hidden_v1')||'[]'));
@@ -159,32 +202,26 @@ const shownEl = document.getElementById('shown');
 const poolEl  = document.getElementById('pool');
 const totalEl = document.getElementById('total');
 const toast   = document.getElementById('toast');
+const pbar = document.getElementById('pbar');
+const pstep = document.getElementById('pstep');
+const ppct = document.getElementById('ppct');
 
-/* ------------- Config (tuned bigger) ------------- */
-const LIMIT_PER_QUERY = 100;     // reddit results per name/sub
-const NAMES_PER_BATCH = 20;      // how many names we pull each batch
-const RENDER_CHUNK    = 14;      // cards per renderMore() call
+/* ==== Config ==== */
+const LIMIT_PER_QUERY = 100;
+const NAMES_PER_BATCH = 24;
+const RENDER_CHUNK    = 14;
 
-const PEOPLE=[
- "Charli D'Amelio","Lea Elui","Kendall Jenner","Hailey Bieber","Madison Beer","Sabrina Carpenter","Sydney Sweeney",
- "Dua Lipa","Gal Gadot","Alexandra Daddario","Ana de Armas","Selena Gomez","Kaia Gerber","Vanessa Hudgens",
- "Margot Robbie","Emily Ratajkowski","Irina Shayk","Emma Watson","Ariana Grande","Bella Hadid","Gigi Hadid",
- "Zendaya","Natalie Portman","Megan Fox","Addison Rae","Kylie Jenner","Kim Kardashian","Kourtney Kardashian",
- "Khloe Kardashian","Sophie Turner","Maisie Williams","Florence Pugh","Rachel McAdams","Jessica Alba",
- "Scarlett Johansson","Jennifer Lawrence","Emma Stone","Kristen Stewart","Mila Kunis","Blake Lively","Taylor Swift",
- "Olivia Rodrigo","Billie Eilish","Doja Cat","Halsey","Megan Thee Stallion","Cardi B","Nicki Minaj","Rihanna",
- "Shakira","Salma Hayek","Eva Mendes","Eva Longoria","Jennifer Lopez","Jessica Biel","Miranda Kerr",
- "Candice Swanepoel","Adriana Lima","Alessandra Ambrosio","Barbara Palvin","Rosie Huntington-Whiteley","Karlie Kloss",
- "Bella Thorne","Nina Dobrev","Victoria Justice","Elizabeth Gillies","Hilary Duff","Ashley Benson","Shay Mitchell",
- "Camila Mendes","Madelaine Petsch","Ariel Winter","Sofia Vergara","Lucy Hale","Lili Reinhart","Troian Bellisario",
- "Lucy Boynton","Anya Taylor-Joy","Elle Fanning","Dakota Fanning","Kiernan Shipka","Chloe Moretz",
- "Hailee Steinfeld","Zoe Kravitz","Janelle Monae","Lana Del Rey","Kacey Musgraves","Maren Morris","Kelly Clarkson",
- "Christina Aguilera","Britney Spears","Mandy Moore","Avril Lavigne","Katy Perry","Jessie J","Rita Ora","Fergie"
-];
+const PEOPLE=[ "Charli D'Amelio","Lea Elui","Kendall Jenner","Hailey Bieber","Madison Beer",
+"Sabrina Carpenter","Sydney Sweeney","Dua Lipa","Gal Gadot","Alexandra Daddario","Ana de Armas",
+"Selena Gomez","Kaia Gerber","Vanessa Hudgens","Margot Robbie","Emily Ratajkowski","Irina Shayk",
+"Emma Watson","Ariana Grande","Bella Hadid","Gigi Hadid","Zendaya","Natalie Portman","Megan Fox",
+"Addison Rae","Kylie Jenner","Kim Kardashian","Sophie Turner","Florence Pugh","Anya Taylor-Joy",
+"Hailee Steinfeld","Miranda Kerr","Candice Swanepoel","Adriana Lima","Barbara Palvin","Rosie Huntington-Whiteley",
+"Nina Dobrev","Victoria Justice","Elizabeth Gillies","Ariel Winter","Lili Reinhart","Camila Mendes" ];
 
 const SUBS=['celebs','CelebrityPhotos','ModelPhotos'];
 
-/* ---------------- Helpers ---------------- */
+/* ==== Helpers ==== */
 const sleep = ms => new Promise(r=>setTimeout(r,ms));
 function shuffleArray(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 function updateMeters(){ shownEl.textContent=shown; poolEl.textContent=pool.length; totalEl.textContent=shown+pool.length; }
@@ -198,7 +235,6 @@ function bestMedia(d){
   const vid=pickRedditVideo(d); if(vid) return {url:vid, kind:'video'};
   let u=toMP4(direct); if(u&&/\.(jpg|jpeg|png|gif|webp|mp4)$/i.test(u)) return {url:u,kind:/\.mp4$/i.test(u)?'video':'image'};
   const prev=extractPreview(d); if(prev) return {url:toMP4(prev),kind:'image'};
-  // Gallery support (if present)
   if(d.is_gallery && d.media_metadata){
     for(const k of Object.keys(d.media_metadata)){
       const s=d.media_metadata[k]?.s; const u2=clean(s?.u||s?.gif||s?.mp4); if(u2) return {url:toMP4(u2), kind:/\.mp4$/i.test(u2)?'video':'image'};
@@ -207,11 +243,25 @@ function bestMedia(d){
   return null;
 }
 
-/* ---------------- Loader ---------------- */
+/* ==== Progress bar helpers ==== */
+let totalSteps=1, doneSteps=0;
+function progressStart(total, label='Building…'){
+  totalSteps=Math.max(1,total); doneSteps=0;
+  pstep.textContent=label; ppct.textContent='0%'; pbar.style.width='0%';
+}
+function progressBump(label){
+  doneSteps++; const pct=Math.min(100, Math.round((doneSteps/totalSteps)*100));
+  pbar.style.width=pct+'%'; ppct.textContent=pct+'%';
+  if(label) pstep.textContent=label;
+  if(pct===100) setTimeout(()=>pstep.textContent='Idle',800);
+}
+
+/* ==== Fetching ==== */
 async function fetchNameFromSub(name, sub){
   const url=`https://www.reddit.com/r/${encodeURIComponent(sub)}/search.json?restrict_sr=1&sort=new&limit=${LIMIT_PER_QUERY}&q=title:${encodeURIComponent(name)}&include_over_18=on&raw_json=1`;
   try{
-    const res=await fetch(url,{headers:{'Accept':'application/json'}}); if(!res.ok) return 0;
+    const res=await fetch(url,{headers:{'Accept':'application/json'}});
+    if(!res.ok){ progressBump(`${name} • r/${sub} (skip)`); return 0; }
     const data=await res.json(); const kids=data?.data?.children||[]; let added=0;
     for(const c of kids){
       const d=c.data||{}; const pick=bestMedia(d); if(!pick?.url) continue;
@@ -221,13 +271,21 @@ async function fetchNameFromSub(name, sub){
       pool.push({ id, person:name, title:(d.title||name), url:pick.url, kind:pick.kind, source:`r/${sub}` });
       added++;
     }
+    progressBump(`${name} • r/${sub} (+${added})`);
     return added;
-  }catch(e){ return 0; }
+  }catch(e){
+    progressBump(`${name} • r/${sub} (err)`);
+    return 0;
+  }
 }
 
 async function buildNewBatch(){
   view='home'; cardsEl.innerHTML=''; shown=0; pool=[]; updateMeters();
+
   const names=shuffleArray([...PEOPLE]).slice(0,NAMES_PER_BATCH);
+  const steps = names.length * SUBS.length;
+  progressStart(steps, 'Fetching…');
+
   for(const sub of SUBS){
     for(const n of names){
       await fetchNameFromSub(n, sub);
@@ -237,10 +295,13 @@ async function buildNewBatch(){
   shuffleArray(pool); updateMeters(); renderMore(); toastShow('New batch ready');
 }
 
-/* ---------------- Render ---------------- */
+/* ==== Render ==== */
 function renderCard(item){
   const card=document.createElement('article'); card.className='card';
   const frame=document.createElement('div'); frame.className='frame';
+
+  const badge=document.createElement('div'); badge.className='badge'; badge.textContent=item.person||'—';
+  frame.appendChild(badge);
 
   if(item.kind==='video'){
     const v=document.createElement('video');
@@ -253,9 +314,9 @@ function renderCard(item){
 
   const meta=document.createElement('div'); meta.className='meta';
   const row=document.createElement('div'); row.className='titleRow';
-  const person=document.createElement('div'); person.className='person'; person.textContent=item.person||'—';
   const src=document.createElement('div'); src.className='source'; src.textContent=item.source;
-  row.append(person,src);
+  const title=document.createElement('div'); title.className='source'; title.textContent=item.title?.slice(0,120)||'';
+  row.append(src, title);
 
   const actions=document.createElement('div'); actions.className='actions';
   const btnNope=document.createElement('button'); btnNope.className='rect badBtn'; btnNope.textContent='Dismiss';
@@ -281,43 +342,30 @@ function renderMore(n=RENDER_CHUNK){
   updateMeters();
 }
 
-/* ---------------- Views ---------------- */
+/* ==== Views & Shuffle ==== */
 function showLikes(){
   view='likes'; cardsEl.innerHTML=''; pool.length=0; shown=likes.length; updateMeters();
   likes.forEach(it=>cardsEl.appendChild(renderCard(it)));
 }
-function showHome(){
-  view='home'; cardsEl.innerHTML=''; shown=0; updateMeters();
-  renderMore();
-}
-
-/* ---------------- Shuffle (visible + pool) ---------------- */
+function showHome(){ view='home'; cardsEl.innerHTML=''; shown=0; updateMeters(); renderMore(); }
 function shuffleFeed(){
   if(view==='likes'){ likes=shuffleArray(likes); showLikes(); toastShow('Shuffled likes'); return; }
   const nodes=[...cardsEl.children]; shuffleArray(nodes); cardsEl.innerHTML=''; nodes.forEach(n=>cardsEl.appendChild(n));
-  pool=shuffleArray(pool);
-  toastShow('Shuffled feed');
+  pool=shuffleArray(pool); toastShow('Shuffled feed');
 }
 
-/* ---------------- Infinite Scroll (auto load) ---------------- */
-const sentinel=document.createElement('div');
-sentinel.style.height='1px';
-document.body.appendChild(sentinel);
-const io=new IntersectionObserver((entries)=>{
-  if(entries[0].isIntersecting && view==='home'){
-    // load a smaller chunk so scrolling feels continuous
-    renderMore(Math.ceil(RENDER_CHUNK/2));
-  }
-},{rootMargin:'300px'});
+/* ==== Infinite Scroll & Controls ==== */
+const sentinel=document.createElement('div'); sentinel.style.height='1px'; document.body.appendChild(sentinel);
+const io=new IntersectionObserver((entries)=>{ if(entries[0].isIntersecting && view==='home'){ renderMore(Math.ceil(RENDER_CHUNK/2)); } },{rootMargin:'300px'});
 io.observe(sentinel);
 
-/* ---------------- Wire up ---------------- */
 document.getElementById('btnNew').onclick=buildNewBatch;
 document.getElementById('btnLikes').onclick=showLikes;
 document.getElementById('btnHome').onclick=showHome;
 document.getElementById('btnShuffle').onclick=shuffleFeed;
+document.getElementById('btnMore').onclick=()=>renderMore(RENDER_CHUNK);
 
-/* Init */
+/* ==== Init ==== */
 updateMeters();
 buildNewBatch();
 </script>
