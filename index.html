@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Celeb Wall • v2.1</title>
+<title>Celeb Wall • v2.2</title>
 <style>
   body { margin:0; font-family:sans-serif; background:#0f0f0f; color:#eee; }
   header, footer { display:flex; padding:8px; justify-content:center; gap:12px; background:#1a1a1a; position:sticky; top:0; z-index:10; }
@@ -48,7 +48,26 @@ const shownEl=document.getElementById('shown');
 const poolEl=document.getElementById('pool');
 const totalEl=document.getElementById('total');
 
-const PEOPLE=["Charli D'Amelio","Lea Elui","Kendall Jenner","Hailey Bieber","Madison Beer","Sabrina Carpenter","Sydney Sweeney","Dua Lipa","Gal Gadot","Alexandra Daddario","Ana de Armas","Selena Gomez","Kaia Gerber","Vanessa Hudgens","Margot Robbie","Emily Ratajkowski","Irina Shayk","Emma Watson","Ariana Grande","Bella Hadid"];
+const LIMIT_PER_QUERY = 100;
+const NAMES_PER_BATCH = 20;
+
+const PEOPLE=[
+ "Charli D'Amelio","Lea Elui","Kendall Jenner","Hailey Bieber","Madison Beer","Sabrina Carpenter","Sydney Sweeney",
+ "Dua Lipa","Gal Gadot","Alexandra Daddario","Ana de Armas","Selena Gomez","Kaia Gerber","Vanessa Hudgens",
+ "Margot Robbie","Emily Ratajkowski","Irina Shayk","Emma Watson","Ariana Grande","Bella Hadid","Gigi Hadid",
+ "Zendaya","Natalie Portman","Megan Fox","Addison Rae","Kylie Jenner","Kim Kardashian","Kourtney Kardashian",
+ "Khloe Kardashian","Sophie Turner","Maisie Williams","Florence Pugh","Rachel McAdams","Jessica Alba",
+ "Scarlett Johansson","Jennifer Lawrence","Emma Stone","Kristen Stewart","Mila Kunis","Blake Lively","Taylor Swift",
+ "Olivia Rodrigo","Billie Eilish","Doja Cat","Halsey","Megan Thee Stallion","Cardi B","Nicki Minaj","Rihanna",
+ "Shakira","Selma Blair","Salma Hayek","Eva Mendes","Eva Longoria","Jennifer Lopez","Jessica Biel","Miranda Kerr",
+ "Candice Swanepoel","Adriana Lima","Alessandra Ambrosio","Barbara Palvin","Rosie Huntington-Whiteley","Karlie Kloss",
+ "Bella Thorne","Vanessa Morgan","Lucy Hale","Lili Reinhart","Camila Mendes","Madelaine Petsch","Ariel Winter",
+ "Sofia Vergara","Nina Dobrev","Victoria Justice","Elizabeth Gillies","Hilary Duff","Ashley Benson","Shay Mitchell",
+ "Troian Bellisario","Lucy Boynton","Anya Taylor-Joy","Elle Fanning","Dakota Fanning","Kiernan Shipka","Chloe Moretz",
+ "Hailee Steinfeld","Zoe Kravitz","Janelle Monae","Lana Del Rey","Kacey Musgraves","Maren Morris","Kelly Clarkson",
+ "Christina Aguilera","Britney Spears","Mandy Moore","Avril Lavigne","Katy Perry","Jessie J","Rita Ora","Fergie"
+];
+
 const SUBS=['celebs','CelebrityPhotos','ModelPhotos'];
 
 function updateMeters(){ shownEl.textContent=shown; poolEl.textContent=pool.length; totalEl.textContent=shown+pool.length; }
@@ -61,7 +80,7 @@ function extractPreview(d){ return d?.preview?.images?.[0]?.source?.url?clean(d.
 function bestMedia(d){ const direct=clean(d.url_overridden_by_dest||d.url); const vid=pickVideo(d); if(vid) return {url:vid,kind:'video'}; let u=toMP4(direct); if(u&&/\.(jpg|jpeg|png|gif|mp4)$/i.test(u)) return {url:u,kind:/\.mp4$/i.test(u)?'video':'image'}; const prev=extractPreview(d); if(prev) return {url:toMP4(prev),kind:'image'}; return null; }
 
 async function fetchNameFromSub(name,sub){
-  const url=`https://www.reddit.com/r/${sub}/search.json?restrict_sr=1&sort=new&limit=20&q=title:${encodeURIComponent(name)}&include_over_18=on&raw_json=1`;
+  const url=`https://www.reddit.com/r/${sub}/search.json?restrict_sr=1&sort=new&limit=${LIMIT_PER_QUERY}&q=title:${encodeURIComponent(name)}&include_over_18=on&raw_json=1`;
   try{
     const res=await fetch(url); if(!res.ok) return 0;
     const data=await res.json(); const kids=data?.data?.children||[]; let added=0;
@@ -78,7 +97,7 @@ async function fetchNameFromSub(name,sub){
 
 async function buildNewBatch(){
   view='home'; cardsEl.innerHTML=''; shown=0; pool=[]; updateMeters();
-  const names=shuffleArray([...PEOPLE]).slice(0,8);
+  const names=shuffleArray([...PEOPLE]).slice(0,NAMES_PER_BATCH);
   for(const sub of SUBS){ for(const n of names){ await fetchNameFromSub(n,sub); await sleep(150); } }
   shuffleArray(pool); total=pool.length; updateMeters(); renderMore();
 }
@@ -104,7 +123,7 @@ function renderCard(item){
   return card;
 }
 
-function renderMore(n=8){
+function renderMore(n=12){
   if(view!=='home') return;
   let c=0; while(c<n&&pool.length){ cardsEl.appendChild(renderCard(pool.shift())); shown++; c++; }
   updateMeters();
@@ -113,12 +132,10 @@ function renderMore(n=8){
 function showLikes(){ view='likes'; cardsEl.innerHTML=''; shown=likes.length; pool=[]; updateMeters(); likes.forEach(it=>cardsEl.appendChild(renderCard(it))); }
 function showHome(){ view='home'; cardsEl.innerHTML=''; shown=0; updateMeters(); renderMore(); }
 
-/* --- Shuffle visible + pool --- */
 function shuffleFeed(){
   if(view==='likes'){ likes=shuffleArray(likes); showLikes(); return; }
   const nodes=Array.from(cardsEl.children);
-  shuffleArray(nodes);
-  cardsEl.innerHTML=''; nodes.forEach(n=>cardsEl.appendChild(n));
+  shuffleArray(nodes); cardsEl.innerHTML=''; nodes.forEach(n=>cardsEl.appendChild(n));
   pool=shuffleArray(pool);
 }
 
