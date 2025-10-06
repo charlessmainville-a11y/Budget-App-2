@@ -3,53 +3,167 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Celeb Wall • v2.2</title>
+<title>Celeb Wall • v2.3 (glass)</title>
 <style>
-  body { margin:0; font-family:sans-serif; background:#0f0f0f; color:#eee; }
-  header, footer { display:flex; padding:8px; justify-content:center; gap:12px; background:#1a1a1a; position:sticky; top:0; z-index:10; }
-  .btn { background:#333; color:#eee; padding:6px 12px; border-radius:6px; cursor:pointer; user-select:none; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px; padding:16px; }
-  .card { background:#222; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,.3); display:flex; flex-direction:column; }
-  .frame { position:relative; aspect-ratio:4/5; background:#111; }
-  .frame img,.frame video { width:100%; height:100%; object-fit:cover; }
-  .meta { padding:10px; border-top:1px solid #333; }
-  .titleRow { display:flex; justify-content:space-between; margin-bottom:6px; }
-  .person { font-weight:bold; font-size:1.05rem; }
-  .source { font-size:.9rem; color:#aaa; }
-  .actions { display:flex; gap:10px; margin-top:6px; }
-  .rectBtn { flex:1; padding:.6rem; border-radius:8px; border:none; font-weight:bold; cursor:pointer; }
-  .bad { background:#401c23; color:#ffc5cc; }
-  .good{ background:#12372a; color:#b3ffe9; }
+  :root{
+    --bg:#0b0e13;
+    --ink:#eaf0f7;
+    --muted:#a9b3c1;
+    --glass:rgba(255,255,255,.06);
+    --glassHi:rgba(255,255,255,.10);
+    --stroke:rgba(255,255,255,.12);
+    --good: #20c997;   /* teal */
+    --bad:  #ff6b6b;   /* coral */
+  }
+
+  /* Base */
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; color:var(--ink); background:
+      radial-gradient(1200px 700px at 20% -200px,#1a2333 0%,transparent 60%),
+      radial-gradient(900px 600px at 110% -150px,#2a1740 0%,transparent 60%),
+      var(--bg);
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* Header (glass) */
+  header{
+    position:sticky; top:0; z-index:10;
+    background:linear-gradient(180deg, rgba(10,13,19,.85), rgba(10,13,19,.55) 70%, rgba(10,13,19,0));
+    backdrop-filter: saturate(120%) blur(8px);
+    border-bottom:1px solid var(--stroke);
+  }
+  .bar{display:flex; flex-wrap:wrap; align-items:center; gap:.6rem; padding:12px clamp(12px,4vw,28px)}
+  .group{display:flex; flex-wrap:wrap; align-items:center; gap:.6rem}
+
+  /* Glass buttons */
+  .btn{
+    padding:.58rem .9rem; border-radius:12px;
+    background:var(--glass); border:1px solid var(--stroke);
+    color:var(--ink); cursor:pointer; user-select:none;
+    box-shadow: 0 6px 20px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.05);
+    backdrop-filter: blur(10px) saturate(120%);
+    transition: transform .09s ease, background .2s ease, border-color .2s ease;
+  }
+  .btn:hover{ background:var(--glassHi) }
+  .btn:active{ transform:translateY(1px) }
+  .chip{ opacity:.9 }
+
+  /* Counters */
+  .counter{display:inline-flex; gap:.45rem; align-items:center}
+  .counter b{font-weight:800}
+
+  /* Main grid */
+  main{padding:12px clamp(12px,4vw,28px) 80px}
+  .grid{
+    display:grid; gap:18px;
+    grid-template-columns:repeat(auto-fill, minmax(260px,1fr));
+  }
+
+  /* Glass card */
+  .card{
+    border-radius:18px; overflow:hidden; display:flex; flex-direction:column;
+    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+    border:1px solid var(--stroke);
+    box-shadow: 0 12px 34px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+    backdrop-filter: blur(8px) saturate(140%);
+  }
+  .frame{position:relative; aspect-ratio:4/5; background:#0d1118}
+  .frame img,.frame video{width:100%; height:100%; object-fit:cover; display:block}
+
+  .meta{
+    display:flex; flex-direction:column; gap:8px;
+    padding:10px 12px;
+    background:linear-gradient(180deg, rgba(15,18,24,.8), rgba(15,18,24,.6));
+    border-top:1px solid var(--stroke);
+  }
+  .titleRow{display:flex; justify-content:space-between; gap:10px; align-items:baseline; flex-wrap:wrap}
+  .person{font-weight:900; letter-spacing:.2px}
+  .source{color:var(--muted); font-size:.9rem}
+
+  /* Action bar (glass rectangles) */
+  .actions{display:flex; gap:10px}
+  .rect{
+    flex:1; padding:.65rem .85rem; border-radius:12px;
+    border:1px solid var(--stroke);
+    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+    color:var(--ink); font-weight:800; letter-spacing:.15px; cursor:pointer;
+    box-shadow: 0 6px 18px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.05);
+    backdrop-filter: blur(8px) saturate(120%);
+    transition: transform .09s ease, filter .15s ease;
+  }
+  .rect:active{ transform:translateY(1px) }
+  .badBtn{ outline: 2px solid rgba(255,107,107,.25) }
+  .goodBtn{ outline: 2px solid rgba(32,201,151,.25) }
+  .badBtn:hover{ filter: drop-shadow(0 0 10px rgba(255,107,107,.18)) }
+  .goodBtn:hover{ filter: drop-shadow(0 0 10px rgba(32,201,151,.18)) }
+
+  /* Footer counters (glass) */
+  footer{
+    position:sticky; bottom:0; z-index:9;
+    display:flex; justify-content:center; gap:10px; padding:10px;
+    background:linear-gradient(0deg, rgba(10,13,19,.85), rgba(10,13,19,.55) 70%, rgba(10,13,19,0));
+    border-top:1px solid var(--stroke);
+    backdrop-filter: blur(8px) saturate(120%);
+  }
+
+  /* Toast */
+  .toast{
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+    background:rgba(20,24,32,.9); border:1px solid var(--stroke);
+    padding:.7rem 1rem; border-radius:12px; display:none; z-index:20;
+    box-shadow:0 10px 26px rgba(0,0,0,.35);
+    backdrop-filter: blur(10px) saturate(120%);
+  }
+  .toast.show{ display:block }
 </style>
 </head>
 <body>
-<header>
-  <div class="btn" id="btnHome">Home</div>
-  <div class="btn" id="btnLikes">⭐ Likes</div>
-  <div class="btn" id="btnNew">New Batch</div>
-  <div class="btn" id="btnLoad">Load More</div>
-  <div class="btn" id="btnShuffle">Shuffle</div>
-</header>
+  <header>
+    <div class="bar">
+      <div class="group">
+        <div class="btn chip">Celeb Wall • v2.3</div>
+        <div class="btn chip counter">Shown <b id="shown">0</b></div>
+        <div class="btn chip counter">Pool <b id="pool">0</b></div>
+        <div class="btn chip counter">Total <b id="total">0</b></div>
+      </div>
+      <div class="group" style="margin-left:auto">
+        <div class="btn" id="btnHome">Home</div>
+        <div class="btn" id="btnLikes">⭐ Likes</div>
+        <div class="btn" id="btnNew">New Batch</div>
+        <div class="btn" id="btnShuffle">Shuffle</div>
+      </div>
+    </div>
+  </header>
 
-<div id="cards" class="grid"></div>
+  <main>
+    <section id="cards" class="grid"></section>
+  </main>
 
-<footer>
-  <div class="btn">Shown <span id="shown">0</span></div>
-  <div class="btn">Pool <span id="pool">0</span></div>
-  <div class="btn">Total <span id="total">0</span></div>
-</footer>
+  <footer>
+    <div class="btn chip">Auto-load is ON (scroll)</div>
+  </footer>
+
+  <div class="toast" id="toast">Done</div>
 
 <script>
-let pool=[], shown=0, total=0, view='home';
-let likes=JSON.parse(localStorage.getItem('likes_v1')||'[]');
-let hidden=new Set(JSON.parse(localStorage.getItem('hidden_v1')||'[]'));
-const cardsEl=document.getElementById('cards');
-const shownEl=document.getElementById('shown');
-const poolEl=document.getElementById('pool');
-const totalEl=document.getElementById('total');
+/* ---------------- State ---------------- */
+let pool=[], shown=0, view='home';
+let likes = JSON.parse(localStorage.getItem('likes_v1')||'[]');
+let hidden= new Set(JSON.parse(localStorage.getItem('hidden_v1')||'[]'));
 
-const LIMIT_PER_QUERY = 100;
-const NAMES_PER_BATCH = 20;
+const cardsEl = document.getElementById('cards');
+const shownEl = document.getElementById('shown');
+const poolEl  = document.getElementById('pool');
+const totalEl = document.getElementById('total');
+const toast   = document.getElementById('toast');
+
+/* ------------- Config (tuned bigger) ------------- */
+const LIMIT_PER_QUERY = 100;     // reddit results per name/sub
+const NAMES_PER_BATCH = 20;      // how many names we pull each batch
+const RENDER_CHUNK    = 14;      // cards per renderMore() call
 
 const PEOPLE=[
  "Charli D'Amelio","Lea Elui","Kendall Jenner","Hailey Bieber","Madison Beer","Sabrina Carpenter","Sydney Sweeney",
@@ -59,36 +173,52 @@ const PEOPLE=[
  "Khloe Kardashian","Sophie Turner","Maisie Williams","Florence Pugh","Rachel McAdams","Jessica Alba",
  "Scarlett Johansson","Jennifer Lawrence","Emma Stone","Kristen Stewart","Mila Kunis","Blake Lively","Taylor Swift",
  "Olivia Rodrigo","Billie Eilish","Doja Cat","Halsey","Megan Thee Stallion","Cardi B","Nicki Minaj","Rihanna",
- "Shakira","Selma Blair","Salma Hayek","Eva Mendes","Eva Longoria","Jennifer Lopez","Jessica Biel","Miranda Kerr",
+ "Shakira","Salma Hayek","Eva Mendes","Eva Longoria","Jennifer Lopez","Jessica Biel","Miranda Kerr",
  "Candice Swanepoel","Adriana Lima","Alessandra Ambrosio","Barbara Palvin","Rosie Huntington-Whiteley","Karlie Kloss",
- "Bella Thorne","Vanessa Morgan","Lucy Hale","Lili Reinhart","Camila Mendes","Madelaine Petsch","Ariel Winter",
- "Sofia Vergara","Nina Dobrev","Victoria Justice","Elizabeth Gillies","Hilary Duff","Ashley Benson","Shay Mitchell",
- "Troian Bellisario","Lucy Boynton","Anya Taylor-Joy","Elle Fanning","Dakota Fanning","Kiernan Shipka","Chloe Moretz",
+ "Bella Thorne","Nina Dobrev","Victoria Justice","Elizabeth Gillies","Hilary Duff","Ashley Benson","Shay Mitchell",
+ "Camila Mendes","Madelaine Petsch","Ariel Winter","Sofia Vergara","Lucy Hale","Lili Reinhart","Troian Bellisario",
+ "Lucy Boynton","Anya Taylor-Joy","Elle Fanning","Dakota Fanning","Kiernan Shipka","Chloe Moretz",
  "Hailee Steinfeld","Zoe Kravitz","Janelle Monae","Lana Del Rey","Kacey Musgraves","Maren Morris","Kelly Clarkson",
  "Christina Aguilera","Britney Spears","Mandy Moore","Avril Lavigne","Katy Perry","Jessie J","Rita Ora","Fergie"
 ];
 
 const SUBS=['celebs','CelebrityPhotos','ModelPhotos'];
 
+/* ---------------- Helpers ---------------- */
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+function shuffleArray(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 function updateMeters(){ shownEl.textContent=shown; poolEl.textContent=pool.length; totalEl.textContent=shown+pool.length; }
-function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
-function shuffleArray(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
+function toastShow(m){ toast.textContent=m; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),1100); }
 function clean(u){ return typeof u==='string'?u.replace(/&amp;/g,'&'):u; }
-function toMP4(u){ if(!u) return null; if(/\.gifv($|\?)/i.test(u)) return u.replace(/\.gifv/i,'.mp4'); return u; }
-function pickVideo(d){ const rv=d?.secure_media?.reddit_video||d?.media?.reddit_video; return rv?.fallback_url||null; }
-function extractPreview(d){ return d?.preview?.images?.[0]?.source?.url?clean(d.preview.images[0].source.url):null; }
-function bestMedia(d){ const direct=clean(d.url_overridden_by_dest||d.url); const vid=pickVideo(d); if(vid) return {url:vid,kind:'video'}; let u=toMP4(direct); if(u&&/\.(jpg|jpeg|png|gif|mp4)$/i.test(u)) return {url:u,kind:/\.mp4$/i.test(u)?'video':'image'}; const prev=extractPreview(d); if(prev) return {url:toMP4(prev),kind:'image'}; return null; }
+function toMP4(u){ if(!u) return null; if(/\.gifv($|\?)/i.test(u)) return u.replace(/\.gifv/i,'.mp4'); if(/imgur\.com\/(?!a\/)([^.]+)($|\/$)/.test(u)) return `${u.replace(/\/$/,'')}.jpg`; return u; }
+function pickRedditVideo(d){ const rv=d?.secure_media?.reddit_video||d?.media?.reddit_video; if(rv?.fallback_url) return rv.fallback_url; const cp=d?.crosspost_parent_list?.[0]; const rv2=cp?.secure_media?.reddit_video||cp?.media?.reddit_video; return rv2?.fallback_url||null; }
+function extractPreview(d){ const p=d?.preview?.images?.[0]?.source?.url; return p?clean(p):null; }
+function bestMedia(d){
+  const direct=clean(d.url_overridden_by_dest||d.url);
+  const vid=pickRedditVideo(d); if(vid) return {url:vid, kind:'video'};
+  let u=toMP4(direct); if(u&&/\.(jpg|jpeg|png|gif|webp|mp4)$/i.test(u)) return {url:u,kind:/\.mp4$/i.test(u)?'video':'image'};
+  const prev=extractPreview(d); if(prev) return {url:toMP4(prev),kind:'image'};
+  // Gallery support (if present)
+  if(d.is_gallery && d.media_metadata){
+    for(const k of Object.keys(d.media_metadata)){
+      const s=d.media_metadata[k]?.s; const u2=clean(s?.u||s?.gif||s?.mp4); if(u2) return {url:toMP4(u2), kind:/\.mp4$/i.test(u2)?'video':'image'};
+    }
+  }
+  return null;
+}
 
-async function fetchNameFromSub(name,sub){
-  const url=`https://www.reddit.com/r/${sub}/search.json?restrict_sr=1&sort=new&limit=${LIMIT_PER_QUERY}&q=title:${encodeURIComponent(name)}&include_over_18=on&raw_json=1`;
+/* ---------------- Loader ---------------- */
+async function fetchNameFromSub(name, sub){
+  const url=`https://www.reddit.com/r/${encodeURIComponent(sub)}/search.json?restrict_sr=1&sort=new&limit=${LIMIT_PER_QUERY}&q=title:${encodeURIComponent(name)}&include_over_18=on&raw_json=1`;
   try{
-    const res=await fetch(url); if(!res.ok) return 0;
+    const res=await fetch(url,{headers:{'Accept':'application/json'}}); if(!res.ok) return 0;
     const data=await res.json(); const kids=data?.data?.children||[]; let added=0;
     for(const c of kids){
       const d=c.data||{}; const pick=bestMedia(d); if(!pick?.url) continue;
-      const id=d.permalink?`https://reddit.com${d.permalink}`:`${sub}|${d.title||name}`;
+      const permalink=d.permalink?`https://reddit.com${d.permalink}`:'';
+      const id= permalink || (`r/${sub}|${d.title||name}`);
       if(hidden.has(id)) continue;
-      pool.push({id,person:name,title:d.title||name,url:pick.url,kind:pick.kind,source:`r/${sub}`});
+      pool.push({ id, person:name, title:(d.title||name), url:pick.url, kind:pick.kind, source:`r/${sub}` });
       added++;
     }
     return added;
@@ -98,53 +228,97 @@ async function fetchNameFromSub(name,sub){
 async function buildNewBatch(){
   view='home'; cardsEl.innerHTML=''; shown=0; pool=[]; updateMeters();
   const names=shuffleArray([...PEOPLE]).slice(0,NAMES_PER_BATCH);
-  for(const sub of SUBS){ for(const n of names){ await fetchNameFromSub(n,sub); await sleep(150); } }
-  shuffleArray(pool); total=pool.length; updateMeters(); renderMore();
+  for(const sub of SUBS){
+    for(const n of names){
+      await fetchNameFromSub(n, sub);
+      await sleep(140);
+    }
+  }
+  shuffleArray(pool); updateMeters(); renderMore(); toastShow('New batch ready');
 }
 
+/* ---------------- Render ---------------- */
 function renderCard(item){
-  const card=document.createElement('div'); card.className='card';
+  const card=document.createElement('article'); card.className='card';
   const frame=document.createElement('div'); frame.className='frame';
-  if(item.kind==='video'){const v=document.createElement('video'); v.src=item.url; v.autoplay=true; v.loop=true; v.muted=true; v.playsInline=true; frame.appendChild(v);}
-  else{const img=document.createElement('img'); img.src=item.url; frame.appendChild(img);}
+
+  if(item.kind==='video'){
+    const v=document.createElement('video');
+    v.src=item.url; v.autoplay=true; v.loop=true; v.muted=true; v.playsInline=true; v.controls=true;
+    frame.appendChild(v);
+  }else{
+    const img=document.createElement('img'); img.loading='lazy'; img.decoding='async'; img.alt=item.title; img.src=item.url;
+    frame.appendChild(img);
+  }
+
   const meta=document.createElement('div'); meta.className='meta';
-  const titleRow=document.createElement('div'); titleRow.className='titleRow';
-  const person=document.createElement('div'); person.className='person'; person.textContent=item.person;
-  const source=document.createElement('div'); source.className='source'; source.textContent=item.source;
-  titleRow.append(person,source);
+  const row=document.createElement('div'); row.className='titleRow';
+  const person=document.createElement('div'); person.className='person'; person.textContent=item.person||'—';
+  const src=document.createElement('div'); src.className='source'; src.textContent=item.source;
+  row.append(person,src);
+
   const actions=document.createElement('div'); actions.className='actions';
-  const btnNope=document.createElement('button'); btnNope.className='rectBtn bad'; btnNope.textContent='Dismiss';
-  const btnLike=document.createElement('button'); btnLike.className='rectBtn good'; btnLike.textContent='Like';
-  btnNope.onclick=()=>{hidden.add(item.id); localStorage.setItem('hidden_v1',JSON.stringify([...hidden])); card.remove();};
-  btnLike.onclick=()=>{likes.unshift(item); localStorage.setItem('likes_v1',JSON.stringify(likes.slice(0,500))); card.remove();};
-  actions.append(btnNope,btnLike);
-  meta.append(titleRow,actions);
-  card.append(frame,meta);
+  const btnNope=document.createElement('button'); btnNope.className='rect badBtn'; btnNope.textContent='Dismiss';
+  const btnLike=document.createElement('button'); btnLike.className='rect goodBtn'; btnLike.textContent='Like';
+
+  btnNope.onclick=()=>{ if(item.id){ hidden.add(item.id); localStorage.setItem('hidden_v1', JSON.stringify([...hidden])); } card.remove(); };
+  btnLike.onclick=()=>{ likes.unshift(item); localStorage.setItem('likes_v1', JSON.stringify(likes.slice(0,600))); card.remove(); };
+
+  actions.append(btnNope, btnLike);
+  meta.append(row, actions);
+  card.append(frame, meta);
   return card;
 }
 
-function renderMore(n=12){
+function renderMore(n=RENDER_CHUNK){
   if(view!=='home') return;
-  let c=0; while(c<n&&pool.length){ cardsEl.appendChild(renderCard(pool.shift())); shown++; c++; }
+  let c=0;
+  while(c<n && pool.length){
+    const it=pool.shift();
+    cardsEl.appendChild(renderCard(it));
+    shown++; c++;
+  }
   updateMeters();
 }
 
-function showLikes(){ view='likes'; cardsEl.innerHTML=''; shown=likes.length; pool=[]; updateMeters(); likes.forEach(it=>cardsEl.appendChild(renderCard(it))); }
-function showHome(){ view='home'; cardsEl.innerHTML=''; shown=0; updateMeters(); renderMore(); }
-
-function shuffleFeed(){
-  if(view==='likes'){ likes=shuffleArray(likes); showLikes(); return; }
-  const nodes=Array.from(cardsEl.children);
-  shuffleArray(nodes); cardsEl.innerHTML=''; nodes.forEach(n=>cardsEl.appendChild(n));
-  pool=shuffleArray(pool);
+/* ---------------- Views ---------------- */
+function showLikes(){
+  view='likes'; cardsEl.innerHTML=''; pool.length=0; shown=likes.length; updateMeters();
+  likes.forEach(it=>cardsEl.appendChild(renderCard(it)));
+}
+function showHome(){
+  view='home'; cardsEl.innerHTML=''; shown=0; updateMeters();
+  renderMore();
 }
 
+/* ---------------- Shuffle (visible + pool) ---------------- */
+function shuffleFeed(){
+  if(view==='likes'){ likes=shuffleArray(likes); showLikes(); toastShow('Shuffled likes'); return; }
+  const nodes=[...cardsEl.children]; shuffleArray(nodes); cardsEl.innerHTML=''; nodes.forEach(n=>cardsEl.appendChild(n));
+  pool=shuffleArray(pool);
+  toastShow('Shuffled feed');
+}
+
+/* ---------------- Infinite Scroll (auto load) ---------------- */
+const sentinel=document.createElement('div');
+sentinel.style.height='1px';
+document.body.appendChild(sentinel);
+const io=new IntersectionObserver((entries)=>{
+  if(entries[0].isIntersecting && view==='home'){
+    // load a smaller chunk so scrolling feels continuous
+    renderMore(Math.ceil(RENDER_CHUNK/2));
+  }
+},{rootMargin:'300px'});
+io.observe(sentinel);
+
+/* ---------------- Wire up ---------------- */
 document.getElementById('btnNew').onclick=buildNewBatch;
-document.getElementById('btnLoad').onclick=()=>renderMore();
 document.getElementById('btnLikes').onclick=showLikes;
 document.getElementById('btnHome').onclick=showHome;
 document.getElementById('btnShuffle').onclick=shuffleFeed;
 
+/* Init */
+updateMeters();
 buildNewBatch();
 </script>
 </body>
