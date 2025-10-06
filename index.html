@@ -3,102 +3,64 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Scroll Wall • v5.0</title>
+<title>Scroll Wall • v5.1</title>
 <style>
   :root{
     --bg:#0c0f13; --panel:#151b22; --ink:#e9eef5; --muted:#a8b0ba; --accent:#ff6fa1; --good:#ffd54a; --bad:#ff7a70;
   }
   html,body{height:100%}
-  body{
-    margin:0; background:radial-gradient(1200px 800px at 50% -200px,#1b2230 0%,#0c0f13 55%,#0c0f13 100%);
-    color:var(--ink); font:600 18px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,system-ui,sans-serif;
-    letter-spacing:.2px; -webkit-font-smoothing:antialiased;
-  }
-  .wrap{max-width:980px; margin:24px auto 72px; padding:0 16px}
-  .brand{display:flex; gap:12px; align-items:center; margin-bottom:12px}
-  .chip{display:inline-flex; align-items:center; gap:10px; padding:12px 18px; border-radius:16px;
-        background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.06); color:var(--ink);
-        text-shadow:0 1px 0 rgba(0,0,0,.3)}
-  .chip.primary{background:var(--accent); color:#111; font-weight:800; box-shadow:0 6px 24px rgba(255,111,161,.35)}
-  .row{display:flex; flex-wrap:wrap; gap:12px}
-  .panel{background:var(--panel); border:1px solid rgba(255,255,255,.06); border-radius:22px; padding:16px 16px 8px; margin:8px 0}
-  .btn{display:inline-flex; align-items:center; justify-content:center; gap:10px; padding:16px 22px; border-radius:16px;
-       border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.04); color:var(--ink);
-       box-shadow:inset 0 -2px 0 rgba(255,255,255,.05); user-select:none}
-  .btn:active{transform:translateY(1px)}
-  .btn.primary{background:var(--accent); color:#111; font-weight:900; border-color:transparent}
+  body{margin:0;background:radial-gradient(1200px 800px at 50% -200px,#1b2230 0%,#0c0f13 55%,#0c0f13 100%);
+    color:var(--ink);font:600 18px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,system-ui,sans-serif;letter-spacing:.2px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:980px;margin:24px auto 72px;padding:0 16px}
+  .brand{display:flex;gap:12px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+  .chip{display:inline-flex;align-items:center;gap:10px;padding:12px 18px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);color:var(--ink)}
+  .chip.primary{background:var(--accent);color:#111;font-weight:800;box-shadow:0 6px 24px rgba(255,111,161,.35)}
+  .row{display:flex;flex-wrap:wrap;gap:12px}
+  .panel{background:var(--panel);border:1px solid rgba(255,255,255,.06);border-radius:22px;padding:16px 16px 8px;margin:8px 0}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:16px 22px;border-radius:16px;
+       border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:var(--ink)}
+  .btn.primary{background:var(--accent);color:#111;font-weight:900;border-color:transparent}
   .btn.ghost{opacity:.85}
-  .mini{padding:12px 16px; border-radius:14px}
-  .counter{min-width:84px; justify-content:center; font-weight:900; letter-spacing:1px}
-  .hint{color:var(--muted); font-weight:600; margin:8px 0 0}
-
-  /* Grid */
-  .grid{display:grid; grid-template-columns:repeat(1,1fr); gap:16px; margin-top:18px}
-  @media (min-width:720px){ .grid{grid-template-columns:repeat(2,1fr)} }
-
-  /* Polaroid card */
-  .card{
-    position:relative; background:#0a0d11; border-radius:28px; overflow:hidden; border:1px solid rgba(255,255,255,.08);
-    box-shadow:0 18px 40px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.03); touch-action:none;
-  }
-  .card .mediaWrap{position:relative; background:#06080b}
-  .card img,.card video{
-    width:100%; height:62vh; object-fit:cover; display:block; background:#000;
-  }
-  .badge{
-    position:absolute; left:18px; top:14px; font-weight:900; font-size:14px; padding:6px 10px; border-radius:10px;
-    background:rgba(0,0,0,.45); border:1px solid rgba(255,255,255,.08); color:#fff; -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px)
-  }
-  .polaroid{
-    background:#10151c; padding:14px 16px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;
-    border-top:1px solid rgba(255,255,255,.06)
-  }
-  .tag{background:rgba(255,255,255,.06); color:var(--ink); border:1px solid rgba(255,255,255,.08);
-       padding:8px 12px; border-radius:12px; font-weight:700}
-  .act{margin-left:auto; display:flex; gap:10px}
-  .fab{width:56px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:22px;
-       background:var(--accent); color:#111; font-weight:900; border:none}
-  .fab.bad{background:var(--bad); color:#111}
-  .fab:active{transform:translateY(1px)}
-
-  /* Swipe tint */
-  .tintLike::after,.tintNope::after{
-    content:""; position:absolute; inset:0; pointer-events:none;
-  }
+  .mini{padding:12px 16px;border-radius:14px}
+  .counter{min-width:84px;justify-content:center;font-weight:900;letter-spacing:1px}
+  .hint{color:var(--muted);font-weight:600;margin:8px 0 0}
+  .grid{display:grid;grid-template-columns:repeat(1,1fr);gap:16px;margin-top:18px}
+  @media (min-width:720px){.grid{grid-template-columns:repeat(2,1fr)}}
+  .card{position:relative;background:#0a0d11;border-radius:28px;overflow:hidden;border:1px solid rgba(255,255,255,.08);
+        box-shadow:0 18px 40px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.03);touch-action:none}
+  .mediaWrap{position:relative;background:#06080b}
+  .card img,.card video{width:100%;height:62vh;object-fit:cover;display:block;background:#000}
+  .badge{position:absolute;left:18px;top:14px;font-weight:900;font-size:14px;padding:6px 10px;border-radius:10px;
+         background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.08);color:#fff;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+  .polaroid{background:#10151c;padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,.06)}
+  .tag{background:rgba(255,255,255,.06);color:var(--ink);border:1px solid rgba(255,255,255,.08);padding:8px 12px;border-radius:12px;font-weight:700}
+  .act{margin-left:auto;display:flex;gap:10px}
+  .fab{width:56px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;background:var(--accent);color:#111;font-weight:900;border:none}
+  .fab.bad{background:var(--bad);color:#111}
+  .tintLike::after,.tintNope::after{content:"";position:absolute;inset:0;pointer-events:none}
   .tintLike::after{background:linear-gradient(120deg, rgba(255,213,74,.22), transparent 50%)}
   .tintNope::after{background:linear-gradient(240deg, rgba(255,122,112,.22), transparent 50%)}
-
-  /* Toast */
-  .toast{
-    position:fixed; left:50%; bottom:26px; transform:translateX(-50%);
-    background:rgba(0,0,0,.6); color:#fff; border:1px solid rgba(255,255,255,.08);
-    -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
-    padding:12px 16px; border-radius:12px; font-weight:700; box-shadow:0 10px 30px rgba(0,0,0,.4); display:none; z-index:30;
-  }
-
-  /* Modal (Liked & Troubleshoot) */
-  .modal{position:fixed; inset:0; display:none; z-index:40; background:rgba(0,0,0,.5)}
-  .sheet{position:absolute; left:50%; top:52%; transform:translate(-50%,-50%); width:min(820px,92vw);
-         background:var(--panel); border:1px solid rgba(255,255,255,.08); border-radius:22px; padding:16px}
-  .sheet .hd{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px}
-  .sheet pre{white-space:pre-wrap; font:600 14px/1.4 ui-monospace,Menlo,Consolas,monospace; color:#dfe6ef; background:#0a0e13;
-             border:1px solid rgba(255,255,255,.06); padding:14px; border-radius:12px; max-height:60vh; overflow:auto}
-  .likedList{display:grid; grid-template-columns:repeat(1,1fr); gap:10px; max-height:60vh; overflow:auto}
-  .likedItem{display:flex; align-items:center; gap:10px; background:#0b1016; border:1px solid rgba(255,255,255,.06);
-             border-radius:14px; padding:8px}
-  .likedItem img{width:72px; height:56px; object-fit:cover; border-radius:10px}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:rgba(0,0,0,.6);color:#fff;border:1px solid rgba(255,255,255,.08);
+         -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);padding:12px 16px;border-radius:12px;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.4);display:none;z-index:30}
+  .modal{position:fixed;inset:0;display:none;z-index:40;background:rgba(0,0,0,.5)}
+  .sheet{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);width:min(820px,92vw);background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:16px}
+  .sheet .hd{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+  .sheet pre{white-space:pre-wrap;font:600 14px/1.4 ui-monospace,Menlo,Consolas,monospace;color:#dfe6ef;background:#0a0e13;border:1px solid rgba(255,255,255,.06);padding:14px;border-radius:12px;max-height:60vh;overflow:auto}
+  .likedList{display:grid;grid-template-columns:repeat(1,1fr);gap:10px;max-height:60vh;overflow:auto}
+  .likedItem{display:flex;align-items:center;gap:10px;background:#0b1016;border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:8px}
+  .likedItem img{width:72px;height:56px;object-fit:cover;border-radius:10px}
 </style>
 </head>
 <body>
   <div class="wrap">
     <div class="brand row">
-      <span class="chip">NSFW enabled • people-only • <strong>Build v5.0</strong></span>
+      <span class="chip">NSFW enabled • people-only • <strong>Build v5.1</strong></span>
       <button class="chip" id="btnLiked">Liked ⭐</button>
       <button class="chip" id="btnTrouble">Troubleshoot 🩺</button>
     </div>
 
     <div class="panel">
-      <div class="row" style="gap:12px; align-items:center">
+      <div class="row" style="gap:12px;align-items:center">
         <button class="btn" id="btnNew">New batch</button>
         <button class="btn primary" id="btnMore">Load more</button>
         <span class="btn mini counter" id="counter">0/0</span>
@@ -110,7 +72,6 @@
     <div class="grid" id="grid"></div>
   </div>
 
-  <!-- Liked -->
   <div class="modal" id="likedModal" aria-hidden="true">
     <div class="sheet">
       <div class="hd">
@@ -125,7 +86,6 @@
     </div>
   </div>
 
-  <!-- Troubleshoot -->
   <div class="modal" id="troubleModal" aria-hidden="true">
     <div class="sheet">
       <div class="hd">
@@ -139,338 +99,212 @@
   <div class="toast" id="toast"></div>
 
 <script>
-/* =========================
-   Data — priority first
-========================= */
-const PRIORITY = [
-  "CharliDAmelio","LeaElui","KendallJenner","AddisonRae","MadisonBeer",
-  "HaileyBieber","BellaHadid","GigiHadid","SabrinaCarpenter","SydneySweeney"
-];
+/* ===== Names (priority first) ===== */
+const PRIORITY = ["CharliDAmelio","LeaElui","KendallJenner","AddisonRae","MadisonBeer","HaileyBieber","BellaHadid","GigiHadid","SabrinaCarpenter","SydneySweeney"];
+const OTHERS = ["EmilyRatajkowski","SommerRay","AnaDeArmas","MargotRobbie","DuaLipa","DojaCat","DixieDAmelio","OliviaRodrigo","MeganFox","GalGadot","AlexandraDaddario","RitaOra","Halsey","Rihanna","KylieJenner","KaiaGerber","HaileeSteinfeld","CamilaCabello","ArianaGrande","LilyJames","AnyaTaylorJoy","JennaOrtega","FlorencePugh","BarbaraPalvin","CandiceSwanepoel","LaisRibeiro","AdrianaLima","ElsaHosk","AlessandraAmbrosio","MirandaKerr","RosieHW","NinaAgdal","AlexisRen","SofiaVergara","SalmaHayek","Zendaya"];
+const HUBS = ["CelebsInBikinis","ModelsParadise","ModelPhotography","Celebs"]; // used only if absolutely nothing else works
 
-const OTHERS = [
-  "EmilyRatajkowski","SommerRay","AnaDeArmas","MargotRobbie","DuaLipa","DojaCat",
-  "DixieDAmelio","OliviaRodrigo","MeganFox","GalGadot","AlexandraDaddario","RitaOra",
-  "Halsey","Rihanna","KylieJenner","KaiaGerber","HaileeSteinfeld","CamilaCabello",
-  "ArianaGrande","LilyJames","AnyaTaylorJoy","JennaOrtega","FlorencePugh","BarbaraPalvin",
-  "CandiceSwanepoel","LaisRibeiro","AdrianaLima","ElsaHosk","AlessandraAmbrosio",
-  "MirandaKerr","RosieHW","NinaAgdal","AlexisRen","SofiaVergara","SalmaHayek","Zendaya"
-];
-
-// fallback hubs last (light touch; still “people”)
-const HUBS = ["CelebsInBikinis","ModelsParadise","ModelPhotography","Celebs"];
-
-// combined (strings only, stripped)
-const SUBS = [
-  ...PRIORITY.map(s=>s.replace(/[^A-Za-z]/g,'')),
-  ...OTHERS.map(s=>s.replace(/[^A-Za-z]/g,'')),
-  ...HUBS
-];
-
-/* =========================
-   State
-========================= */
+/* ===== State / UI refs ===== */
 const grid = document.getElementById('grid');
 const counter = document.getElementById('counter');
 const toastEl = document.getElementById('toast');
 const statusLine = document.getElementById('statusLine');
 
-let POOL = [];     // {kind:"img|mp4", url, thumb, author, sub, id}
-let shown = 0;
-let logLines = [];
-const LKEY = 'scrollwall.likes.v1';
-let likes = JSON.parse(localStorage.getItem(LKEY) || '[]');
+let POOL=[]; let shown=0; let logLines=[];
+const LKEY='scrollwall.likes.v1';
+let likes=JSON.parse(localStorage.getItem(LKEY)||'[]');
 
-/* =========================
-   UI helpers
-========================= */
-function toast(msg, ms=1800){
-  toastEl.textContent = msg;
-  toastEl.style.display='block';
-  clearTimeout(toastEl._t);
-  toastEl._t=setTimeout(()=>toastEl.style.display='none', ms);
+function toast(m,ms=1800){toastEl.textContent=m;toastEl.style.display='block';clearTimeout(toastEl._t);toastEl._t=setTimeout(()=>toastEl.style.display='none',ms)}
+function addLog(s){logLines.push(s)}
+function updateCount(){counter.textContent=`${shown}/${POOL.length}`}
+
+/* ===== Reddit endpoints ===== */
+const u = (s)=>s.replace(/[^A-Za-z]/g,'');
+const R1 = (sub)=>`https://api.reddit.com/r/${sub}/top.json?limit=25&t=week&raw_json=1`;
+const R2 = (sub)=>`https://r.jina.ai/http://api.reddit.com/r/${sub}/top.json?limit=25&t=week&raw_json=1`;
+const R3 = (sub)=>`https://r.jina.ai/http://old.reddit.com/r/${sub}/top/?t=week`;
+
+/* Parse utilities */
+function pick(arr,n){const c=arr.slice();const out=[];while(c.length&&out.length<n){out.push(c.splice(Math.random()*c.length|0,1)[0])}return out;}
+function looksMediaUrl(url){return /\.(jpe?g|png|gif|webp|mp4|webm)$/i.test(url)}
+function asItem(d, sub){
+  if(!d) return null;
+  // image
+  if(d.post_hint==='image' && d.url && looksMediaUrl(d.url)) return {kind:'img', url:d.url, thumb:d.thumbnail, author:d.author, sub, id:d.id};
+  // reddit hosted video
+  const rv=d.secure_media?.reddit_video?.fallback_url || d.media?.reddit_video?.fallback_url;
+  if(d.is_video && rv) return {kind:'mp4', url:rv, thumb:d.thumbnail, author:d.author, sub, id:d.id};
+  // generic direct link
+  if(d.url && looksMediaUrl(d.url)){
+    const kind=/\.(mp4|webm)$/i.test(d.url)?'mp4':'img';
+    return {kind, url:d.url, thumb:d.thumbnail, author:d.author, sub, id:d.id};
+  }
+  return null;
 }
-function addLog(line){ logLines.push(line); }
-function showTrouble(){
-  const ua = navigator.userAgent;
-  const info = [
-    `Online: ${navigator.onLine}`,
-    `UA: ${ua}`,
-    `Pool size: ${POOL.length}, shown: ${shown}, likes: ${likes.length}`,
-    `Last lines:`,
-    ...logLines.slice(-18)
-  ].join('\n');
-  document.getElementById('logPre').textContent = info;
-  openModal('#troubleModal');
+
+/* Fallback 1: JSON via api.reddit.com */
+async function fetchJson(url){
+  const res=await fetch(url,{headers:{'Accept':'application/json'}});
+  if(!res.ok) throw new Error(`HTTP ${res.status}`);
+  // r.jina.ai sometimes returns text/plain; still JSON
+  const txt=await res.text();
+  try{ return JSON.parse(txt); }catch{ throw new Error('JSON parse'); }
 }
-function openModal(sel){ const m=document.querySelector(sel); m.style.display='block'; m.setAttribute('aria-hidden','false'); }
-function closeModal(sel){ const m=document.querySelector(sel); m.style.display='none'; m.setAttribute('aria-hidden','true'); }
-document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeModal(b.dataset.close));
 
-function updateCount(){ counter.textContent=`${shown}/${POOL.length}`; }
+/* Fallback 2: scrape old.reddit HTML from r.jina.ai (CORS-friendly) */
+function scrapeOldReddit(html, sub){
+  const urls=[...html.matchAll(/href="(https?:\/\/[^\s"]+\.(?:jpg|jpeg|png|gif|webm|mp4))"/gi)].map(m=>m[1]);
+  const uniq=[...new Set(urls)];
+  return uniq.slice(0,20).map(url=>({kind:/\.(mp4|webm)$/i.test(url)?'mp4':'img',url,thumb:url,author:'',sub,id:url}));
+}
 
-/* =========================
-   Fetching (Reddit JSON)
-========================= */
-const REDDIT = (sub) => `https://www.reddit.com/r/${sub}/top.json?limit=20&t=week`;
-
+/* Robust fetcher with fallbacks */
 async function fetchSub(sub){
+  const s=u(sub);
+  // try api.reddit.com
   try{
-    const url = REDDIT(sub);
-    const res = await fetch(url, {headers:{'Accept':'application/json'}});
-    if(!res.ok){ addLog(`${sub}: HTTP ${res.status}`); return []; }
-    const json = await res.json();
-    const items = (json.data?.children||[])
-      .map(x=>x.data)
-      .filter(d=>{
-        if(!d) return false;
-        // prefer posts that are obviously people-focused: flairs sometimes present
-        if(d.post_hint === 'image' || d.is_video) return true;
-        if(d.url && /\.(jpg|jpeg|png|gif|mp4|webm)$/i.test(d.url)) return true;
-        return false;
-      })
-      .map(d=>{
-        // try image first
-        if(d.post_hint==='image' || /i\.redd\.it|i\.imgur\.com/.test(d.url)){
-          return {kind:'img', url:d.url, thumb:d.thumbnail, author:d.author, sub, id:d.id};
-        }
-        // reddit hosted video
-        if(d.is_video && d.secure_media?.reddit_video?.fallback_url){
-          return {kind:'mp4', url:d.secure_media.reddit_video.fallback_url, thumb:d.thumbnail, author:d.author, sub, id:d.id};
-        }
-        // bare url fallback (img/gif/mp4)
-        if(/\.(mp4|webm)$/i.test(d.url)){
-          return {kind:'mp4', url:d.url, thumb:d.thumbnail, author:d.author, sub, id:d.id};
-        }
-        if(/\.(jpg|jpeg|png|gif)$/i.test(d.url)){
-          return {kind:'img', url:d.url, thumb:d.thumbnail, author:d.author, sub, id:d.id};
-        }
-        return null;
-      })
-      .filter(Boolean);
-
-    addLog(`${sub}: ${items.length} media`);
+    const j=await fetchJson(R1(s));
+    const items=(j.data?.children||[]).map(x=>asItem(x.data,s)).filter(Boolean);
+    addLog(`${s}: R1 ok (${items.length})`);
     return items;
   }catch(e){
-    addLog(`${sub}: error ${e.message}`);
-    return [];
+    addLog(`${s}: R1 ${e.message}`);
   }
+  // mirror JSON
+  try{
+    const j=await fetchJson(R2(s));
+    const items=(j.data?.children||[]).map(x=>asItem(x.data,s)).filter(Boolean);
+    addLog(`${s}: R2 ok (${items.length})`);
+    return items;
+  }catch(e){
+    addLog(`${s}: R2 ${e.message}`);
+  }
+  // old.reddit scrape
+  try{
+    const res=await fetch(R3(s)); if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const html=await res.text();
+    const items=scrapeOldReddit(html,s);
+    addLog(`${s}: R3 scrape (${items.length})`);
+    return items;
+  }catch(e){
+    addLog(`${s}: R3 ${e.message}`);
+  }
+  return [];
 }
 
-function pick(arr, n){
-  const copy = arr.slice();
-  const out=[];
-  while(copy.length && out.length<n){
-    const i = Math.floor(Math.random()*copy.length);
-    out.push(copy.splice(i,1)[0]);
-  }
-  return out;
-}
-
+/* ===== Build batch ===== */
 async function buildBatch(){
-  POOL.length=0; shown=0; updateCount(); grid.innerHTML="";
-  logLines=[];
+  POOL.length=0; shown=0; grid.innerHTML=""; updateCount(); logLines=[]; statusLine.textContent="Building a new batch…";
 
-  statusLine.textContent = "Building a new batch…";
-
-  // 1) Fetch all priority first (parallel)
-  const pR = await Promise.all(PRIORITY.map(fetchSub));
+  const pR=await Promise.all(PRIORITY.map(fetchSub));
   pR.forEach(list=>list.forEach(it=>POOL.push(it)));
 
-  // 2) Then 10 random from rest
-  const rand = pick(OTHERS, 10);
-  const oR = await Promise.all(rand.map(fetchSub));
+  const rand=pick(OTHERS,10);
+  const oR=await Promise.all(rand.map(fetchSub));
   oR.forEach(list=>list.forEach(it=>POOL.push(it)));
 
-  // 3) If still empty, light fallback hubs
   if(!POOL.length){
-    const hubTry = await Promise.all(pick(HUBS, 2).map(fetchSub));
+    const hubTry=await Promise.all(pick(HUBS,2).map(fetchSub));
     hubTry.forEach(list=>list.forEach(it=>POOL.push(it)));
   }
 
-  // Deduplicate by id/url
-  const seen = new Set();
-  POOL = POOL.filter(x=>{
-    const key = x.id || x.url;
-    if(seen.has(key)) return false;
-    seen.add(key); return true;
-  });
-
-  // Randomize ordering
+  const seen=new Set();
+  POOL=POOL.filter(x=>{const k=x.id||x.url; if(seen.has(k)) return false; seen.add(k); return true;});
   POOL.sort(()=>Math.random()-.5);
   updateCount();
 
-  if(!POOL.length){
-    statusLine.textContent = "No fresh posts. Tap New batch again.";
-    toast("No fresh posts. Try again.");
-    return;
-  }
-
-  statusLine.textContent = `Ready • ${POOL.length} items`;
+  if(!POOL.length){ statusLine.textContent="No fresh posts. Tap New batch again."; toast("No fresh posts. Try again."); return; }
+  statusLine.textContent=`Ready • ${POOL.length} items`;
   renderMore();
 }
 
-/* =========================
-   Rendering
-========================= */
+/* ===== Rendering ===== */
 function makeCard(item){
-  const card = document.createElement('article');
-  card.className='card';
-  card.dataset.id = item.id || item.url;
+  const card=document.createElement('article'); card.className='card'; card.dataset.id=item.id||item.url;
+  const wrap=document.createElement('div'); wrap.className='mediaWrap'; card.appendChild(wrap);
+  const badge=document.createElement('div'); badge.className='badge'; badge.textContent=`r/${item.sub}`; wrap.appendChild(badge);
 
-  const wrap = document.createElement('div');
-  wrap.className='mediaWrap';
-  card.appendChild(wrap);
+  if(item.kind==='img'){ const img=document.createElement('img'); img.loading='lazy'; img.decoding='async'; img.alt=''; img.src=item.url; wrap.appendChild(img); }
+  else{ const v=document.createElement('video'); v.src=item.url; v.muted=true; v.loop=true; v.autoplay=true; v.playsInline=true; v.controls=false; v.preload='metadata'; wrap.appendChild(v); }
 
-  const badge = document.createElement('div');
-  badge.className='badge';
-  badge.textContent = `r/${item.sub}`;
-  wrap.appendChild(badge);
-
-  if(item.kind==='img'){
-    const img = document.createElement('img');
-    img.loading='lazy';
-    img.decoding='async';
-    img.alt='';
-    img.src=item.url;
-    wrap.appendChild(img);
-  }else{
-    const vid = document.createElement('video');
-    vid.src=item.url;
-    vid.muted=true; vid.loop=true; vid.autoplay=true; vid.playsInline=true; vid.controls=false;
-    vid.preload='metadata';
-    wrap.appendChild(vid);
-  }
-
-  const poly = document.createElement('div');
-  poly.className='polaroid';
-  const tag = document.createElement('span'); tag.className='tag'; tag.textContent=item.sub.match(/[A-Z][a-z]+|[a-z]+/g)?.join(' ') || item.sub;
-  const act = document.createElement('div'); act.className='act';
-  const bLike=document.createElement('button'); bLike.className='fab'; bLike.textContent='⭐';
-  const bNope=document.createElement('button'); bNope.className='fab bad'; bNope.textContent='👎';
-  act.append(bLike,bNope);
-  poly.append(tag,act);
-  card.appendChild(poly);
-
-  // actions
-  bLike.onclick=(e)=>{ e.stopPropagation(); doLike(card,item); };
-  bNope.onclick=(e)=>{ e.stopPropagation(); doNope(card); };
-
-  // swipe
-  attachSwipe(card, item);
-
+  const poly=document.createElement('div'); poly.className='polaroid';
+  const tag=document.createElement('span'); tag.className='tag'; tag.textContent=item.sub.match(/[A-Z][a-z]+|[a-z]+/g)?.join(' ')||item.sub;
+  const act=document.createElement('div'); act.className='act';
+  const like=document.createElement('button'); like.className='fab'; like.textContent='⭐';
+  const nope=document.createElement('button'); nope.className='fab bad'; nope.textContent='👎';
+  like.onclick=(e)=>{e.stopPropagation(); doLike(card,item)};
+  nope.onclick=(e)=>{e.stopPropagation(); doNope(card)};
+  act.append(like,nope); poly.append(tag,act); card.appendChild(poly);
+  attachSwipe(card,item);
   return card;
 }
 
-function renderMore(count=6){
-  let n=0;
-  while(shown<POOL.length && n<count){
-    const card = makeCard(POOL[shown]);
-    grid.appendChild(card);
-    shown++; n++;
-  }
-  updateCount();
-  if(shown>=POOL.length) statusLine.textContent = "End of batch — tap New batch for more.";
+function renderMore(n=6){
+  let c=0; while(shown<POOL.length && c<n){ grid.appendChild(makeCard(POOL[shown])); shown++; c++; }
+  updateCount(); if(shown>=POOL.length) statusLine.textContent="End of batch — tap New batch for more.";
 }
-
 function doLike(card,item){
-  if(!likes.find(x=>x.url===item.url)){
-    likes.push(item);
-    localStorage.setItem(LKEY, JSON.stringify(likes));
-  }
-  card.classList.add('tintLike');
-  setTimeout(()=>card.remove(),160);
+  if(!likes.find(x=>x.url===item.url)){ likes.push(item); localStorage.setItem(LKEY,JSON.stringify(likes)); }
+  card.classList.add('tintLike'); setTimeout(()=>card.remove(),160);
 }
+function doNope(card){ card.classList.add('tintNope'); setTimeout(()=>card.remove(),160); }
 
-function doNope(card){
-  card.classList.add('tintNope');
-  setTimeout(()=>card.remove(),160);
-}
-
-/* =========================
-   Swipe handling
-========================= */
-function attachSwipe(card, item){
-  let sx=0, sy=0, dx=0, locked=false;
-
-  card.addEventListener('touchstart', (e)=>{
-    const t=e.touches[0]; sx=t.clientX; sy=t.clientY; dx=0; locked=false;
-    card.style.transition='none';
-  },{passive:true});
-
-  card.addEventListener('touchmove',(e)=>{
-    const t=e.touches[0];
-    const ax=t.clientX-sx, ay=t.clientY-sy;
-    if(!locked && Math.abs(ax)>Math.abs(ay)+6) locked=true; // lock horizontal
-    if(locked){
-      e.preventDefault();
-      dx=ax;
-      card.style.transform=`translateX(${dx}px) rotate(${dx*0.03}deg)`;
-      card.style.opacity = String(1-Math.min(Math.abs(dx)/260,.35));
-    }
+/* ===== Swipe ===== */
+function attachSwipe(card,item){
+  let sx=0,sy=0,dx=0,lock=false;
+  card.addEventListener('touchstart',e=>{const t=e.touches[0]; sx=t.clientX; sy=t.clientY; dx=0; lock=false; card.style.transition='none'},{passive:true});
+  card.addEventListener('touchmove',e=>{
+    const t=e.touches[0]; const ax=t.clientX-sx, ay=t.clientY-sy;
+    if(!lock && Math.abs(ax)>Math.abs(ay)+6) lock=true;
+    if(lock){ e.preventDefault(); dx=ax; card.style.transform=`translateX(${dx}px) rotate(${dx*0.03}deg)`; card.style.opacity=String(1-Math.min(Math.abs(dx)/260,.35)); }
   },{passive:false});
-
   card.addEventListener('touchend',()=>{
     card.style.transition='';
-    if(Math.abs(dx)>120){
-      if(dx>0) doLike(card,item); else doNope(card);
-      card.style.transform=`translateX(${dx>0?320:-320}px) rotate(${dx*0.06}deg)`;
-      setTimeout(()=>card.remove(),140);
-    }else{
-      card.style.transform='translateX(0) rotate(0deg)'; card.style.opacity='';
-    }
+    if(Math.abs(dx)>120){ if(dx>0) doLike(card,item); else doNope(card); card.style.transform=`translateX(${dx>0?320:-320}px) rotate(${dx*0.06}deg)`; setTimeout(()=>card.remove(),140); }
+    else{ card.style.transform='translateX(0) rotate(0)'; card.style.opacity=''; }
   });
 }
 
-/* =========================
-   Liked modal
-========================= */
+/* ===== Liked ===== */
 function openLiked(){
-  const list = document.getElementById('likedList');
-  list.innerHTML='';
-  if(!likes.length){
-    const p=document.createElement('p'); p.className='hint'; p.textContent='Nothing liked yet.'; list.appendChild(p);
-  }else{
+  const list=document.getElementById('likedList'); list.innerHTML='';
+  if(!likes.length){ const p=document.createElement('p'); p.className='hint'; p.textContent='Nothing liked yet.'; list.appendChild(p); }
+  else{
     likes.slice().reverse().forEach(it=>{
       const row=document.createElement('div'); row.className='likedItem';
-      const thumb=document.createElement('img'); thumb.src=it.thumb||it.url; row.appendChild(thumb);
+      const img=document.createElement('img'); img.src=it.thumb||it.url;
       const meta=document.createElement('div'); meta.style.flex='1'; meta.textContent=`r/${it.sub}`;
       const rm=document.createElement('button'); rm.className='btn mini'; rm.textContent='Remove';
-      rm.onclick=()=>{
-        likes=likes.filter(x=>x.url!==it.url);
-        localStorage.setItem(LKEY, JSON.stringify(likes));
-        row.remove();
-      };
-      row.append(meta,rm); list.appendChild(row);
+      rm.onclick=()=>{ likes=likes.filter(x=>x.url!==it.url); localStorage.setItem(LKEY,JSON.stringify(likes)); row.remove(); };
+      row.append(img,meta,rm); list.appendChild(row);
     });
   }
   openModal('#likedModal');
 }
-document.getElementById('btnLiked').onclick=openLiked;
-document.getElementById('btnExport').onclick=()=>{
-  const blob=new Blob([JSON.stringify(likes,null,2)],{type:'application/json'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='liked.json'; a.click();
-};
-document.getElementById('btnClearLikes').onclick=()=>{
-  if(confirm('Clear all liked?')){ likes=[]; localStorage.setItem(LKEY,'[]'); openLiked(); }
-};
 
-/* =========================
-   Controls
-========================= */
-document.getElementById('btnTrouble').onclick=showTrouble;
+function openModal(sel){const m=document.querySelector(sel); m.style.display='block'; m.setAttribute('aria-hidden','false')}
+function closeModal(sel){const m=document.querySelector(sel); m.style.display='none'; m.setAttribute('aria-hidden','true')}
+document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeModal(b.dataset.close));
+
+/* ===== Controls ===== */
+document.getElementById('btnLiked').onclick=openLiked;
+document.getElementById('btnExport').onclick=()=>{const blob=new Blob([JSON.stringify(likes,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='liked.json'; a.click();};
+document.getElementById('btnClearLikes').onclick=()=>{ if(confirm('Clear all liked?')){likes=[]; localStorage.setItem(LKEY,'[]'); openLiked();}};
+document.getElementById('btnTrouble').onclick=()=>{
+  const info=[
+    `Online: ${navigator.onLine}`,
+    `UA: ${navigator.userAgent}`,
+    `Pool size: ${POOL.length}, shown: ${shown}, likes: ${likes.length}`,
+    `Last lines:`,
+    ...logLines.slice(-24)
+  ].join('\n');
+  document.getElementById('logPre').textContent=info; openModal('#troubleModal');
+};
 document.getElementById('btnNew').onclick=()=>buildBatch();
 document.getElementById('btnMore').onclick=()=>renderMore();
-document.getElementById('btnShuffle').onclick=()=>{
-  // shuffle unseen items and clear rendered grid
-  const unseen = POOL.slice(shown);
-  unseen.sort(()=>Math.random()-.5);
-  POOL = POOL.slice(0,shown).concat(unseen);
-  // re-render next chunk
-  renderMore();
-  toast('Shuffled.');
-};
+document.getElementById('btnShuffle').onclick=()=>{ const unseen=POOL.slice(shown); unseen.sort(()=>Math.random()-.5); POOL=POOL.slice(0,shown).concat(unseen); renderMore(); toast('Shuffled.'); };
 
-/* Kick off */
+/* ===== Kickoff ===== */
 buildBatch();
 </script>
 </body>
