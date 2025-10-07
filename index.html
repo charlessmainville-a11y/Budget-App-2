@@ -133,6 +133,113 @@
   </div>
 
 <script>
+<script>
+// ==== REAL REDDIT FETCH LAYER (replaces the demo filler) ====
+(() => {
+  // where we keep cursors + seen IDs to avoid repeats
+  const cursors = new Map();          // sub -> after
+  const seen    = new Set();          // post id
+  const IMG_OK  = /\.(jpg|jpeg|png|webp)$/i;
+
+  // get token from your existing flow (adjust key name if you used a different one)
+  function getToken() {
+    return localStorage.getItem('cw.oauthToken')
+        || localStorage.getItem('cw.reddit.token')
+        || localStorage.getItem('reddit_token')
+        || '';
+  }
+
+  async function rFetch(sub, want=50) {
+    const token = getToken();
+    if (!token) throw new Error('Missing OAuth token (tap Connect Reddit first)');
+
+    const after = cursors.get(sub) || '';
+    const url = new URL(`https://oauth.reddit.com/r/${sub}/hot`);
+    url.searchParams.set('limit', String(Math.min(100, want)));
+    if (after) url.searchParams.set('after', after);
+
+    const res = await fetch(url.toString(), {
+      headers: { 'Authorization': `bearer ${token}`, 'User-Agent': 'celebwall/1.0 by you' }
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status} on r/${sub}`);
+    const json = await res.json();
+
+    cursors.set(sub, json?.data?.after || '');
+
+    const children = json?.data?.children || [];
+    const out = [];
+    for (const c of children) {
+      const p = c.data || {};
+      const id = p.id || c.id;
+      if (!id || seen.has(id)) continue;
+
+      // pick best media url
+      let url = '';
+      let type = 'image';
+
+      // prefer reddit video (serve fallback .mp4)
+      if (p.is_video && p.media?.reddit_video?.fallback_url) {
+        url = p.media.reddit_video.fallback_url; type = 'video';
+      } else if (p.preview?.reddit_video_preview?.fallback_url) {
+        url = p.preview.reddit_video_preview.fallback_url; type = 'video';
+      } else if (p.url_overridden_by_dest && (IMG_OK.test(p.url_overridden_by_dest) || p.url_overridden_by_dest.includes('i.redd.it'))) {
+        url = p.url_overridden_by_dest;
+      } else if (p.preview?.images?.[0]?.source?.url) {
+        url = p.preview.images[0].source.url.replace(/&amp;/g,'&');
+      } else {
+        continue; // no media
+      }
+
+      seen.add(id);
+      out.push({
+        id,
+        url,
+        type,
+        title: p.title || '',
+        user: 'u/' + (p.author || 'unknown'),
+        subreddit: 'r/' + (p.subreddit || sub)
+      });
+    }
+    return out;
+  }
+
+  // shuffle helper
+  function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]] } return a }
+
+  // Expose the exact names the UI looks for:
+  window.fetchMore = async function(count=20){
+    // use subs the UI keeps in localStorage (or default)
+    const subs = (localStorage.getItem('cw.subs') || 'Celebs,CelebEvents,BeautifulCelebrities,celebritypics,charlidameliomommy,LeaEluiGinet')
+      .split(/\s*,\s*/).filter(Boolean);
+
+    // pull a slice from a few subs in parallel, merge, shuffle, cap
+    const batch = await Promise.all(
+      subs.slice(0, 6).map(s => rFetch(s, Math.max(30, count)))
+    );
+    const merged = shuffle(batch.flat());
+    return merged.slice(0, count);
+  };
+
+  // optional: rebuild batch → just clear cursors so we start fresh
+  window.buildNewBatch = async function(subs){
+    cursors.clear();
+    if (Array.isArray(subs) && subs.length) {
+      localStorage.setItem('cw.subs', subs.join(','));
+    }
+  };
+
+  // optional: set subreddits
+  window.setSubreddits = function(subs){
+    if (Array.isArray(subs) && subs.length) {
+      localStorage.setItem('cw.subs', subs.join(','));
+      cursors.clear();
+    }
+  };
+
+  // optional: shuffle feed (UI also locally shuffles)
+  window.shuffleFeed = async function(){ /* no-op here */ };
+})();
+</script>
 (() => {
   // ---------- State ----------
   const S = {
