@@ -139,10 +139,8 @@
 
 <script>
 /* -------------------- OAuth config -------------------- */
-/* If you have your own installed app, put the client id + redirect here once.
-   We'll also let you set/save them via prompt the first time you tap Connect. */
-const DEFAULT_CLIENT_ID   = localStorage.getItem('reddit_client_id')    || ''; // e.g. "D_nzkiZhFVjFgNs_sqCQ3Q"
-const DEFAULT_REDIRECT_URI= localStorage.getItem('reddit_redirect_uri') || (location.origin + location.pathname); // must match the one on old.reddit.com/apps
+const DEFAULT_CLIENT_ID   = localStorage.getItem('reddit_client_id')    || '';
+const DEFAULT_REDIRECT_URI= localStorage.getItem('reddit_redirect_uri') || (location.origin + location.pathname);
 
 /* -------------------- app config -------------------- */
 const STARTER_SUBS = [
@@ -167,7 +165,67 @@ const logEl = document.getElementById('log');
 const el = (sel) => document.querySelector(sel);
 const els = (sel) => [...document.querySelectorAll(sel)];
 const log = (msg) => { const t=new Date().toLocaleTimeString(); logEl.textContent += `[${t}] ${msg}\n`; logEl.scrollTop = logEl.scrollHeight; };
+const esc = (s) => String(s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
 
+/* ---------- name inference (NEW) ---------- */
+const PERSON_SUBS = new Set([
+  ...OPTIONAL_NSFW,
+  // add obvious single-name celeb subs you use
+  'LeaEluiGinet','charlidameliomommy'
+]);
+const STOP_WORDS = /^(at|in|with|on|of|for|from|and|the|to|by|wearing|holding|during)\b/i;
+
+function humanizeSubName(sub){
+  return sub
+    .replace(/[_-]+/g,' ')
+    .replace(/([a-z])([A-Z])/g,'$1 $2')
+    .replace(/(\d+)/g,' $1 ')
+    .replace(/\s+/g,' ')
+    .trim()
+    .replace(/\b\w/g, m => m.toUpperCase());
+}
+
+function guessNameFromTitle(title){
+  if(!title) return '';
+  // grab leading capitalized sequence until a stop word/punctuation
+  // e.g., "Selena Gomez at the VMAs" -> "Selena Gomez"
+  const cleaned = title.replace(/\s+/g,' ').trim();
+  const parts = [];
+  for(const tok of cleaned.split(' ')){
+    if(STOP_WORDS.test(tok)) break;
+    // keep words that start with capital or are connectors like de/van/Von/of (rarely at front)
+    if(/^[A-ZÀ-Ý][\w’'\-\.]*$/.test(tok) || /^(de|van|von|da|di|del|la)$/i.test(tok)){
+      parts.push(tok.replace(/[_-]/g,' '));
+      continue;
+    }
+    // stop if we hit punctuation/parenthesis
+    if(/[.,;:()|\[\]]/.test(tok)) break;
+    // if first token isn't capitalized, bail early
+    if(parts.length===0) break;
+    parts.push(tok);
+  }
+  const name = parts.join(' ').trim();
+  // sanity: require at least 1–2 "namey" tokens
+  if(name.split(' ').length >= 1 && /^[A-ZÀ-Ý]/.test(name)) return name;
+  return '';
+}
+
+function inferPerformer(item){
+  // 1) person-style subreddit
+  if(PERSON_SUBS.has(item.sub)) return humanizeSubName(item.sub);
+  // heuristic: a sub that looks like a single person (no plural keywords)
+  if(/^[A-Za-z][A-Za-z0-9_]*$/.test(item.sub) && !/(pics|pics$|porn|nsfw|celebs?|gowns|events|nips|slips|the|official|fans|hub|girls)/i.test(item.sub)){
+    return humanizeSubName(item.sub);
+  }
+  // 2) from title
+  const tGuess = guessNameFromTitle(item.title);
+  if(tGuess) return tGuess;
+  // 3) fallback: try to prettify first 2–3 words of title
+  const fallback = (item.title||'').split(' ').slice(0,3).join(' ').trim();
+  return fallback || 'Unknown';
+}
+
+/* ------------- UI helpers ------------- */
 const ui = {
   phase(s){ el('#phase').textContent = s; },
   bar(p){ el('#bar').style.width = `${p}%`; el('#pct').textContent = `${Math.round(p)}%`; },
@@ -234,7 +292,6 @@ function captureTokenFromHash(){
   localStorage.setItem('reddit_token', JSON.stringify(rec));
   ui.tokenBadge();
   log('Token stored, expires in ' + Math.round(expiresIn/60) + 'm');
-  // clean the hash so reloads don't re-parse
   history.replaceState({}, document.title, location.pathname + location.search);
 }
 
@@ -319,9 +376,12 @@ function card(item){
   const wrap = document.createElement('article');
   wrap.className = 'card';
 
+  const performer = inferPerformer(item);
+
   const head = document.createElement('div');
   head.className = 'polaroid';
-  head.innerHTML = `<div>u/${item.author}</div><small>r/${item.sub}</small>`;
+  // Show ONLY the performer/model name in the banner (no subreddit, no username)
+  head.innerHTML = `<div>${esc(performer)}</div>`;
   wrap.appendChild(head);
 
   let media;
@@ -387,7 +447,7 @@ async function newBatch(){
 }
 
 function dedupeBy(arr, fn){ const seen=new Set(), out=[]; for(const x of arr){const k=fn(x); if(seen.has(k)) continue; seen.add(k); out.push(x);} return out; }
-function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]] } }
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j]]; } }
 
 /* ------------- events ------------- */
 el('#newBatchBtn').addEventListener('click', newBatch);
