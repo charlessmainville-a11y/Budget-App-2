@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Celeb Wall — 2.0 UI</title>
+<style>
+  :root{
+    --bg:#0c0f12;
+    --card:#12151b;
+    --glass:#151a20aa;
+    --glass-strong:#171c22e0;
+    --ring:#243343;
+    --ink:#e8edf5;
+    --muted:#9aa7b7;
+    --good-1:#1fabc8;  /* teal */
+    --good-2:#5ee1f0;
+    --bad-1:#ff5b6b;   /* red */
+    --bad-2:#ff9ec1;   /* pink */
+    --pill:#1b222a;
+    --blur:22px;
+    --radius:22px;
+    --radius-lg:28px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 500px at 80% -10%, #1b2030 0%, transparent 60%),
+      radial-gradient(1000px 500px at -10% 0%, #181d2a 0%, transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font:16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Inter, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  }
+
+  /* Top dashboard */
+  .dock{
+    position:sticky; top:0; z-index:50;
+    padding:12px 12px 8px;
+    backdrop-filter:saturate(1.3) blur(18px);
+    background:linear-gradient(180deg, #0b0e12e6 0%, #0b0e1200 100%);
+  }
+  .grid{
+    display:grid; gap:12px;
+    grid-template-columns:repeat(4, minmax(0,1fr));
+  }
+  .pill{
+    background:linear-gradient(180deg, #171b23, #11151c);
+    border-radius:16px;
+    padding:12px 14px;
+    box-shadow: inset 0 1px 0 #ffffff17, 0 1px 1px #000000aa;
+    border:1px solid #202734;
+  }
+  .pill h6{margin:0 0 6px; font-size:12px; letter-spacing:.12em; color:var(--muted)}
+  .pill b{font-size:26px; letter-spacing:.02em}
+
+  .controls{
+    display:flex; flex-wrap:wrap; gap:10px;
+    margin-top:10px; justify-content:center;
+  }
+  .btn{
+    border:1px solid #212838;
+    background:linear-gradient(180deg, #161c23, #0f141a);
+    border-radius:999px;
+    padding:14px 20px; font-weight:700; color:#dfe7f7;
+    box-shadow: inset 0 1px 0 #ffffff15, 0 2px 6px #0008;
+    user-select:none; cursor:pointer; transition:transform .08s ease, box-shadow .2s;
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn.alt{background:linear-gradient(135deg,#b993ff33,#69d6ff33)}
+  .btn.small{padding:10px 14px; font-weight:600}
+  .btn.good{background:linear-gradient(135deg,var(--good-1),var(--good-2)); color:#061417; text-shadow:0 1px 0 #ffffff88}
+  .btn.bad{background:linear-gradient(135deg,var(--bad-1),var(--bad-2)); color:#22060a; text-shadow:0 1px 0 #ffffffaa}
+  .btn.glass{
+    background:linear-gradient(180deg,#141922cc,#0d1117cc);
+    backdrop-filter:blur(var(--blur)); color:#e1e8f6;
+  }
+
+  /* Progress & tabs */
+  .progress{height:10px; border-radius:999px; background:#0e141b; border:1px solid #1e2836; margin:10px 4px 0}
+  .bar{height:100%; width:0%; border-radius:inherit;
+    background:linear-gradient(90deg, #e8a4ff, #81e3ff, #ffb0c9);
+    box-shadow:0 0 16px #7be6ff66;
+    transition:width .3s ease;
+  }
+  .row{display:flex; align-items:center; justify-content:space-between; padding:6px 4px 2px; color:var(--muted); font-weight:700; letter-spacing:.06em}
+
+  .tabs{
+    display:flex; gap:8px; justify-content:center; margin:10px 0 2px;
+  }
+  .tab{
+    padding:10px 14px; border-radius:999px; font-weight:700; color:#bcd0ea;
+    border:1px solid #222c3c; background:linear-gradient(180deg,#141a22,#0f141a);
+  }
+  .tab.active{outline:2px solid #2d8dff44; color:#eaf1ff}
+
+  /* Cards */
+  .wrap{max-width:760px; margin:0 auto; padding:10px 14px 40vh}
+  .card{
+    position:relative; margin:16px 0; border-radius:24px; overflow:hidden;
+    background:linear-gradient(180deg,#151a22,#0e1218);
+    box-shadow:0 10px 30px #00000050, inset 0 1px 0 #ffffff17;
+    border:1px solid #212a38;
+  }
+  .media{display:block; width:100%; height:auto; background:#0c1117}
+  .polaroid{
+    position:absolute; top:12px; left:12px; right:12px;
+    background:linear-gradient(180deg, #0f141acc, #0b0f14cc);
+    border:1px solid #223041; border-radius:18px;
+    padding:10px 14px; color:#f4f7ff; font-weight:900; letter-spacing:.02em;
+    text-shadow:0 2px 0 #000000ae; backdrop-filter:blur(10px);
+  }
+  .polaroid small{display:block; color:#c2ccda; opacity:.85; margin-top:4px; font-weight:700}
+  .actions{
+    display:grid; grid-template-columns:1fr 1fr; gap:14px;
+    padding:16px; background:linear-gradient(180deg, #0e1218, #0b0f14);
+    border-top:1px solid #202a38;
+  }
+  .btn-emboss{
+    border-radius:18px; padding:16px 14px; font-size:22px; font-weight:900; letter-spacing:.02em;
+    color:#000; text-shadow: 0 2px 0 #ffffffa0, 0 0 2px #ffffff88;
+    box-shadow: inset 0 2px 0 #ffffffaa, 0 10px 25px #0008;
+  }
+  .btn-like{background:linear-gradient(135deg, var(--good-1), var(--good-2))}
+  .btn-dislike{background:linear-gradient(135deg, var(--bad-1), var(--bad-2))}
+
+  /* Animations */
+  @keyframes likeBurst { 0%{transform:scale(.98); filter:saturate(.9)} 70%{transform:scale(1.02)} 100%{transform:scale(1); } }
+  @keyframes fadeOut { to{opacity:0; transform:translateY(10px)} }
+
+  .burst{animation:likeBurst .25s ease}
+  .fadeout{animation:fadeOut .25s ease forwards}
+
+  /* Modal (Add subs) */
+  .modal{position:fixed; inset:0; display:none; place-items:center; z-index:60; background:#0008; }
+  .sheet{width:min(680px,94vw); background:linear-gradient(180deg,#121720,#0e131b);
+    border:1px solid #223144; border-radius:22px; padding:16px; box-shadow:0 30px 100px #000a}
+  .sheet h3{margin:4px 0 10px}
+  textarea{width:100%; min-height:120px; border-radius:14px; padding:12px 14px; color:#eef3ff;
+    background:#0d1218; border:1px solid #223042; outline:none}
+  .modal.show{display:grid}
+  .row-end{display:flex; gap:10px; justify-content:flex-end; margin-top:12px}
+</style>
+</head>
+<body>
+
+  <!-- Top dock -->
+  <div class="dock">
+    <div class="grid">
+      <div class="pill"><h6>BUILD</h6><b id="bBuild">v2.0</b></div>
+      <div class="pill"><h6>SHOWN</h6><b id="bShown">0</b></div>
+      <div class="pill"><h6>POOL</h6><b id="bPool">0</b></div>
+      <div class="pill"><h6>TOTAL</h6><b id="bTotal">0</b></div>
+    </div>
+
+    <div class="progress"><div class="bar" id="bar"></div></div>
+    <div class="row"><span id="phase">Ready</span><span id="pct">100%</span></div>
+
+    <div class="tabs">
+      <button class="tab active" id="tabHome">Home</button>
+      <button class="tab" id="tabLikes">Likes</button>
+      <button class="tab" id="tabDiscard">Discard</button>
+    </div>
+
+    <div class="controls">
+      <button class="btn glass small" id="btnNew">New batch</button>
+      <button class="btn glass small" id="btnShuffle">Shuffle feed</button>
+      <button class="btn glass small" id="btnMore">Load more</button>
+      <button class="btn alt small" id="btnSubs">+ Subreddits</button>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <main class="wrap" id="wrap"></main>
+
+  <!-- Add subs modal -->
+  <div class="modal" id="modal">
+    <div class="sheet">
+      <h3>Add or replace subreddits (comma-separated)</h3>
+      <p style="color:#a8b7c6;margin:6px 0 12px">Example: <em>celebs, CelebEvents, LeaEluiGinet, CharliDamelioMommy</em></p>
+      <textarea id="subsBox" placeholder="celebs, CelebEvents, LeaEluiGinet"></textarea>
+      <div class="row-end">
+        <button class="btn glass small" id="btnCancel">Cancel</button>
+        <button class="btn good small" id="btnSaveSubs">Save</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // -------------------------------
+  // Minimal state (non-breaking)
+  // -------------------------------
+  const state = {
+    build: 'v2.8.9-ui2',
+    view: 'home',        // 'home' | 'likes' | 'discard'
+    pool: [],            // queued items not yet shown
+    shown: [],           // shown items (in current view)
+    likes: [],           // liked items
+    discard: [],         // dismissed items
+    subs: (localStorage.getItem('cw.subs')||'Celebs, CelebEvents, BeautifulCelebrities, celebritypics, LeaEluiGinet, charlidameliomommy').split(/\s*,\s*/),
+    loading:false
+  };
+
+  // Attach to existing loader if present (so we don't break your working code)
+  const external = {
+    buildNewBatch: window.buildNewBatch,
+    shuffleFeed   : window.shuffleFeed,
+    fetchMore     : window.fetchMore,
+  };
+
+  // UI refs
+  const $wrap = document.getElementById('wrap');
+  const $bBuild = document.getElementById('bBuild');
+  const $bShown = document.getElementById('bShown');
+  const $bPool  = document.getElementById('bPool');
+  const $bTotal = document.getElementById('bTotal');
+  const $phase  = document.getElementById('phase');
+  const $pct    = document.getElementById('pct');
+  const $bar    = document.getElementById('bar');
+
+  const $tabHome    = document.getElementById('tabHome');
+  const $tabLikes   = document.getElementById('tabLikes');
+  const $tabDiscard = document.getElementById('tabDiscard');
+
+  const $modal = document.getElementById('modal');
+  const $subsBox = document.getElementById('subsBox');
+
+  // ---------------------------------
+  // Helpers
+  // ---------------------------------
+  const setPhase = (txt, percent=null) => {
+    $phase.textContent = txt;
+    if (percent!==null){
+      $pct.textContent = Math.max(0,Math.min(100,percent))+'%';
+      $bar.style.width = Math.max(0,Math.min(100,percent))+'%';
+    }
+  };
+
+  const updateCounters = () => {
+    $bBuild.textContent = state.build;
+    $bShown.textContent = state.view==='home'
+      ? state.shown.length
+      : (state.view==='likes' ? state.likes.length : state.discard.length);
+    $bPool.textContent  = state.pool.length;
+    $bTotal.textContent = state.shown.length + state.pool.length;
+  };
+
+  const h = (tag, props={}, ...kids) => {
+    const el = document.createElement(tag);
+    for (const [k,v] of Object.entries(props)){
+      if (k==='class') el.className = v;
+      else if (k.startsWith('on')) el.addEventListener(k.slice(2).toLowerCase(), v, {passive:true});
+      else el.setAttribute(k,v);
+    }
+    kids.flat().forEach(c => {
+      if (c==null) return;
+      if (typeof c==='string') el.appendChild(document.createTextNode(c));
+      else el.appendChild(c);
+    });
+    return el;
+  };
+
+  // ---------------------------------
+  // Card rendering
+  // ---------------------------------
+  function renderList(list){
+    $wrap.innerHTML = '';
+    list.forEach(item => $wrap.appendChild(renderCard(item)));
+  }
+
+  function renderCard(item){
+    // item shape: { id, url, user, subreddit, title, type:'image'|'gif'|'video' }
+    const card = h('article',{class:'card', 'data-id':item.id});
+
+    const header = h('div',{class:'polaroid'},
+      `${item.user} • ${item.subreddit}`,
+      h('small',{}, item.title || '')
+    );
+
+    let media;
+    if (item.type==='video'){
+      media = h('video',{class:'media', controls:'', playsinline:'', muted:'', preload:'metadata'});
+      media.src = item.url;
+    } else if (item.type==='gif'){
+      media = h('video',{class:'media', autoplay:'', loop:'', muted:'', playsinline:'', preload:'metadata'});
+      media.src = item.url;
+    } else {
+      media = h('img',{class:'media', loading:'lazy', src:item.url, alt:item.title||''});
+    }
+
+    const likeBtn = h('button',{class:'btn-emboss btn-like', onClick:()=>like(item.id)},'Like');
+    const disBtn  = h('button',{class:'btn-emboss btn-dislike', onClick:()=>dismiss(item.id)},'Dismiss');
+    const actions = h('div',{class:'actions'}, disBtn, likeBtn);
+
+    card.append(header, media, actions);
+    return card;
+  }
+
+  // ---------------------------------
+  // Actions
+  // ---------------------------------
+  function like(id){
+    const item = pullFromAll(id);
+    if (!item) return;
+    state.likes.unshift(item);
+    animateCard(id, 'burst');
+    updateCounters();
+  }
+  function dismiss(id){
+    const item = pullFromAll(id);
+    if (!item) return;
+    state.discard.unshift(item);
+    animateCard(id, 'fadeout');
+    updateCounters();
+  }
+  function pullFromAll(id){
+    const from = [state.shown, state.pool].find(arr => arr.some(x=>x.id===id));
+    const idx = from ? from.findIndex(x=>x.id===id) : -1;
+    if (idx>-1){
+      const [item] = from.splice(idx,1);
+      // Remove DOM
+      const el = $wrap.querySelector(`[data-id="${id}"]`);
+      if (el) el.remove();
+      return item;
+    }
+    return null;
+  }
+  function animateCard(id, cls){
+    const el = $wrap.querySelector(`[data-id="${id}"]`);
+    if (!el) return;
+    el.classList.add(cls);
+    setTimeout(()=>{ try{ el.remove(); }catch(e){} }, 220);
+  }
+
+  // ---------------------------------
+  // Fetch / pool plumbing (non-breaking)
+  // ---------------------------------
+  async function ensurePool(min=10){
+    if (state.pool.length>=min || state.loading) return;
+    try{
+      state.loading = true;
+      setPhase('Requesting…', 30);
+      if (typeof external.fetchMore === 'function'){
+        // Ask your existing loader
+        const got = await external.fetchMore(min);
+        // expects array of items or pushes internally; handle both:
+        if (Array.isArray(got)) state.pool.push(...normalizeMany(got));
+      } else {
+        // Fallback tiny placeholder items so UI works if loader isn’t wired
+        await new Promise(r=>setTimeout(r,200));
+        state.pool.push(...fakeItems(min));
+      }
+    } catch(e){
+      console.warn(e);
+    } finally {
+      state.loading = false;
+      setPhase('Ready', 100);
+      updateCounters();
+    }
+  }
+
+  function normalizeMany(items){
+    // Expected mapping from your current objects to the card model
+    // Adjust here if your keys differ.
+    return items.map(x => ({
+      id: x.id || (x.url+'_'+Math.random().toString(36).slice(2,7)),
+      url: x.url,
+      user: x.author || x.user || 'u/unknown',
+      subreddit: x.subreddit || 'r/unknown',
+      title: x.title || '',
+      type: x.type || guessType(x.url)
+    }));
+  }
+  function guessType(url){
+    const u = (url||'').toLowerCase();
+    if (u.endsWith('.mp4') || u.includes('gifv') || u.includes('v.redd')) return 'video';
+    if (u.endsWith('.gif')) return 'gif';
+    return 'image';
+  }
+
+  async function fillAndShow(count=10){
+    await ensurePool(count);
+    const slice = state.pool.splice(0, count);
+    state.shown.push(...slice);
+    renderList(state.shown);
+    updateCounters();
+  }
+
+  // ---------------------------------
+  // Tabs
+  // ---------------------------------
+  function setView(v){
+    state.view = v;
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    if (v==='home') $tabHome.classList.add('active');
+    if (v==='likes') $tabLikes.classList.add('active');
+    if (v==='discard') $tabDiscard.classList.add('active');
+
+    if (v==='home') renderList(state.shown);
+    if (v==='likes') renderList(state.likes);
+    if (v==='discard') renderList(state.discard);
+    updateCounters();
+  }
+
+  // ---------------------------------
+  // Subreddits modal
+  // ---------------------------------
+  function openSubs(){
+    $subsBox.value = state.subs.join(', ');
+    $modal.classList.add('show');
+  }
+  function closeSubs(){ $modal.classList.remove('show'); }
+  function saveSubs(){
+    const list = $subsBox.value.split(/\s*,\s*/).filter(Boolean);
+    if (list.length){
+      state.subs = list;
+      localStorage.setItem('cw.subs', list.join(','));
+      // If your loader supports it, inform it:
+      if (typeof window.setSubreddits === 'function') window.setSubreddits(list);
+    }
+    closeSubs();
+  }
+
+  // ---------------------------------
+  // Infinite scroll
+  // ---------------------------------
+  let ticking=false;
+  window.addEventListener('scroll', () => {
+    if (ticking) return; ticking=true;
+    requestAnimationFrame(async () => {
+      const nearBottom = window.innerHeight + window.scrollY > (document.body.offsetHeight - 1200);
+      if (state.view==='home' && nearBottom){
+        await fillAndShow(10);
+      }
+      ticking=false;
+    });
+  }, {passive:true});
+
+  // ---------------------------------
+  // Wire controls
+  // ---------------------------------
+  document.getElementById('btnMore').addEventListener('click', () => fillAndShow(10));
+  document.getElementById('btnShuffle').addEventListener('click', async () => {
+    if (typeof external.shuffleFeed === 'function') await external.shuffleFeed();
+    // Local shuffle for what’s loaded:
+    state.shown.sort(()=>Math.random()-.5);
+    renderList(state.shown);
+  });
+  document.getElementById('btnNew').addEventListener('click', async () => {
+    setPhase('New batch…', 10);
+    if (typeof external.buildNewBatch === 'function'){
+      await external.buildNewBatch(state.subs);
+    }
+    state.pool.length=0; state.shown.length=0;
+    await fillAndShow(14);
+    setPhase('Ready', 100);
+  });
+
+  $tabHome.addEventListener('click', () => setView('home'));
+  $tabLikes.addEventListener('click', () => setView('likes'));
+  $tabDiscard.addEventListener('click', () => setView('discard'));
+
+  document.getElementById('btnSubs').addEventListener('click', openSubs);
+  document.getElementById('btnCancel').addEventListener('click', closeSubs);
+  document.getElementById('btnSaveSubs').addEventListener('click', saveSubs);
+
+  // ---------------------------------
+  // Boot
+  // ---------------------------------
+  (async function boot(){
+    $bBuild.textContent = state.build;
+    await fillAndShow(14);
+    setView('home');
+  })();
+
+  // ---------------------------------
+  // Tiny fallback generator (only if your loader isn’t wired)
+  // ---------------------------------
+  function fakeItems(n){
+    const demo = [
+      ["https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1400&auto=format&fit=crop","u/wiseguy","r/celebpics","Candid"],
+      ["https://images.unsplash.com/photo-1491349174775-aaafddd81942?q=80&w=1400&auto=format&fit=crop","u/pale_musician","r/CelebEvents","Gala"],
+      ["https://images.unsplash.com/photo-1524253482453-3fed8d2fe12b?q=80&w=1400&auto=format&fit=crop","u/richsquirrel","r/charlidameliomommy","Out and about"],
+    ];
+    const out=[];
+    for(let i=0;i<n;i++){
+      const t = demo[i % demo.length];
+      out.push({ id: 'fake_'+Math.random().toString(36).slice(2,8), url:t[0], user:t[1], subreddit:t[2], title:t[3], type:'image' });
+    }
+    return out;
+  }
+})();
+</script>
+</body>
+</html>
