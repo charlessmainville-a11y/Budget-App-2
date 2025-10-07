@@ -106,6 +106,13 @@
     <button class="btn small hollow" id="troubleBtn">Troubleshoot</button>
   </div>
 
+  <!-- Reddit connect -->
+  <div class="dash">
+    <button class="btn small hollow" id="connectBtn">Connect Reddit</button>
+    <span class="pill" id="tokenPill">Token: none</span>
+    <button class="btn tiny hollow" id="clearTokBtn">Clear token</button>
+  </div>
+
   <!-- Tabs -->
   <div class="tabs hidden" id="pageTabs">
     <span class="pill" id="tabHome">Home</span>
@@ -131,28 +138,27 @@
 </div>
 
 <script>
-/* -------------------- config -------------------- */
+/* -------------------- OAuth config -------------------- */
+/* If you have your own installed app, put the client id + redirect here once.
+   We'll also let you set/save them via prompt the first time you tap Connect. */
+const DEFAULT_CLIENT_ID   = localStorage.getItem('reddit_client_id')    || ''; // e.g. "D_nzkiZhFVjFgNs_sqCQ3Q"
+const DEFAULT_REDIRECT_URI= localStorage.getItem('reddit_redirect_uri') || (location.origin + location.pathname); // must match the one on old.reddit.com/apps
+
+/* -------------------- app config -------------------- */
 const STARTER_SUBS = [
-  // core “works everywhere”
   'Celebs','CelebEvents','celebritypics',
-  // charli / lea elui fan subs you liked
   'charlidameliomommy','LeaEluiGinet',
-  // a few safe NSFW celeb-ish hubs (can trim later)
   'CelebNSFW','celebnipslips','CelebGowns'
 ];
-// optional performer subs (skip quietly if 404/banned)
 const OPTIONAL_NSFW = ['EvaElfie','RileyReid','Stoya','AbellaDanger','MiaMalkova'];
-
-// how many to fetch per subreddit
 const LIMIT = 30;
-// how many cards to append on “Load more” or scroll-batch
 const CHUNK = 10;
 
 /* ------------- state ------------- */
-let pool = [];          // all parsed items (objects)
-let shown = 0;          // count shown on Home
-let likes = [];         // liked items
-let discards = [];      // dismissed items
+let pool = [];
+let shown = 0;
+let likes = [];
+let discards = [];
 let currentFeed = 'home';
 let fetching = false;
 const logEl = document.getElementById('log');
@@ -174,20 +180,85 @@ const ui = {
     currentFeed = name;
     ['home','likes','discard'].forEach(id => el('#'+id).classList.toggle('hidden', id!==name));
     el('#pageTabs').classList.remove('hidden');
+  },
+  tokenBadge(){
+    const t = getToken();
+    el('#tokenPill').textContent = 'Token: ' + (t ? 'stored' : 'none');
   }
 };
 
-/* ------------- OAuth (optional) ------------- */
-/* If you connected Reddit earlier, we reuse your token from localStorage.
-   Otherwise we’ll fall back to a CORS helper for public JSON. */
-function getToken(){ try{ const t = JSON.parse(localStorage.getItem('reddit_token')||'null'); if(!t) return null; if(Date.now()>t.expires_at) return null; return t.access_token; }catch{ return null; }}
+/* ------------- OAuth (implicit) ------------- */
+function rand(n=12){ return Array.from(crypto.getRandomValues(new Uint8Array(n))).map(v=>(v%36).toString(36)).join(''); }
+
+function beginOAuth(){
+  let clientId   = localStorage.getItem('reddit_client_id')    || DEFAULT_CLIENT_ID;
+  let redirectUri= localStorage.getItem('reddit_redirect_uri') || DEFAULT_REDIRECT_URI;
+
+  if(!clientId){
+    clientId = prompt('Enter your Reddit CLIENT ID (installed app):','');
+    if(!clientId) return;
+    localStorage.setItem('reddit_client_id', clientId);
+  }
+  if(!redirectUri){
+    redirectUri = prompt('Enter the exact Redirect URI you set on old.reddit.com/apps:', location.origin + location.pathname) || '';
+    if(!redirectUri) return;
+    localStorage.setItem('reddit_redirect_uri', redirectUri);
+  }
+
+  const state = rand(24);
+  localStorage.setItem('reddit_oauth_state', state);
+
+  const params = new URLSearchParams({
+    client_id: clientId,
+    response_type:'token',
+    state,
+    redirect_uri: redirectUri,
+    duration:'temporary',
+    scope:'read identity'
+  });
+
+  const url = 'https://www.reddit.com/api/v1/authorize.compact?' + params.toString();
+  location.href = url;
+}
+
+function captureTokenFromHash(){
+  if(!location.hash) return;
+  const h = new URLSearchParams(location.hash.slice(1));
+  const token = h.get('access_token');
+  const state = h.get('state');
+  if(!token) return;
+  const expected = localStorage.getItem('reddit_oauth_state');
+  if(expected && state !== expected){ log('State mismatch (ignored)'); return; }
+  const expiresIn = parseInt(h.get('expires_in')||'3600',10);
+  const rec = { access_token: token, expires_at: Date.now() + (expiresIn*1000) };
+  localStorage.setItem('reddit_token', JSON.stringify(rec));
+  ui.tokenBadge();
+  log('Token stored, expires in ' + Math.round(expiresIn/60) + 'm');
+  // clean the hash so reloads don't re-parse
+  history.replaceState({}, document.title, location.pathname + location.search);
+}
+
+function clearToken(){
+  localStorage.removeItem('reddit_token');
+  ui.tokenBadge();
+  log('Token cleared');
+}
+
+function getToken(){
+  try{
+    const t = JSON.parse(localStorage.getItem('reddit_token')||'null');
+    if(!t) return null;
+    if(Date.now() > t.expires_at) return null;
+    return t.access_token;
+  }catch{ return null; }
+}
 
 /* ------------- fetchers ------------- */
 const CORS = 'https://cors.isomorphic-git.org/';
 function subUrl(sub){
   const token = getToken();
   const base = `https://www.reddit.com/r/${sub}/hot.json?limit=${LIMIT}&raw_json=1`;
-  if(token){ return { url:`https://oauth.reddit.com/r/${sub}/hot?limit=${LIMIT}`, headers:{'Authorization':`Bearer ${token}`}}; }
+  if(token){ return { url:`https://oauth.reddit.com/r/${sub}/hot?limit=${LIMIT}`, headers:{'Authorization':`Bearer ${token}`} }; }
   return { url:CORS+base, headers:{} };
 }
 
@@ -206,17 +277,13 @@ async function pullSubreddit(sub){
   }
 }
 
-/* Normalize a reddit post into a {mediaType,url,thumb,title,author,sub,permalink} */
+/* Normalize a reddit post into a {t,url,thumb,title,author,sub,link} */
 function normalize(d){
-  // prefer reddit video
   const rv = d.secure_media?.reddit_video || d.media?.reddit_video;
   if(rv?.fallback_url){
-    return {
-      t:'video', url:rv.fallback_url, thumb:d.thumbnail&&d.thumbnail.startsWith('http')?d.thumbnail:null,
-      title:d.title, author:d.author, sub:d.subreddit, link:`https://reddit.com${d.permalink}`
-    };
+    return { t:'video', url:rv.fallback_url, thumb:pickThumb(d),
+      title:d.title, author:d.author, sub:d.subreddit, link:`https://reddit.com${d.permalink}` };
   }
-  // gif / gfycat / redgifs already transcoded on reddit as .gif or .mp4 in preview
   const preview = d.preview?.images?.[0]?.variants;
   if(preview?.mp4?.source?.url){
     return { t:'video', url:fix(preview.mp4.source.url), thumb:fix(d.preview.images[0].source.url),
@@ -226,27 +293,25 @@ function normalize(d){
     return { t:'gif', url:fix(preview.gif.source.url), thumb:fix(d.preview.images[0].source.url),
       title:d.title, author:d.author, sub:d.subreddit, link:`https://reddit.com${d.permalink}` };
   }
-  // gallery
   if(d.is_gallery && d.gallery_data?.items){
     const firstId = d.gallery_data.items[0]?.media_id;
     const meta = d.media_metadata?.[firstId];
     const src = bestMeta(meta);
-    if(src){
-      return { t:'image', url:src, thumb:src, title:d.title, author:d.author, sub:d.subreddit, link:`https://reddit.com${d.permalink}` };
-    }
+    if(src){ return { t:'image', url:src, thumb:src, title:d.title, author:d.author, sub:d.subreddit, link:`https://reddit.com${d.permalink}` }; }
   }
-  // single image
   const img = d.url_overridden_by_dest || d.url;
   if(img && /\.(jpg|jpeg|png|webp)$/i.test(img)){
     return { t:'image', url:img, thumb:img, title:d.title, author:d.author, sub:d.subreddit, link:`https://reddit.com${d.permalink}` };
   }
   return null;
 }
-function bestMeta(meta){
-  if(!meta) return null;
-  const s = meta.s; if(!s) return null;
-  return fix(s.u || s.gif || s.mp4 || null);
+function pickThumb(d){
+  const t = d.thumbnail;
+  if(t && t.startsWith('http')) return t;
+  const p = d.preview?.images?.[0]?.source?.url;
+  return p ? fix(p) : null;
 }
+function bestMeta(meta){ if(!meta) return null; const s=meta.s; if(!s) return null; return fix(s.u||s.gif||s.mp4||null); }
 function fix(u){ return u ? u.replace(/&amp;/g,'&') : u; }
 
 /* ------------- rendering ------------- */
@@ -265,7 +330,7 @@ function card(item){
     media.className='media'; media.controls=true; media.playsInline=true; media.muted=false; media.preload='metadata';
     media.src=item.url;
   }else if(item.t==='gif'){
-    media = document.createElement('video'); // smoother playback than <img gif>
+    media = document.createElement('video');
     media.className='media'; media.autoplay=true; media.loop=true; media.muted=true; media.playsInline=true;
     media.src=item.url;
   }else{
@@ -282,13 +347,8 @@ function card(item){
   `;
   actions.addEventListener('click', (e)=>{
     const b = e.target.closest('button'); if(!b) return;
-    if(b.dataset.act==='ok'){
-      likes.push(item);
-      wrap.classList.add('burst');
-    }else{
-      discards.push(item);
-      wrap.classList.add('fade');
-    }
+    if(b.dataset.act==='ok'){ likes.push(item); wrap.classList.add('burst'); }
+    else { discards.push(item); wrap.classList.add('fade'); }
     setTimeout(()=>wrap.remove(), 260);
     shown++; ui.counts();
   });
@@ -315,11 +375,9 @@ async function newBatch(){
   for(const s of subs){
     const items = await pullSubreddit(s);
     pool.push(...items);
-    done++;
-    ui.bar(10 + (done/subs.length)*80);
+    done++; ui.bar(10 + (done/subs.length)*80);
   }
 
-  // unique by URL and shuffle
   pool = dedupeBy(pool, x=>x.url);
   shuffle(pool);
 
@@ -328,11 +386,7 @@ async function newBatch(){
   fetching = false;
 }
 
-function dedupeBy(arr, fn){
-  const seen = new Set(); const out=[];
-  for(const x of arr){ const k = fn(x); if(seen.has(k)) continue; seen.add(k); out.push(x); }
-  return out;
-}
+function dedupeBy(arr, fn){ const seen=new Set(), out=[]; for(const x of arr){const k=fn(x); if(seen.has(k)) continue; seen.add(k); out.push(x);} return out; }
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]] } }
 
 /* ------------- events ------------- */
@@ -347,13 +401,16 @@ el('#addSubsBtn').addEventListener('click', async ()=>{
   const s = prompt('Add subreddits (comma-separated, no /r/):', 'Celebs, CelebEvents, celebritypics');
   if(!s) return;
   const list = s.split(',').map(x=>x.trim()).filter(Boolean);
-  STARTER_SUBS.splice(0, STARTER_SUBS.length, ...list); // replace baseline
+  STARTER_SUBS.splice(0, STARTER_SUBS.length, ...list);
   log(`Updated base subs: ${STARTER_SUBS.join(', ')}`);
   await newBatch();
 });
 
 el('#troubleBtn').addEventListener('click', ()=> el('#modal').classList.add('show'));
 el('#closeModal').addEventListener('click', ()=> el('#modal').classList.remove('show'));
+
+el('#connectBtn').addEventListener('click', beginOAuth);
+el('#clearTokBtn').addEventListener('click', clearToken);
 
 function paintList(where, arr){
   const host = el('#'+where);
@@ -374,11 +431,11 @@ addEventListener('scroll', ()=>{
 });
 
 /* ------------- boot ------------- */
+captureTokenFromHash();
+ui.tokenBadge();
 ui.counts(); ui.bar(100); ui.phase('Ready');
-log('Ready. Tap “New batch” to fetch.');
-
-/* optional: auto-fetch first batch */
-newBatch();
+log('Ready. Tap “Connect Reddit” (optional) then “New batch” to fetch.');
+newBatch(); // auto-fetch first batch
 </script>
 </body>
 </html>
