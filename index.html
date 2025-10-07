@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>CelebWall v2.0-stable</title>
+<title>CelebWall v2.1</title>
 <style>
   :root{
     --bg:#0d0f12;--panel:#12151a;--glass:#171b21;--muted:#9aa3ad;--txt:#eaf0f6;
@@ -12,8 +12,7 @@
     --like1:#2aa0ff; --like2:#14c8b3;
     --dismiss1:#ff4757; --dismiss2:#ff7ab8;
     /* Dashboard tile gradients */
-    --tile-grad1:#b08cff;   /* purple */
-    --tile-grad2:#ff9ecf;   /* pink  */
+    --tile-grad1:#b08cff; --tile-grad2:#ff9ecf;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
@@ -45,34 +44,47 @@
   .btn.tiny{padding:10px 14px;border-radius:14px;font-size:14px}
   .pill{background:#12161e;border:1px solid #ffffff14;border-radius:18px;padding:10px 14px;color:#cbd4df}
 
+  /* Tabs */
+  .tabs{display:flex;gap:10px;justify-content:center;margin:10px 0 6px}
+  .hidden{display:none!important}
+
   /* Feed / cards */
   .feed{display:grid;gap:18px}
   .card{background:linear-gradient(180deg,#141922,#0f131a);border-radius:22px;overflow:hidden;
         box-shadow:0 22px 40px #00000070,inset 0 1px 0 #ffffff12;position:relative;isolation:isolate}
   .media{display:block;width:100%;height:auto;max-height:86vh;object-fit:cover;background:#0b0f15}
   video.media{max-height:86vh;background:#0b0f15}
-
-  /* Bottom caption */
-  .caption{padding:12px 14px;border-top:1px solid #ffffff12;
-           background:linear-gradient(180deg,#0e1218,#0b0f15);
+  .caption{padding:12px 14px;border-top:1px solid #ffffff12;background:linear-gradient(180deg,#0e1218,#0b0f15);
            color:#f3f7ff;font:900 20px/1.2 Inter,system-ui;letter-spacing:.01em;}
-
   .actions{display:flex;gap:16px;justify-content:space-between;padding:18px;background:linear-gradient(180deg,transparent 0%,#0e1218 20%)}
   .actions .btn{flex:1;border-radius:20px}
   .btn.ok{background:linear-gradient(135deg,var(--like1),var(--like2));color:#0b0f16;font-weight:900}
   .btn.no{background:linear-gradient(135deg,var(--dismiss2),var(--dismiss1));color:#0b0f16;font-weight:900}
 
-  .tabs{display:flex;gap:10px;justify-content:center;margin:10px 0 6px}
-  .hidden{display:none!important}
-  .burst{animation:burst .45s ease forwards}
-  @keyframes burst{0%{transform:scale(1)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
-  .fade{animation:fade .28s ease forwards}
-  @keyframes fade{to{opacity:0;transform:translateY(10px)}}
+  /* Bottom loader */
+  .bottom-load{display:flex;justify-content:center;margin:18px 0}
+  .bottom-load .btn{border-radius:16px;padding:14px 16px;background:#1a1f28;color:#e8f0ff}
 
+  /* Subreddit manager page */
+  #subsPage{max-width:880px;margin:0 auto}
+  .subs-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:10px 4px 16px}
+  .subs-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  @media (min-width:640px){ .subs-grid{grid-template-columns:repeat(3,1fr)} }
+  @media (min-width:820px){ .subs-grid{grid-template-columns:repeat(4,1fr)} }
+  .sub-tile{
+    display:flex;align-items:center;gap:10px;
+    padding:12px;border-radius:14px;
+    background:linear-gradient(180deg,#151b22,#10151b);
+    border:1px solid #ffffff14;color:#dfe7ff;
+    box-shadow:inset 0 1px 0 #ffffff10;
+  }
+  .sub-tile input{accent-color:#67d0ff;width:18px;height:18px}
+
+  /* Modal (Troubleshoot) */
   .modal{position:fixed;inset:0;display:none;place-items:center;background:#0009;z-index:50}
   .modal.show{display:grid}
-  .sheet{width:min(840px,92vw);max-height:80vh;overflow:auto;background:#0f141a;border-radius:22px;box-shadow:0 24px 60px #000; padding:18px}
-  .log{white-space:pre-wrap;font:600 16px/1.35 ui-monospace,Menlo,Consolas,monospace;color:#d7e3f5}
+  .sheet{width:min(920px,92vw);max-height:80vh;overflow:auto;background:#0f141a;border-radius:22px;box-shadow:0 24px 60px #000; padding:18px}
+  .log{white-space:pre-wrap;font:600 14px/1.45 ui-monospace,Menlo,Consolas,monospace;color:#d7e3f5}
 </style>
 </head>
 <body>
@@ -92,7 +104,7 @@
     <button class="btn tile small" id="loadMoreBtn">Load more</button>
   </div>
   <div class="dash">
-    <button class="btn tile small" id="addSubsBtn">+ Subreddits</button>
+    <button class="btn tile small" id="manageSubsBtn">Subreddits</button>
     <button class="btn tile small" id="troubleBtn">Troubleshoot</button>
   </div>
 
@@ -102,18 +114,37 @@
     <button class="btn tiny tile" id="clearTokBtn">Clear token</button>
   </div>
 
+  <!-- Tabs indicator -->
   <div class="tabs hidden" id="pageTabs">
     <span class="pill" id="tabHome">Home</span>
     <span class="pill" id="tabLikes">Likes</span>
     <span class="pill" id="tabDiscard">Discard</span>
+    <span class="pill" id="tabSubs" style="display:none">Subreddits</span>
   </div>
 
+  <!-- Pages -->
   <div id="home" class="feed"></div>
+  <div class="bottom-load"><button class="btn small" id="loadMoreBottom">Load more</button></div>
+
   <div id="likes" class="feed hidden"></div>
   <div id="discard" class="feed hidden"></div>
+
+  <!-- Subreddit manager page -->
+  <section id="subsPage" class="hidden">
+    <div class="subs-head">
+      <h2 style="margin:0;font:900 22px/1.2 Inter,system-ui">Manage subreddits</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn tile small" id="subsSelectAll">Select all</button>
+        <button class="btn tile small" id="subsClearAll">Clear all</button>
+        <button class="btn tile small grad" id="subsSave">Save & New batch</button>
+        <button class="btn tile small" id="subsBack">← Back</button>
+      </div>
+    </div>
+    <div class="subs-grid" id="subsGrid"></div>
+  </section>
 </div>
 
-<!-- Troubleshooter -->
+<!-- Troubleshooter modal -->
 <div class="modal" id="modal">
   <div class="sheet">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px">
@@ -130,12 +161,15 @@ const DEFAULT_CLIENT_ID   = localStorage.getItem('reddit_client_id')    || '';
 const DEFAULT_REDIRECT_URI= localStorage.getItem('reddit_redirect_uri') || (location.origin + location.pathname);
 
 /* -------------------- app config -------------------- */
-const STARTER_SUBS = [
-  'Celebs','CelebEvents','celebritypics','CelebGowns'
-];
-const OPTIONAL_NSFW = ['EvaElfie','RileyReid','Stoya','MiaMalkova']; // AbellaDanger removed
+const DEFAULT_STARTER_SUBS = ['Celebs','CelebEvents','celebritypics','CelebGowns'];
+const DEFAULT_OPTIONAL_NSFW = ['EvaElfie','RileyReid','Stoya','MiaMalkova']; // AbellaDanger removed
+// Persisted toggles
+const saved = JSON.parse(localStorage.getItem('subs_toggle')||'{}');
+let STARTER_SUBS = saved.starters || [...DEFAULT_STARTER_SUBS];
+let OPTIONAL_NSFW = saved.nsfw || [...DEFAULT_OPTIONAL_NSFW];
+
 const LIMIT = 30;
-const CHUNK = 30;                 // load 30 at a time
+const CHUNK = 30;
 const LIGHT_SHUFFLES = 2;
 
 /* ------------- state ------------- */
@@ -144,6 +178,7 @@ let likes = [];
 let discards = [];
 let currentFeed = 'home';
 let fetching = false;
+let lastErrors = []; // collect fetch errors for troubleshooting
 const logEl = document.getElementById('log');
 
 /* ------------- helpers ------------- */
@@ -152,7 +187,7 @@ const log = (msg) => { const t=new Date().toLocaleTimeString(); logEl.textConten
 const esc = (s) => String(s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
 
 /* ---------- name inference ---------- */
-const PERSON_SUBS = new Set([...OPTIONAL_NSFW,'LeaEluiGinet','charlidameliomommy']);
+const PERSON_SUBS = new Set([...DEFAULT_OPTIONAL_NSFW,'LeaEluiGinet','charlidameliomommy']);
 const STOP_WORDS = /^(at|in|with|on|of|for|from|and|the|to|by|wearing|holding|during)\b/i;
 function humanizeSubName(sub){return sub.replace(/[_-]+/g,' ').replace(/([a-z])([A-Z])/g,'$1 $2').replace(/(\d+)/g,' $1 ').replace(/\s+/g,' ').trim().replace(/\b\w/g,m=>m.toUpperCase());}
 function guessNameFromTitle(title){
@@ -161,7 +196,7 @@ function guessNameFromTitle(title){
   const parts = [];
   for(const tok of cleaned.split(' ')){
     if(STOP_WORDS.test(tok)) break;
-    if(/^[A-ZÀ-Ý][\w’'\-\.]*$/.test(tok) || /^(de|van|von|da|di|del|la)$/i.test(tok)){ parts.push(tok.replace(/[_-]/g,' ')); continue; }
+    if(/^[A-ZÀ-Ý][\w’'-.]*$/.test(tok) || /^(de|van|von|da|di|del|la)$/i.test(tok)){ parts.push(tok.replace(/[_-]/g,' ')); continue; }
     if(/[.,;:()|\[\]]/.test(tok)) break;
     if(parts.length===0) break;
     parts.push(tok);
@@ -187,12 +222,23 @@ const ui = {
   bar(p){ el('#bar').style.width = `${p}%`; el('#pct').textContent = `${Math.round(p)}%`; },
   showPage(name){
     currentFeed = name;
-    ['home','likes','discard'].forEach(id => el('#'+id).classList.toggle('hidden', id!==name));
+    // Hide all pages
+    ['home','likes','discard','subsPage'].forEach(id => el('#'+id).classList.add('hidden'));
+    if(name==='home') el('#home').classList.remove('hidden');
+    if(name==='likes') el('#likes').classList.remove('hidden');
+    if(name==='discard') el('#discard').classList.remove('hidden');
+    if(name==='subs') el('#subsPage').classList.remove('hidden');
+    // Tabs visibility
     el('#pageTabs').classList.remove('hidden');
+    el('#tabSubs').style.display = (name==='subs' ? '' : (el('#tabSubs').style.display || ''));
   },
   tokenBadge(){
     const t = getToken();
     el('#tokenPill').textContent = 'Token: ' + (t ? 'stored' : 'none');
+  },
+  bottomLoadVisibility(){
+    const hasMore = pool.length > 0 && !el('#home').classList.contains('hidden');
+    el('#loadMoreBottom').parentElement.style.display = hasMore ? 'flex' : 'none';
   }
 };
 
@@ -238,12 +284,12 @@ async function pullSubreddit(sub){
   try{
     const {url,headers} = subUrl(sub);
     const res = await fetch(url,{headers});
-    if(!res.ok){ log(`✖ /r/${sub}: HTTP ${res.status}`); return []; }
+    if(!res.ok){ const msg = `✖ /r/${sub}: HTTP ${res.status}`; lastErrors.push(msg); log(msg); return []; }
     const data = await res.json();
     const items = (data.data?.children||[]).map(n=>normalize(n.data)).filter(Boolean);
     log(`Loaded ${items.length} from /r/${sub}`);
     return items;
-  }catch(e){ log(`✖ /r/${sub}: ${e}`); return []; }
+  }catch(e){ const msg = `✖ /r/${sub}: ${e}`; lastErrors.push(msg); log(msg); return []; }
 }
 
 /* Normalize to {t,url,thumb,title,author,sub,link} */
@@ -360,6 +406,7 @@ function renderChunk(where, n=CHUNK){
   const feed = el('#'+where);
   const slice = pool.splice(0,n);
   slice.forEach(it => feed.appendChild(card(it)));
+  ui.bottomLoadVisibility();
 }
 
 /* ------------- batching (interleave by subreddit) ------------- */
@@ -372,6 +419,8 @@ async function newBatch(){
   const subs = [...STARTER_SUBS, ...OPTIONAL_NSFW];
   const all = [];
   let done = 0;
+  lastErrors = [];
+
   for(const s of subs){
     const items = await pullSubreddit(s);
     all.push(...items);
@@ -401,37 +450,104 @@ function shuffleVisibleAndPool(){
   feed.innerHTML = '';
   for(let i=0;i<Math.min(keep, combined.length); i++){ feed.appendChild(card(combined[i])); }
   pool = combined.slice(keep);
+  ui.bottomLoadVisibility();
+}
+
+/* ------------- subreddit manager ------------- */
+function buildSubsUI(){
+  const grid = el('#subsGrid');
+  grid.innerHTML = '';
+  const current = new Set([...STARTER_SUBS, ...OPTIONAL_NSFW]);
+  const all = [...new Set([...DEFAULT_STARTER_SUBS, ...DEFAULT_OPTIONAL_NSFW, ...STARTER_SUBS, ...OPTIONAL_NSFW])].sort((a,b)=>a.localeCompare(b));
+  for(const sub of all){
+    const id = 'sub-' + sub;
+    const tile = document.createElement('label');
+    tile.className = 'sub-tile';
+    tile.innerHTML = `
+      <input type="checkbox" id="${id}" ${current.has(sub)?'checked':''}>
+      <span>r/${esc(sub)}</span>
+    `;
+    grid.appendChild(tile);
+  }
+}
+
+function saveSubsFromUI(){
+  const checks = [...document.querySelectorAll('#subsGrid input[type="checkbox"]')];
+  const picked = checks.filter(c=>c.checked).map(c=>c.id.replace('sub-',''));
+  // keep ones that were “starter” vs “nsfw” by default if present, else put in starters
+  STARTER_SUBS = picked.filter(s => DEFAULT_STARTER_SUBS.includes(s));
+  OPTIONAL_NSFW = picked.filter(s => DEFAULT_OPTIONAL_NSFW.includes(s));
+  const leftovers = picked.filter(s => !DEFAULT_STARTER_SUBS.includes(s) && !DEFAULT_OPTIONAL_NSFW.includes(s));
+  STARTER_SUBS.push(...leftovers);
+  localStorage.setItem('subs_toggle', JSON.stringify({starters:STARTER_SUBS, nsfw:OPTIONAL_NSFW}));
+}
+
+/* ------------- troubleshoot ------------- */
+function dumpTroubleshoot(){
+  const info = [];
+  const token = getToken();
+  info.push(`App state:
+  feed=${currentFeed}
+  pool=${pool.length}
+  likes=${likes.length}
+  discards=${discards.length}`);
+
+  info.push(`Environment:
+  ua=${navigator.userAgent}
+  online=${navigator.onLine}
+  width=${innerWidth} height=${innerHeight}`);
+
+  info.push(`Auth:
+  token=${token ? 'present' : 'none'}`);
+
+  info.push(`Subs:
+  starters=[${STARTER_SUBS.join(', ')}]
+  nsfw=[${OPTIONAL_NSFW.join(', ')}]`);
+
+  if(lastErrors.length){
+    info.push('Recent fetch errors:\n' + lastErrors.slice(-8).join('\n'));
+  }else{
+    info.push('Recent fetch errors: (none captured)');
+  }
+
+  logEl.textContent = ''; // reset log
+  log(info.join('\n\n'));
 }
 
 /* ------------- events ------------- */
 el('#newBatchBtn').addEventListener('click', newBatch);
 el('#shuffleBtn').addEventListener('click', shuffleVisibleAndPool);
 el('#loadMoreBtn').addEventListener('click', ()=> renderChunk('home'));
+el('#loadMoreBottom').addEventListener('click', ()=> renderChunk('home'));
 
 el('#homeBtn').addEventListener('click', ()=> ui.showPage('home'));
-el('#likesBtn').addEventListener('click', ()=>{ ui.showPage('likes'); paintList('likes', likes); });
-el('#discardBtn').addEventListener('click', ()=>{ ui.showPage('discard'); paintList('discard', discards); });
+el('#likesBtn').addEventListener('click', ()=>{ ui.showPage('likes'); });
+el('#discardBtn').addEventListener('click', ()=>{ ui.showPage('discard'); });
 
-el('#addSubsBtn').addEventListener('click', async ()=>{
-  const s = prompt('Add subreddits (comma-separated, no /r/):', 'Celebs, CelebEvents, celebritypics');
-  if(!s) return;
-  const list = s.split(',').map(x=>x.trim()).filter(Boolean);
-  STARTER_SUBS.splice(0, STARTER_SUBS.length, ...list);
-  log(`Updated base subs: ${STARTER_SUBS.join(', ')}`);
-  await newBatch();
+el('#manageSubsBtn').addEventListener('click', ()=>{
+  buildSubsUI();
+  ui.showPage('subs');
+  el('#tabSubs').style.display = '';
 });
 
-el('#troubleBtn').addEventListener('click', ()=> el('#modal').classList.add('show'));
+el('#subsSelectAll').addEventListener('click', ()=>{
+  document.querySelectorAll('#subsGrid input[type="checkbox"]').forEach(c=>c.checked=true);
+});
+el('#subsClearAll').addEventListener('click', ()=>{
+  document.querySelectorAll('#subsGrid input[type="checkbox"]').forEach(c=>c.checked=false);
+});
+el('#subsBack').addEventListener('click', ()=> ui.showPage('home'));
+el('#subsSave').addEventListener('click', async ()=>{
+  saveSubsFromUI();
+  await newBatch();
+  ui.showPage('home');
+});
+
+el('#troubleBtn').addEventListener('click', ()=>{ dumpTroubleshoot(); el('#modal').classList.add('show'); });
 el('#closeModal').addEventListener('click', ()=> el('#modal').classList.remove('show'));
 
 el('#connectBtn').addEventListener('click', beginOAuth);
 el('#clearTokBtn').addEventListener('click', clearToken);
-
-function paintList(where, arr){
-  const host = el('#'+where);
-  host.innerHTML = '';
-  arr.forEach(it => host.appendChild(card(it)));
-}
 
 /* ------------- boot ------------- */
 captureTokenFromHash();
