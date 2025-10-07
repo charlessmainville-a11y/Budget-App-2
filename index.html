@@ -1,102 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CelebWall – Reddit Connect</title>
+<style>
+  :root{
+    --bg:#0c0d10;--card:#16171c;--pill:#1c1e24;--accent1:#a88bff;--accent2:#79e2f2;--ok:#18d1b6;--bad:#ff6b6b;
+  }
+  html,body{height:100%}
+  body{margin:0;background:radial-gradient(1200px 400px at 50% -200px,#151729,transparent 70%) , var(--bg);color:#e9eefb;font:16px/1.4 -apple-system,BlinkMacSystemFont,Segoe UI,Inter,Helvetica,Arial,sans-serif;display:grid;place-items:center}
+  .wrap{width:min(720px,92vw)}
+  .card{background:rgba(22,23,28,.88);border:1px solid #262a33;border-radius:20px;padding:22px 20px;backdrop-filter:blur(6px);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  h1{margin:0 0 8px;font-weight:800;letter-spacing:.2px}
+  .sub{opacity:.75;margin:0 0 16px}
+  .row{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}
+  .btn{appearance:none;border:0;border-radius:14px;padding:14px 18px;background:#20222b;color:#e9eefb;font-weight:700;cursor:pointer;transition:.15s transform, .2s opacity}
+  .btn:hover{transform:translateY(-1px)}
+  .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+  .btn.primary{background:linear-gradient(90deg,var(--accent1),var(--accent2))}
+  .kvs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .kv{background:var(--pill);padding:14px 16px;border-radius:14px;border:1px solid #2a2f39}
+  .kv b{display:block;font-size:12px;opacity:.7;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:4px}
+  pre{margin:12px 0 0;background:#0e1014;color:#cfe3ff;border:1px solid #232734;border-radius:14px;padding:12px 14px;max-height:40vh;overflow:auto;font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .ok{color:var(--ok)} .bad{color:var(--bad)}
+  .pill{display:inline-block;padding:4px 10px;border-radius:999px;background:#1a1d25;border:1px solid #262a33;font:12px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#b8c7ff}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Reddit connect</h1>
+      <p class="sub">Implicit OAuth flow with token capture + quick test fetch.</p>
+
+      <div class="kvs">
+        <div class="kv"><b>Status</b><span id="status" class="pill">Idle</span></div>
+        <div class="kv"><b>Token</b><span id="tokState" class="pill">none</span></div>
+      </div>
+
+      <div class="row">
+        <button id="connect" class="btn primary">Connect Reddit</button>
+        <button id="test" class="btn">Test fetch /r/celebs</button>
+        <button id="clear" class="btn">Clear token</button>
+      </div>
+
+      <pre id="log"></pre>
+    </div>
+  </div>
+
 <script>
-/* ===== Reddit OAuth block (ready with your values) ===== */
+/*** 1) EDIT THESE TWO LINES ***/
+const CLIENT_ID    = 'D_nzkiZhFVjFgNs_sqCQ3Q';                            // ← your installed-app client id
+const REDIRECT_URI = 'https://charlessmainville-a11y.github.io/Budget-App-2/'; // ← EXACTLY as in Reddit settings
+/********************************/
 
-const CLIENT_ID    = 'D_nzkiZhFVjFgNs_sqCQ3Q';
-const REDIRECT_URI = 'https://charlessmainville-a11y.github.io/Budget-App-2/';
-const SCOPES       = 'read';
-const TOKEN_STORE  = 'reddit_token_v1';
+const SCOPES = ['read','identity','history'].join(' ');
+const LS_KEY = 'reddit_token';
+const LS_EXP = 'reddit_expires_at';
+const LS_STATE = 'reddit_oauth_state';
 
-function logTS(msg){
-  try { appendLog(msg); } catch { console.log(msg); }
-}
+const $ = sel => document.querySelector(sel);
+const log = (m, cls) => {
+  const el = $('#log');
+  el.innerHTML += (cls ? `<span class="${cls}">` : '') + m + (cls?'</span>':'') + '\n';
+  el.scrollTop = el.scrollHeight;
+};
+const setStatus = (txt, good=null) => {
+  $('#status').textContent = txt;
+  $('#status').className = 'pill ' + (good===true?'ok':good===false?'bad':'');
+};
+const setTokState = (txt) => $('#tokState').textContent = txt;
 
-function redditAuthUrl(state){
+// ——— Build the authorize URL
+function buildAuthUrl() {
+  const state = Math.random().toString(36).slice(2);
+  sessionStorage.setItem(LS_STATE, state);
   const params = new URLSearchParams({
     client_id: CLIENT_ID,
     response_type: 'token',
     state,
     redirect_uri: REDIRECT_URI,
-    duration: 'temporary',
+    duration: 'temporary',          // personal use
     scope: SCOPES
   });
-  return `https://www.reddit.com/api/v1/authorize?${params.toString()}`;
+  return 'https://www.reddit.com/api/v1/authorize.compact?' + params.toString();
 }
 
-function redditStartAuth(){
-  const state = (crypto && crypto.getRandomValues)
-    ? Array.from(crypto.getRandomValues(new Uint8Array(8)))
-        .map(b => b.toString(16).padStart(2, '0')).join('')
-    : String(Math.random()).slice(2);
-  sessionStorage.setItem('reddit_oauth_state', state);
-  location.href = redditAuthUrl(state);
-}
-
-function redditParseHash(){
+// ——— Parse #access_token=… on load, verify state, store token
+function redditParseHash() {
   if (!location.hash.startsWith('#')) return false;
   const h = new URLSearchParams(location.hash.slice(1));
-  if (!h.get('access_token')) return false;
+  const token = h.get('access_token');
+  const state = h.get('state');
+  if (!token) return false;
 
-  const returnedState = h.get('state');
-  const expectedState = sessionStorage.getItem('reddit_oauth_state') || '';
-  if (expectedState && returnedState !== expectedState){
-    logTS(`[${new Date().toLocaleTimeString()}] State mismatch`);
-    history.replaceState(null, '', location.pathname + location.search);
-    // continue anyway, for your app
+  const expected = sessionStorage.getItem(LS_STATE);
+  if (!expected || state !== expected) {
+    setStatus('State mismatch', false);
+    log(`[${new Date().toLocaleTimeString()}] State mismatch`, 'bad');
+    return false;
   }
 
-  const expiresIn = parseInt(h.get('expires_in') || '3600', 10);
-  const token = {
-    access_token: h.get('access_token'),
-    token_type:   h.get('token_type') || 'bearer',
-    expires_at:   Date.now() + expiresIn * 1000 - 5000
-  };
-  localStorage.setItem(TOKEN_STORE, JSON.stringify(token));
-  logTS(`[${new Date().toLocaleTimeString()}] Connected to Reddit`);
-  history.replaceState(null, '', location.pathname + location.search);
+  const expiresIn = Number(h.get('expires_in') || 3600);
+  localStorage.setItem(LS_KEY, token);
+  localStorage.setItem(LS_EXP, (Date.now() + expiresIn*1000).toString());
+  history.replaceState(null, '', location.pathname + location.search); // clean hash
+  setTokState('stored');
+  setStatus('Authorized', true);
+  log(`[${new Date().toLocaleTimeString()}] Token stored, expires in ${Math.round(expiresIn/60)}m`, 'ok');
   return true;
 }
 
-function redditGetToken(){
-  const raw = localStorage.getItem(TOKEN_STORE);
-  if (!raw) return null;
+// ——— Helpers to get/validate token
+function getToken() {
+  const t = localStorage.getItem(LS_KEY);
+  const exp = Number(localStorage.getItem(LS_EXP) || 0);
+  if (!t || !exp || Date.now() > exp) return null;
+  return t;
+}
+
+// ——— Basic test call to prove OAuth works
+async function testFetch() {
+  const token = getToken();
+  if (!token) {
+    setStatus('No token', false);
+    log(`[${new Date().toLocaleTimeString()}] No token; connect first`, 'bad');
+    return;
+  }
+  setStatus('Calling API…');
   try {
-    const obj = JSON.parse(raw);
-    if (!obj.access_token) return null;
-    if (Date.now() > obj.expires_at) { localStorage.removeItem(TOKEN_STORE); return null; }
-    return obj.access_token;
-  } catch {
-    return null;
+    const r = await fetch('https://oauth.reddit.com/r/celebs/hot?limit=3', {
+      headers: { 'Authorization': 'Bearer ' + token, 'User-Agent': 'celebwall/0.1 by you' }
+    });
+    if (!r.ok) throw new Error(r.status+' '+r.statusText);
+    const j = await r.json();
+    const titles = (j.data?.children||[]).map(p=>p.data.title);
+    log(`[${new Date().toLocaleTimeString()}] OK: ${titles.length} posts\n- ${titles.join('\n- ')}`, 'ok');
+    setStatus('Success', true);
+  } catch(e){
+    log(`[${new Date().toLocaleTimeString()}] Fetch error: ${e}`, 'bad');
+    setStatus('Error', false);
   }
 }
 
-async function redditEnsureAuth(){
-  const tok = redditGetToken();
-  if (tok) return tok;
-  throw new Error('Not connected to Reddit yet');
-}
-
-async function redditAPI(path, opts = {}){
-  const tok = await redditEnsureAuth();
-  const url = path.startsWith('http') ? path : `https://oauth.reddit.com${path.startsWith('/') ? '' : '/'}${path}`;
-  const headers = new Headers(opts.headers || {});
-  headers.set('Authorization', `bearer ${tok}`);
-  headers.set('User-Agent', 'CelebWall/0.1 (browser)');
-  const resp = await fetch(url, { ...opts, headers });
-  if (!resp.ok){
-    const txt = await resp.text().catch(()=> '');
-    logTS(`[${new Date().toLocaleTimeString()}] Reddit API error ${resp.status}: ${txt.slice(0,200)}`);
-    throw new Error(`Reddit API ${resp.status}`);
-  }
-  return resp.json();
-}
-
-redditParseHash();  // run on load to catch token after redirect
-
-document.addEventListener('DOMContentLoaded', ()=>{
-  const btn = document.getElementById('btnConnectReddit');
-  if (btn){
-    if (redditGetToken()) btn.disabled = true;
-    btn.addEventListener('click', e => { e.preventDefault(); redditStartAuth(); });
-  }
+// ——— Wire UI
+$('#connect').addEventListener('click', () => {
+  setStatus('Redirecting to Reddit…');
+  location.href = buildAuthUrl();
 });
+$('#test').addEventListener('click', testFetch);
+$('#clear').addEventListener('click', () => {
+  localStorage.removeItem(LS_KEY); localStorage.removeItem(LS_EXP);
+  setTokState('none'); setStatus('Idle'); log(`[${new Date().toLocaleTimeString()}] Cleared token`);
+});
+
+// ——— On load: capture token if present; otherwise show token state
+(function init(){
+  if (!redditParseHash()) {
+    setTokState(getToken() ? 'stored' : 'none');
+    setStatus('Ready');
+  }
+  log(`href: ${location.href}`);
+  log(`hash: ${location.hash || '(none)'}`);
+})();
 </script>
+</body>
+</html>
