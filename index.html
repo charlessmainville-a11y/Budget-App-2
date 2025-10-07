@@ -1,496 +1,111 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Celeb Wall — Polaroid UI</title>
+<meta charset="UTF-8">
+<title>CelebWall v3</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-  :root{
-    --bg:#0b0f13; --ink:#eaf1ff; --muted:#9fb0c4;
-    --glass:#151a20cc; --edge:#212b3a;
-    --good1:#1fb5c9; --good2:#68f0f4; /* blue→teal */
-    --bad1:#ff5a67;  --bad2:#ff9ec3;  /* red→pink */
-    --radius:22px; --blur:22px;
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0; color:var(--ink);
-    font:16px/1.35 ui-sans-serif, -apple-system, Inter, Segoe UI, Roboto, Helvetica, Arial;
-    background:
-      radial-gradient(1200px 600px at 85% -10%, #1a2233 0%, transparent 60%),
-      radial-gradient(900px 500px at -10% -5%, #131a28 0%, transparent 60%),
-      #0c1016;
-    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
-  }
-
-  /* Top dock */
-  .dock{position:sticky; top:0; z-index:50; padding:12px 12px 8px;
-    background:linear-gradient(180deg,#0b0f13f0 0%, #0b0f1300 100%);
-    backdrop-filter:saturate(1.2) blur(16px);
-  }
-  .grid{display:grid; gap:12px; grid-template-columns:repeat(4,minmax(0,1fr));}
-  .pill{border:1px solid var(--edge); border-radius:16px; padding:12px 14px;
-    background:linear-gradient(180deg,#161b23,#0e1319);
-    box-shadow:inset 0 1px 0 #ffffff12, 0 1px 1px #000000a0;}
-  .pill h6{margin:0 0 6px; font-size:12px; letter-spacing:.12em; color:var(--muted)}
-  .pill b{font-size:26px}
-
-  .progress{height:10px; border-radius:999px; background:#0f141b; border:1px solid #1c2735; margin:10px 4px 0}
-  .bar{height:100%; width:0%; border-radius:inherit;
-    background:linear-gradient(90deg,#e3a7ff,#8be7ff,#ffb2cb); transition:width .28s ease}
-
-  .row{display:flex; justify-content:space-between; padding:6px 4px 2px; color:var(--muted); font-weight:700; letter-spacing:.05em}
-
-  .tabs{display:flex; gap:8px; justify-content:center; margin:8px 0 2px}
-  .tab{padding:10px 14px; border-radius:999px; border:1px solid var(--edge);
-    background:linear-gradient(180deg,#141a22,#0e1319); color:#cfe1ff; font-weight:700}
-  .tab.active{outline:2px solid #2d8dff44; color:#fff}
-
-  .controls{display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:10px}
-  .btn{border:1px solid var(--edge); border-radius:999px; padding:12px 16px; font-weight:700;
-    background:linear-gradient(180deg,#161b22,#0e1217); color:#e3eeff;
-    box-shadow:inset 0 1px 0 #ffffff1a, 0 2px 8px #0008; cursor:pointer}
-  .btn:active{transform:translateY(1px)}
-  .btn.good{background:linear-gradient(135deg,var(--good1),var(--good2)); color:#051417; text-shadow:0 1px 0 #ffffffaa}
-  .btn.bad{background:linear-gradient(135deg,var(--bad1),var(--bad2)); color:#23070b; text-shadow:0 1px 0 #ffffffcc}
-  .btn.alt{background:linear-gradient(135deg,#b792ff2e,#68d6ff2e)}
-
-  /* Content */
-  .wrap{max-width:760px; margin:0 auto; padding:8px 14px 28vh}
-  .card{position:relative; margin:16px 0; border-radius:24px; overflow:hidden;
-    background:linear-gradient(180deg,#141922,#0e1319); border:1px solid var(--edge);
-    box-shadow:0 10px 28px #0008, inset 0 1px 0 #ffffff12}
-  .media{display:block; width:100%; height:auto; background:#0c1117}
-  .polaroid{position:absolute; top:12px; left:12px; right:12px;
-    background:linear-gradient(180deg,#0f141acc,#0b0f14cc); border:1px solid #243446;
-    border-radius:18px; padding:10px 14px; font-weight:900; text-shadow:0 2px 0 #000a; backdrop-filter:blur(10px)}
-  .polaroid small{display:block; margin-top:4px; color:#c9d6ea; opacity:.9; font-weight:700}
-  .actions{display:grid; grid-template-columns:1fr 1fr; gap:14px; padding:16px;
-    background:linear-gradient(180deg,#0e1319,#0b0f14); border-top:1px solid var(--edge)}
-  .btn-emboss{border-radius:18px; padding:16px 14px; font-size:22px; font-weight:900; letter-spacing:.02em;
-    color:#000; text-shadow:0 2px 0 #ffffffaa; box-shadow:inset 0 2px 0 #ffffffaa, 0 10px 25px #0008}
-  .btn-like{background:linear-gradient(135deg,var(--good1),var(--good2))}
-  .btn-dislike{background:linear-gradient(135deg,var(--bad1),var(--bad2))}
-
-  @keyframes likeBurst{0%{transform:scale(.98)}70%{transform:scale(1.02)}100%{transform:scale(1)}}
-  @keyframes fadeOut{to{opacity:0; transform:translateY(8px)}}
-  .burst{animation:likeBurst .22s ease}
-  .fadeout{animation:fadeOut .22s ease forwards}
-
-  /* Modal */
-  .modal{position:fixed; inset:0; display:none; place-items:center; background:#0008; z-index:60}
-  .modal.show{display:grid}
-  .sheet{width:min(680px,94vw); background:linear-gradient(180deg,#121720,#0f141c);
-    border:1px solid var(--edge); border-radius:22px; padding:16px; box-shadow:0 30px 100px #000a}
-  textarea{width:100%; min-height:120px; border-radius:14px; padding:12px 14px; color:#eef3ff;
-    background:#0d1218; border:1px solid #223042; outline:none}
-  .row-end{display:flex; gap:10px; justify-content:flex-end; margin-top:12px}
-
-  /* Sentinel spacer */
-  #sentinel{height:1px}
+  body{margin:0;background:#0a0f14;color:#fff;font-family:system-ui,sans-serif;overflow-x:hidden}
+  header{padding:12px;text-align:center}
+  .stats{display:flex;justify-content:center;gap:20px;margin:6px 0}
+  .stat{background:#111;padding:8px 14px;border-radius:10px;font-size:14px}
+  .bar{height:4px;background:linear-gradient(90deg,#8cf,#f9a);margin:4px 0;border-radius:4px}
+  .dash{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:12px}
+  .btn{padding:10px 14px;border-radius:999px;border:none;font-weight:700;cursor:pointer;transition:.2s}
+  .btn-like{background:linear-gradient(135deg,#00f5ff,#00c8d4);color:#041016;text-shadow:0 1px 0 rgba(255,255,255,.4)}
+  .btn-dismiss{background:linear-gradient(135deg,#ff4d6d,#ff8a80);color:#041016;text-shadow:0 1px 0 rgba(255,255,255,.4)}
+  .btn-nav{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:#fff}
+  .card{max-width:500px;margin:20px auto;background:#111;border-radius:16px;box-shadow:0 6px 20px rgba(0,0,0,.5);overflow:hidden}
+  .card-head{padding:10px;font-weight:700;font-size:14px;background:rgba(0,0,0,.4)}
+  .media{width:100%;display:block}
+  video.media{max-height:80vh;object-fit:contain}
+  .actions{display:flex;gap:12px;justify-content:space-between;padding:12px}
+  .like-burst{animation:burst .4s ease-out}
+  .fade-out{animation:fade .4s forwards}
+  @keyframes burst{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
+  @keyframes fade{to{opacity:0;transform:scale(.8)}}
+  .oauth{max-width:760px;margin:10px auto;padding:10px 14px;border-radius:14px;background:rgba(255,255,255,.04);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.08)}
 </style>
 </head>
 <body>
-
-  <div class="dock">
-    <div class="grid">
-      <div class="pill"><h6>BUILD</h6><b id="bBuild">v2.0</b></div>
-      <div class="pill"><h6>SHOWN</h6><b id="bShown">0</b></div>
-      <div class="pill"><h6>POOL</h6><b id="bPool">0</b></div>
-      <div class="pill"><h6>TOTAL</h6><b id="bTotal">0</b></div>
-    </div>
-    <div class="progress"><div class="bar" id="bar"></div></div>
-    <div class="row"><span id="phase">Ready</span><span id="pct">100%</span></div>
-
-    <div class="tabs">
-      <button class="tab active" id="tabHome">Home</button>
-      <button class="tab" id="tabLikes">Likes</button>
-      <button class="tab" id="tabDiscard">Discard</button>
-    </div>
-
-    <div class="controls">
-      <button class="btn alt"   id="btnNew">New batch</button>
-      <button class="btn alt"   id="btnShuffle">Shuffle feed</button>
-      <button class="btn alt"   id="btnMore">Load more</button>
-      <button class="btn good"  id="btnSubs">+ Subreddits</button>
-    </div>
+<header>
+  <div>CelebWall v3.0</div>
+  <div class="stats">
+    <div class="stat">Shown <span id="shown">0</span></div>
+    <div class="stat">Pool <span id="pool">0</span></div>
+    <div class="stat">Total <span id="total">0</span></div>
   </div>
+  <div class="bar"></div>
+</header>
 
-  <main class="wrap" id="wrap"></main>
-  <div id="sentinel"></div>
+<div class="dash">
+  <button class="btn btn-nav" onclick="showHome()">Home</button>
+  <button class="btn btn-nav" onclick="showLikes()">Likes</button>
+  <button class="btn btn-nav" onclick="showDiscards()">Discard</button>
+  <button class="btn btn-nav" onclick="newBatch()">New batch</button>
+  <button class="btn btn-nav" onclick="shuffleFeed()">Shuffle feed</button>
+  <button class="btn btn-nav" onclick="loadMore()">Load more</button>
+  <button class="btn btn-nav" onclick="addSubs()">+ Subreddits</button>
+</div>
 
-  <!-- Add subs modal -->
-  <div class="modal" id="modal">
-    <div class="sheet">
-      <h3>Add or replace subreddits (comma-separated)</h3>
-      <p style="color:#a8b7c6;margin:6px 0 12px">Example: <em>celebs, CelebEvents, LeaEluiGinet, charlidameliomommy</em></p>
-      <textarea id="subsBox"></textarea>
-      <div class="row-end">
-        <button class="btn" id="btnCancel">Cancel</button>
-        <button class="btn good" id="btnSaveSubs">Save</button>
-      </div>
-    </div>
-  </div>
+<div id="feed"></div>
+<div id="likes" style="display:none"></div>
+<div id="discards" style="display:none"></div>
+
+<div class="oauth" id="oauthBox" style="display:none">
+  <span id="oauthStatus">Reddit: not connected</span>
+  <button class="btn btn-nav" onclick="connectReddit()">Connect Reddit</button>
+  <button class="btn btn-nav" onclick="clearToken()">Clear</button>
+</div>
 
 <script>
-<script>
-// ==== REAL REDDIT FETCH LAYER (replaces the demo filler) ====
-(() => {
-  // where we keep cursors + seen IDs to avoid repeats
-  const cursors = new Map();          // sub -> after
-  const seen    = new Set();          // post id
-  const IMG_OK  = /\.(jpg|jpeg|png|webp)$/i;
+const subsDefault = ["celebs","CelebEvents","charlidameliomommy","LeaEluiGinet"];
+let subs=[...subsDefault];
+let pool=[],shown=0,total=0;
+const LS_T='cw.token',LS_E='cw.exp'; const clientId="D_nzkiZhFVjFgNs_sqCQ3Q";
 
-  // get token from your existing flow (adjust key name if you used a different one)
-  function getToken() {
-    return localStorage.getItem('cw.oauthToken')
-        || localStorage.getItem('cw.reddit.token')
-        || localStorage.getItem('reddit_token')
-        || '';
-  }
+function getTok(){let t=localStorage[LS_T],e=+localStorage[LS_E]||0;if(!t||Date.now()>e)return null;return t}
+function setTok(t,sec){localStorage[LS_T]=t;localStorage[LS_E]=Date.now()+sec*1000}
+function clearToken(){localStorage.removeItem(LS_T);localStorage.removeItem(LS_E);refreshOAuth()}
+function connectReddit(){
+  const redir=location.origin+location.pathname; const st=Math.random().toString(36).slice(2);sessionStorage.cwst=st;
+  location.href=`https://www.reddit.com/api/v1/authorize?client_id=${clientId}&response_type=token&state=${st}&redirect_uri=${redir}&duration=temporary&scope=read`;
+}
+(function capture(){if(location.hash.includes("access_token=")){let p=new URLSearchParams(location.hash.slice(1));let t=p.get("access_token");let ex=+p.get("expires_in")||3600;if(p.get("state")!==sessionStorage.cwst){alert("State mismatch");return}setTok(t,ex);history.replaceState(null,"",location.pathname)}})();
+function refreshOAuth(){document.getElementById("oauthBox").style.display="block";document.getElementById("oauthStatus").textContent="Reddit: "+(getTok()?"connected":"not connected")}
+refreshOAuth();
 
-  async function rFetch(sub, want=50) {
-    const token = getToken();
-    if (!token) throw new Error('Missing OAuth token (tap Connect Reddit first)');
+function cardHTML(it){
+  return `<div class="card" data-url="${it.url}">
+    <div class="card-head">u/${it.author} • r/${it.subreddit}</div>
+    ${it.is_video?`<video class="media" src="${it.url}" autoplay muted loop></video>`:`<img class="media" src="${it.url}" alt="">`}
+    <div class="actions">
+      <button class="btn btn-dismiss" onclick="act(this,'discard')">Dismiss</button>
+      <button class="btn btn-like" onclick="act(this,'like')">Like</button>
+    </div></div>`
+}
+function act(btn,what){
+  const card=btn.closest(".card");card.classList.add(what==="like"?"like-burst":"fade-out");
+  setTimeout(()=>{card.remove()},400);
+  if(what==="like") document.getElementById("likes").innerHTML+=card.outerHTML;
+  else document.getElementById("discards").innerHTML+=card.outerHTML;
+  shown++;document.getElementById("shown").textContent=shown;
+}
+function showHome(){feed.style.display="block";likes.style.display=discards.style.display="none"}
+function showLikes(){feed.style.display=discards.style.display="none";likes.style.display="block"}
+function showDiscards(){feed.style.display=likes.style.display="none";discards.style.display="block"}
 
-    const after = cursors.get(sub) || '';
-    const url = new URL(`https://oauth.reddit.com/r/${sub}/hot`);
-    url.searchParams.set('limit', String(Math.min(100, want)));
-    if (after) url.searchParams.set('after', after);
-
-    const res = await fetch(url.toString(), {
-      headers: { 'Authorization': `bearer ${token}`, 'User-Agent': 'celebwall/1.0 by you' }
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status} on r/${sub}`);
-    const json = await res.json();
-
-    cursors.set(sub, json?.data?.after || '');
-
-    const children = json?.data?.children || [];
-    const out = [];
-    for (const c of children) {
-      const p = c.data || {};
-      const id = p.id || c.id;
-      if (!id || seen.has(id)) continue;
-
-      // pick best media url
-      let url = '';
-      let type = 'image';
-
-      // prefer reddit video (serve fallback .mp4)
-      if (p.is_video && p.media?.reddit_video?.fallback_url) {
-        url = p.media.reddit_video.fallback_url; type = 'video';
-      } else if (p.preview?.reddit_video_preview?.fallback_url) {
-        url = p.preview.reddit_video_preview.fallback_url; type = 'video';
-      } else if (p.url_overridden_by_dest && (IMG_OK.test(p.url_overridden_by_dest) || p.url_overridden_by_dest.includes('i.redd.it'))) {
-        url = p.url_overridden_by_dest;
-      } else if (p.preview?.images?.[0]?.source?.url) {
-        url = p.preview.images[0].source.url.replace(/&amp;/g,'&');
-      } else {
-        continue; // no media
-      }
-
-      seen.add(id);
-      out.push({
-        id,
-        url,
-        type,
-        title: p.title || '',
-        user: 'u/' + (p.author || 'unknown'),
-        subreddit: 'r/' + (p.subreddit || sub)
-      });
-    }
-    return out;
-  }
-
-  // shuffle helper
-  function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]] } return a }
-
-  // Expose the exact names the UI looks for:
-  window.fetchMore = async function(count=20){
-    // use subs the UI keeps in localStorage (or default)
-    const subs = (localStorage.getItem('cw.subs') || 'Celebs,CelebEvents,BeautifulCelebrities,celebritypics,charlidameliomommy,LeaEluiGinet')
-      .split(/\s*,\s*/).filter(Boolean);
-
-    // pull a slice from a few subs in parallel, merge, shuffle, cap
-    const batch = await Promise.all(
-      subs.slice(0, 6).map(s => rFetch(s, Math.max(30, count)))
-    );
-    const merged = shuffle(batch.flat());
-    return merged.slice(0, count);
-  };
-
-  // optional: rebuild batch → just clear cursors so we start fresh
-  window.buildNewBatch = async function(subs){
-    cursors.clear();
-    if (Array.isArray(subs) && subs.length) {
-      localStorage.setItem('cw.subs', subs.join(','));
-    }
-  };
-
-  // optional: set subreddits
-  window.setSubreddits = function(subs){
-    if (Array.isArray(subs) && subs.length) {
-      localStorage.setItem('cw.subs', subs.join(','));
-      cursors.clear();
-    }
-  };
-
-  // optional: shuffle feed (UI also locally shuffles)
-  window.shuffleFeed = async function(){ /* no-op here */ };
-})();
-</script>
-(() => {
-  // ---------- State ----------
-  const S = {
-    build:'v2.9.0-ui-stable',
-    view:'home',
-    subs:(localStorage.getItem('cw.subs')||'Celebs, CelebEvents, BeautifulCelebrities, celebritypics, LeaEluiGinet, charlidameliomommy').split(/\s*,\s*/),
-    pool:[],
-    shown:[],
-    likes:[],
-    discard:[],
-    loading:false
-  };
-  const ext = {
-    fetchMore:window.fetchMore,
-    buildNewBatch:window.buildNewBatch,
-    shuffleFeed:window.shuffleFeed,
-    setSubreddits:window.setSubreddits
-  };
-
-  // ---------- Refs ----------
-  const $wrap=document.getElementById('wrap');
-  const $sentinel=document.getElementById('sentinel');
-  const $bBuild=document.getElementById('bBuild');
-  const $bShown=document.getElementById('bShown');
-  const $bPool=document.getElementById('bPool');
-  const $bTotal=document.getElementById('bTotal');
-  const $phase=document.getElementById('phase');
-  const $pct=document.getElementById('pct');
-  const $bar=document.getElementById('bar');
-  const $tabHome=document.getElementById('tabHome');
-  const $tabLikes=document.getElementById('tabLikes');
-  const $tabDiscard=document.getElementById('tabDiscard');
-  const $modal=document.getElementById('modal');
-  const $subsBox=document.getElementById('subsBox');
-
-  // ---------- UI helpers ----------
-  function setPhase(t,p){ $phase.textContent=t; if(p!=null){ p=Math.max(0,Math.min(100,p)); $pct.textContent=p+'%'; $bar.style.width=p+'%'; } }
-  function syncCounters(){
-    $bBuild.textContent=S.build;
-    const currentLen = S.view==='home' ? S.shown.length : (S.view==='likes'? S.likes.length : S.discard.length);
-    $bShown.textContent=currentLen;
-    $bPool.textContent=S.pool.length;
-    $bTotal.textContent=S.pool.length+S.shown.length;
-  }
-
-  // ---------- Card factory (no closures; uses data-id + delegation) ----------
-  function makeCard(item){
-    const card=document.createElement('article');
-    card.className='card';
-    card.dataset.id=item.id;
-
-    const header=document.createElement('div');
-    header.className='polaroid';
-    header.innerHTML = `${escapeHtml(item.user)} • ${escapeHtml(item.subreddit)}<small>${escapeHtml(item.title||'')}</small>`;
-
-    let media;
-    const url=item.url;
-    if(item.type==='video'){
-      media=document.createElement('video');
-      media.className='media'; media.controls=true; media.playsInline=true; media.preload='metadata';
-      media.src=url;
-    }else if(item.type==='gif'){
-      media=document.createElement('video');
-      media.className='media'; media.muted=true; media.loop=true; media.autoplay=true; media.playsInline=true; media.preload='metadata';
-      media.src=url;
-    }else{
-      media=document.createElement('img');
-      media.className='media'; media.loading='lazy'; media.alt=item.title||''; media.src=url;
-    }
-
-    const actions=document.createElement('div'); actions.className='actions';
-    actions.innerHTML = `
-      <button class="btn-emboss btn-dislike js-dislike">Dismiss</button>
-      <button class="btn-emboss btn-like js-like">Like</button>
-    `;
-
-    card.append(header, media, actions);
-    return card;
-  }
-  function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])) }
-
-  // Append-only renderer
-  function appendItems(items){
-    const frag=document.createDocumentFragment();
-    items.forEach(it=>frag.appendChild(makeCard(it)));
-    $wrap.appendChild(frag);
-  }
-
-  // ---------- Actions via event delegation ----------
-  $wrap.addEventListener('click', (e)=>{
-    const likeBtn=e.target.closest('.js-like');
-    const disBtn =e.target.closest('.js-dislike');
-    if(!likeBtn && !disBtn) return;
-    const card=e.target.closest('.card');
-    if(!card) return;
-    const id=card.dataset.id;
-    if(likeBtn) like(id, card);
-    if(disBtn) dismiss(id, card);
-  });
-
-  function like(id, cardEl){
-    const item = takeFromCollections(id);
-    if(!item) return;
-    S.likes.unshift(item);
-    cardEl.classList.add('burst');
-    setTimeout(()=>cardEl.remove(), 220);
-    syncCounters();
-  }
-  function dismiss(id, cardEl){
-    const item = takeFromCollections(id);
-    if(!item) return;
-    S.discard.unshift(item);
-    cardEl.classList.add('fadeout');
-    setTimeout(()=>cardEl.remove(), 200);
-    syncCounters();
-  }
-  function takeFromCollections(id){
-    const arrays=[S.shown,S.pool];
-    for(const arr of arrays){
-      const i=arr.findIndex(x=>x.id===id);
-      if(i>-1){ return arr.splice(i,1)[0]; }
-    }
-    return null;
-  }
-
-  // ---------- Fetch & pool ----------
-  async function ensurePool(min=10){
-    if(S.loading || S.pool.length>=min) return;
-    S.loading=true; setPhase('Requesting…', 30);
-    try{
-      if(typeof ext.fetchMore==='function'){
-        const res=await ext.fetchMore(min);
-        if(Array.isArray(res)) S.pool.push(...normalizeMany(res));
-      }else{
-        await sleep(180);
-        S.pool.push(...fakeItems(min));
-      }
-    }catch(err){ console.warn(err); }
-    S.loading=false; setPhase('Ready', 100); syncCounters();
-  }
-
-  async function drawMore(count=10){
-    await ensurePool(count);
-    const slice=S.pool.splice(0,count);
-    S.shown.push(...slice);
-    appendItems(slice);
-    syncCounters();
-  }
-
-  function normalizeMany(items){
-    // deep copy into stable structure to avoid mismatches
-    return items.map(x=>{
-      const url = x.url || x.media || '';
-      return {
-        id: (x.id || (url+'_'+Math.random().toString(36).slice(2,7))),
-        url,
-        user: x.author || x.user || 'u/unknown',
-        subreddit: x.subreddit || 'r/unknown',
-        title: x.title || '',
-        type: x.type || guessType(url)
-      };
-    });
-  }
-  function guessType(u=''){ u=u.toLowerCase(); if(u.endsWith('.mp4')||u.includes('v.redd')||u.includes('gifv')) return 'video'; if(u.endsWith('.gif')) return 'gif'; return 'image'; }
-  const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
-
-  // ---------- Tabs ----------
-  function setView(v){
-    if(S.view===v) return;
-    S.view=v;
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-    if(v==='home') $tabHome.classList.add('active');
-    if(v==='likes') $tabLikes.classList.add('active');
-    if(v==='discard') $tabDiscard.classList.add('active');
-
-    // Clear and append list for this view
-    $wrap.innerHTML='';
-    const list = v==='home' ? S.shown : (v==='likes'? S.likes : S.discard);
-    appendItems(list);
-    syncCounters();
-  }
-
-  // ---------- Add subs ----------
-  function openSubs(){ $subsBox.value=S.subs.join(', '); $modal.classList.add('show'); }
-  function closeSubs(){ $modal.classList.remove('show'); }
-  function saveSubs(){
-    const list=$subsBox.value.split(/\s*,\s*/).filter(Boolean);
-    if(list.length){
-      S.subs=list; localStorage.setItem('cw.subs', list.join(','));
-      if(typeof ext.setSubreddits==='function') ext.setSubreddits(list);
-    }
-    closeSubs();
-  }
-
-  // ---------- IntersectionObserver for infinite scroll ----------
-  const io=new IntersectionObserver(async (entries)=>{
-    for(const e of entries){
-      if(!e.isIntersecting) continue;
-      if(S.view!=='home') continue;
-      await drawMore(10);
-    }
-  }, {rootMargin:'1200px 0px 1200px 0px'});
-  io.observe($sentinel);
-
-  // ---------- Buttons ----------
-  document.getElementById('btnMore').addEventListener('click',()=>drawMore(10));
-  document.getElementById('btnShuffle').addEventListener('click', async ()=>{
-    if(typeof ext.shuffleFeed==='function') await ext.shuffleFeed();
-    // local shuffle of shown items + DOM reorder
-    S.shown.sort(()=>Math.random()-.5);
-    setView('home');
-  });
-  document.getElementById('btnNew').addEventListener('click', async ()=>{
-    setPhase('New batch…', 10);
-    if(typeof ext.buildNewBatch==='function') await ext.buildNewBatch(S.subs);
-    S.pool.length=0; S.shown.length=0;
-    $wrap.innerHTML='';
-    await drawMore(14);
-    setPhase('Ready', 100);
-  });
-
-  $tabHome.addEventListener('click', ()=>setView('home'));
-  $tabLikes.addEventListener('click', ()=>setView('likes'));
-  $tabDiscard.addEventListener('click', ()=>setView('discard'));
-
-  document.getElementById('btnSubs').addEventListener('click', openSubs);
-  document.getElementById('btnCancel').addEventListener('click', closeSubs);
-  document.getElementById('btnSaveSubs').addEventListener('click', saveSubs);
-
-  // ---------- Boot ----------
-  (async function boot(){
-    $bBuild.textContent=S.build;
-    await drawMore(14);
-    syncCounters();
-  })();
-
-  // ---------- Fallback demo items (only used if no loader wired) ----------
-  function fakeItems(n){
-    const demo=[
-      ["https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1400&auto=format&fit=crop","u/wiseguy","r/celebpics","Candid"],
-      ["https://images.unsplash.com/photo-1491349174775-aaafddd81942?q=80&w=1400&auto=format&fit=crop","u/pale_musician","r/CelebEvents","Gala"],
-      ["https://images.unsplash.com/photo-1524253482453-3fed8d2fe12b?q=80&w=1400&auto=format&fit=crop","u/richsquirrel","r/charlidameliomommy","Night out"],
-    ];
-    const out=[];
-    for(let i=0;i<n;i++){
-      const t = demo[i % demo.length];
-      out.push({id:'fake_'+Math.random().toString(36).slice(2,8), url:t[0], user:t[1], subreddit:t[2], title:t[3], type:'image'});
-    }
-    return out;
-  }
-})();
+async function fetchSub(s){
+  let url=`https://www.reddit.com/r/${s}/hot.json?limit=20`;
+  let r=await fetch(url);if(!r.ok)return[];let j=await r.json();
+  return j.data.children.map(c=>({url:c.data.url_overridden_by_dest||c.data.url,author:c.data.author,subreddit:s,is_video:c.data.is_video}))
+}
+async function newBatch(){pool=[];feed.innerHTML="";shown=0;for(let s of subs){let its=await fetchSub(s);pool.push(...its)}total=pool.length;document.getElementById("total").textContent=total;loadMore()}
+function shuffleFeed(){pool.sort(()=>Math.random()-.5);loadMore()}
+function loadMore(){let chunk=pool.splice(0,10);document.getElementById("pool").textContent=pool.length;feed.insertAdjacentHTML("beforeend",chunk.map(cardHTML).join(""))}
+function addSubs(){let inp=prompt("Add subreddits (comma separated)","");if(inp){subs=inp.split(",").map(s=>s.trim());newBatch()}}
+window.onscroll=function(){if(window.innerHeight+window.scrollY>=document.body.offsetHeight-300){loadMore()}}
+newBatch();
 </script>
 </body>
 </html>
