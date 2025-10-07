@@ -578,18 +578,19 @@ function dumpTroubleshoot(){
   starters=[${STARTER_SUBS.join(', ')}]
   nsfw=[${OPTIONAL_NSFW.join(', ')}]`);
 
-  info.push(\`Fetch plan:
-  LIMIT=\${LIMIT}, PAGES=\${PAGES}, CHUNK=\${CHUNK}
-  celebNames=\${CELEB_NAMES.length} (name-biased priority)\`);
+  /* FIXED: unescaped template literal (no leading backslash) */
+  info.push(`Fetch plan:
+  LIMIT=${LIMIT}, PAGES=${PAGES}, CHUNK=${CHUNK}
+  celebNames=${CELEB_NAMES.length} (name-biased priority)`);
 
   if(lastErrors.length){
-    info.push('Recent fetch errors:\\n' + lastErrors.slice(-8).join('\\n'));
+    info.push('Recent fetch errors:\n' + lastErrors.slice(-8).join('\n'));
   }else{
     info.push('Recent fetch errors: (none captured)');
   }
 
   logEl.textContent = '';
-  log(info.join('\\n\\n'));
+  log(info.join('\n\n'));
 }
 
 /* ------------- events ------------- */
