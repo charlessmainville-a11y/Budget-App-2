@@ -8,7 +8,7 @@
   :root{
     --bg:#0d0f12;--panel:#12151a;--glass:#171b21;--muted:#9aa3ad;--txt:#eaf0f6;
     --pill:#1f2530;
-    /* NEW button palettes */
+    /* Button palettes */
     --like1:#2aa0ff; /* blue */
     --like2:#14c8b3; /* teal */
     --dismiss1:#ff4757; /* red */
@@ -33,7 +33,7 @@
   a{color:inherit}
   .wrap{max-width:880px;margin:0 auto;padding:18px 14px 64px}
 
-  /* Progress bar + status (kept) */
+  /* Progress bar + status */
   .bar{height:14px;border-radius:99px;background:#ffffff10;position:relative;overflow:hidden;margin:14px 4px}
   .bar>.fill{position:absolute;inset:0 auto 0 0;width:0%;background:var(--bar)}
   .status{display:flex;justify-content:space-between;color:#b8c0cc;margin:6px 4px 14px;font-weight:700}
@@ -56,10 +56,9 @@
   .btn.tiny{padding:10px 14px;font-size:14px;border-radius:14px}
   .btn.hollow{background:#12161e;border:1px solid #ffffff12;color:#c9d4e6}
 
-  /* NEW: specific vibes for action buttons */
-  .btn.ok{background:linear-gradient(135deg,var(--like1),var(--like2))}
-  .btn.no{background:linear-gradient(135deg,var(--dismiss2),var(--dismiss1))}
-  .btn.ok,.btn.no{color:#0b0f16;text-shadow:none;filter:saturate(1.1)}
+  /* Action button vibes (force with !important so they always win) */
+  .btn.ok{background:linear-gradient(135deg,var(--like1),var(--like2)) !important;color:#0b0f16 !important;text-shadow:none;filter:saturate(1.1)}
+  .btn.no{background:linear-gradient(135deg,var(--dismiss2),var(--dismiss1)) !important;color:#0b0f16 !important;text-shadow:none;filter:saturate(1.1)}
 
   .pill{background:#12161e;border:1px solid #ffffff14;border-radius:18px;padding:10px 14px;color:#cbd4df}
   .note{color:#aeb6c2}
@@ -104,7 +103,7 @@
 </head>
 <body>
 <div class="wrap">
-  <!-- REMOVED: the top stats grid -->
+  <!-- (stats grid removed) -->
 
   <div class="bar"><div class="fill" id="bar"></div></div>
   <div class="status"><div id="phase">Ready</div><div id="pct">100%</div></div>
@@ -169,7 +168,8 @@ const STARTER_SUBS = [
 ];
 const OPTIONAL_NSFW = ['EvaElfie','RileyReid','Stoya','AbellaDanger','MiaMalkova'];
 const LIMIT = 30;
-const CHUNK = 10;
+const CHUNK = 30;                 /* load 30 at a time */
+const LIGHT_SHUFFLES = 2;         /* small extra shuffle passes */
 
 /* ------------- state ------------- */
 let pool = [];
@@ -392,16 +392,37 @@ function makeVideo(src, thumb, loop=false){
   v.src = src;
 
   /* Hide native UI completely */
-  // Do NOT set controls
   v.setAttribute('controlslist','nodownload noplaybackrate noremoteplayback');
   v.setAttribute('disablepictureinpicture','');
-  v.style.pointerEvents = 'auto'; // allow tap-to-pause if you want later
 
   // Start ASAP
   v.addEventListener('canplay', ()=> v.play().catch(()=>{}), {once:true});
   requestAnimationFrame(()=> v.play().catch(()=>{}));
   io.observe(v);
   return v;
+}
+
+/* -------- utils -------- */
+function shuffleArray(a){
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j]]; }
+}
+function interleaveBuckets(buckets){
+  const keys = Object.keys(buckets);
+  const out = [];
+  let added = true;
+  while(added){
+    added = false;
+    for(const k of keys){
+      const arr = buckets[k];
+      if(arr && arr.length){
+        out.push(arr.shift());
+        added = true;
+      }
+    }
+  }
+  // light extra shuffles to break subtle patterns
+  for(let i=0;i<LIGHT_SHUFFLES;i++) shuffleArray(out);
+  return out;
 }
 
 /* ------------- rendering ------------- */
@@ -455,7 +476,7 @@ function renderChunk(where, n=CHUNK){
   ui.counts();
 }
 
-/* ------------- batching ------------- */
+/* ------------- batching (interleave by subreddit) ------------- */
 async function newBatch(){
   if(fetching) return;
   fetching = true; ui.phase('Fetching…'); ui.bar(10);
@@ -463,42 +484,60 @@ async function newBatch(){
   el('#home').innerHTML = ''; shown = 0; ui.counts();
 
   const subs = [...STARTER_SUBS, ...OPTIONAL_NSFW];
+  const all = [];
   let done = 0;
   for(const s of subs){
     const items = await pullSubreddit(s);
-    pool.push(...items);
+    // tag sub on each item (already present as item.sub)
+    all.push(...items);
     done++; ui.bar(10 + (done/subs.length)*80);
   }
 
-  pool = dedupeBy(pool, x=>x.url);
-  shuffle(pool);
+  // Dedup by URL
+  const seen = new Set();
+  const deduped = [];
+  for(const it of all){
+    if(seen.has(it.url)) continue;
+    seen.add(it.url);
+    deduped.push(it);
+  }
+
+  // Bucket by subreddit and interleave
+  const buckets = {};
+  for(const it of deduped){
+    (buckets[it.sub] ||= []).push(it);
+  }
+  pool = interleaveBuckets(buckets);
 
   ui.bar(100); ui.phase('Ready'); ui.counts();
   renderChunk('home', Math.min(CHUNK, pool.length));
   fetching = false;
 }
 
-function dedupeBy(arr, fn){ const seen=new Set(), out=[]; for(const x of arr){const k=fn(x); if(seen.has(k)) continue; seen.add(k); out.push(x);} return out; }
-function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j]]; } }
-
-/* ------------- events ------------- */
-el('#newBatchBtn').addEventListener('click', newBatch);
-
-el('#shuffleBtn').addEventListener('click', ()=>{
+/* ------------- shuffle behavior ------------- */
+function shuffleVisibleAndPool(){
   const feed = el('#home');
-  const current = [...feed.children].map(c => c.__item).filter(Boolean);
-  const combined = [...current, ...pool];
-  shuffle(combined);
-  const keep = current.length;
+  const nodes = [...feed.children].filter(n=>n.classList.contains('card'));
+  const visibleItems = nodes.map(n=>n.__item).filter(Boolean);
+
+  // Combine visible + pool, shuffle, then put the first N back as visible
+  const combined = [...visibleItems, ...pool];
+  shuffleArray(combined);
+
+  const keep = visibleItems.length;
+  // Rebuild only the visible section (prevents empty screen bug)
   feed.innerHTML = '';
   for(let i=0;i<Math.min(keep, combined.length); i++){
     feed.appendChild(card(combined[i]));
   }
   pool = combined.slice(keep);
-  ui.counts();
-});
+}
 
+/* ------------- events ------------- */
+el('#newBatchBtn').addEventListener('click', newBatch);
+el('#shuffleBtn').addEventListener('click', shuffleVisibleAndPool);
 el('#loadMoreBtn').addEventListener('click', ()=> renderChunk('home'));
+
 el('#homeBtn').addEventListener('click', ()=> ui.showPage('home'));
 el('#likesBtn').addEventListener('click', ()=>{ ui.showPage('likes'); paintList('likes', likes); });
 el('#discardBtn').addEventListener('click', ()=>{ ui.showPage('discard'); paintList('discard', discards); });
@@ -523,18 +562,6 @@ function paintList(where, arr){
   host.innerHTML = '';
   arr.forEach(it => host.appendChild(card(it)));
 }
-
-/* auto-load on scroll */
-let ticking=false;
-addEventListener('scroll', ()=>{
-  if(ticking) return; ticking=true;
-  requestAnimationFrame(()=>{
-    ticking=false;
-    if(currentFeed!=='home') return;
-    const nearBottom = (window.innerHeight + window.scrollY) > (document.body.offsetHeight - 1600);
-    if(nearBottom && pool.length) renderChunk('home');
-  });
-});
 
 /* ------------- boot ------------- */
 captureTokenFromHash();
