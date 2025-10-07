@@ -1,238 +1,231 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Celeb Wall v2.8.2-stable</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: system-ui, sans-serif;
-      background: #0d0d0f;
-      color: #f2f2f2;
-      text-align: center;
-    }
-
-    .dashboard {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin: 20px;
-    }
-
-    .pill {
-      padding: 12px;
-      border-radius: 12px;
-      background: rgba(255,255,255,0.05);
-      backdrop-filter: blur(8px);
-      font-weight: bold;
-    }
-
-    .progress {
-      margin: 10px auto;
-      width: 90%;
-      height: 8px;
-      border-radius: 6px;
-      background: #222;
-      overflow: hidden;
-    }
-
-    .bar {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #ff5f91, #7bdff2);
-      transition: width 0.3s ease;
-    }
-
-    .buttons {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      margin: 20px;
-    }
-
-    button {
-      padding: 14px;
-      font-size: 16px;
-      font-weight: bold;
-      border: none;
-      border-radius: 12px;
-      color: white;
-      background: rgba(255,255,255,0.08);
-      backdrop-filter: blur(8px);
-      cursor: pointer;
-    }
-
-    button.gradient {
-      background: linear-gradient(135deg, #9d50bb, #6e48aa);
-    }
-
-    #cards {
-      margin: 20px;
-      display: grid;
-      gap: 16px;
-    }
-
-    .card {
-      background: rgba(255,255,255,0.06);
-      border-radius: 16px;
-      padding: 12px;
-      backdrop-filter: blur(10px);
-    }
-
-    .card img {
-      width: 100%;
-      border-radius: 12px;
-    }
-
-    .name {
-      margin-top: 8px;
-      font-weight: bold;
-    }
-
-    .troubleshoot {
-      background: rgba(30,30,40,0.95);
-      border-radius: 16px;
-      padding: 12px;
-      margin: 20px;
-      display: none;
-      text-align: left;
-      white-space: pre-wrap;
-      font-family: monospace;
-      font-size: 14px;
-    }
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Celeb Wall v2.8.2-stable</title>
+<style>
+  :root{
+    --bg:#0d0e11;--card:rgba(255,255,255,.06);--pill:rgba(255,255,255,.08);
+    --glass:blur(10px);--txt:#e9ecf1;--muted:#9aa3ad;
+    --grad:linear-gradient(135deg,#c4a3ff 0%,#a785ff 40%,#ff9fd3 100%);
+    --bar:linear-gradient(90deg,#ff7fb0,#8fdcff);
+  }
+  html,body{height:100%}
+  body{margin:0;background:radial-gradient(1200px 900px at 50% -200px,#171926 0%,#0e1016 38%,#0b0c10 100%) fixed;color:var(--txt);font:600 18px/1.3 system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial}
+  .wrap{max-width:860px;margin:0 auto;padding:20px}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .pill{padding:16px 14px;border-radius:18px;background:var(--pill);backdrop-filter:var(--glass);text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .k{display:block;font-size:15px;letter-spacing:.08em;color:var(--muted)}
+  .v{display:block;font-size:34px;margin-top:6px}
+  .progress{margin:16px 6px 6px;height:10px;border-radius:8px;background:rgba(255,255,255,.08);overflow:hidden}
+  .bar{width:0;height:100%;background:var(--bar);transition:width .25s ease}
+  .status{display:flex;justify-content:space-between;color:var(--muted);font-weight:700;margin:0 6px 16px}
+  .btns{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  button{all:unset;text-align:center;cursor:pointer;padding:16px;border-radius:18px;background:var(--pill);backdrop-filter:var(--glass);box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .primary{background:var(--grad);color:#101014;text-shadow:0 1px 0 rgba(255,255,255,.25);font-weight:800}
+  #cards{display:grid;gap:16px;margin-top:18px}
+  .card{background:var(--card);border-radius:18px;overflow:hidden;backdrop-filter:var(--glass);box-shadow:0 18px 40px rgba(0,0,0,.35)}
+  .card img{width:100%;display:block}
+  .meta{display:flex;justify-content:space-between;gap:10px;padding:12px 14px}
+  .title{font-weight:800}
+  .src{color:var(--muted);font-weight:700}
+  /* modal */
+  .sheet{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.5)}
+  .panel{width:min(740px,92vw);max-height:70vh;overflow:auto;background:rgba(22,24,34,.96);border-radius:18px;padding:16px 16px 10px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .panel h3{margin:4px 0 12px;font-size:20px}
+  .close{float:right;background:var(--grad);padding:10px 16px;border-radius:14px;color:#12131a}
+  pre{white-space:pre-wrap;margin:0;font:600 14px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}
+  .muted{color:var(--muted)}
+  a,button:focus{outline:none}
+</style>
 </head>
 <body>
+  <div class="wrap">
+    <div class="grid">
+      <div class="pill"><span class="k">BUILD</span><span class="v" id="build">v2.8.2-stable</span></div>
+      <div class="pill"><span class="k">SHOWN</span><span class="v" id="shown">0</span></div>
+      <div class="pill"><span class="k">POOL</span><span class="v" id="pool">0</span></div>
+      <div class="pill"><span class="k">TOTAL</span><span class="v" id="total">0</span></div>
+    </div>
 
-  <div class="dashboard">
-    <div class="pill">BUILD<br><span id="build">v2.8.2-stable</span></div>
-    <div class="pill">SHOWN<br><span id="shown">0</span></div>
-    <div class="pill">POOL<br><span id="pool">0</span></div>
-    <div class="pill">TOTAL<br><span id="total">0</span></div>
+    <div class="progress"><div class="bar" id="bar"></div></div>
+    <div class="status"><span id="phase" class="muted">Ready</span><span id="pct" class="muted">100%</span></div>
+
+    <div class="btns" style="margin-bottom:14px">
+      <button onclick="home()">Home</button>
+      <button onclick="showLikes()">⭐ Likes <span id="likesCount">0</span></button>
+      <button class="primary" onclick="newBatch()">New batch</button>
+      <button onclick="shuffleFeed()">Shuffle feed</button>
+      <button onclick="showMore()">Load more</button>
+      <button onclick="toggleTroubleshoot()">Troubleshoot</button>
+    </div>
+
+    <div id="cards"></div>
   </div>
 
-  <div class="progress"><div id="bar" class="bar"></div></div>
-  <div id="status">Ready</div>
-
-  <div class="buttons">
-    <button onclick="home()">Home</button>
-    <button onclick="showLikes()">⭐ Likes <span id="likes">0</span></button>
-    <button class="gradient" onclick="newBatch()">New batch</button>
-    <button onclick="shuffleFeed()">Shuffle feed</button>
-    <button onclick="loadMore()">Load more</button>
-    <button onclick="toggleTroubleshoot()">Troubleshoot</button>
+  <!-- Troubleshoot -->
+  <div id="sheet" class="sheet" onclick="if(event.target.id==='sheet')toggleTroubleshoot()">
+    <div class="panel">
+      <button class="close" onclick="toggleTroubleshoot()">Close</button>
+      <h3>Troubleshoot</h3>
+      <pre id="log"></pre>
+    </div>
   </div>
 
-  <section id="cards"></section>
+<script>
+/* ====== state ====== */
+const el = (id)=>document.getElementById(id);
+const logEl = el('log'), bar = el('bar'), phase = el('phase'), pct = el('pct');
+const subs = [
+  "Celebs","BeautifulCelebrities","celebrityhotties","TheCelebArchive","Models",
+  "CelebrityArmpits","celebritylegs","Celebhotties","celebritybellies"
+];
 
-  <div id="troubleshoot" class="troubleshoot"></div>
+let pool=[], shown=0, likes=[];
 
-  <script>
-    const bar = document.getElementById("bar");
-    const statusEl = document.getElementById("status");
-    const troubleshoot = document.getElementById("troubleshoot");
+/* ====== ui helpers ====== */
+function setProgress(v, pText){ bar.style.width = v+"%"; pct.textContent = Math.round(v)+"%"; if(pText) phase.textContent=pText; }
+function say(s){ const t=`[${new Date().toLocaleTimeString()}] ${s}\n`; logEl.textContent+=t; logEl.scrollTop=logEl.scrollHeight; }
+function toggleTroubleshoot(){ const s=el('sheet'); s.style.display = (s.style.display==='grid'?'none':'grid'); if(s.style.display!=='none') s.style.display='grid'; }
+function counters(){ el('pool').textContent = pool.length; el('total').textContent = pool.length; el('shown').textContent = shown; el('likesCount').textContent = likes.length; }
 
-    let pool = [];
-    let shown = 0;
-    let likes = [];
+/* ====== robust fetch chain ======
+   We try 3 CORS routes × 2 hosts with exponential backoff and content sniffing.
+*/
+const routes = [
+  (path)=>`https://r.jina.ai/http://www.reddit.com${path}`,
+  (path)=>`https://r.jina.ai/http://old.reddit.com${path}`,
+  (path)=>`https://cors.isomorphic-git.org/https://www.reddit.com${path}`
+];
 
-    const subs = [
-      "Celebs",
-      "BeautifulCelebrities",
-      "celebrityhotties"
-    ];
+async function fetchJsonWithFallback(path, label){
+  let attempt=0, delay=600;
+  for(const mk of routes){
+    attempt++;
+    const url = mk(path);
+    say(`→ Requesting ${label} via route ${attempt}: ${url}`);
+    try{
+      const r = await fetch(url, {headers:{'Accept':'application/json,text/*;q=0.9,*/*;q=0.8'}});
+      const text = await r.text();
 
-    function log(msg) {
-      troubleshoot.textContent += `[${new Date().toLocaleTimeString()}] ${msg}\n`;
-      troubleshoot.scrollTop = troubleshoot.scrollHeight;
-    }
-
-    function updateProgress(pct, msg="") {
-      bar.style.width = pct + "%";
-      statusEl.textContent = msg || "";
-    }
-
-    async function safeFetch(url) {
-      try {
-        const r = await fetch("https://api.allorigins.win/get?url=" + encodeURIComponent(url));
-        const data = await r.json();
-        return data.contents;
-      } catch (e) {
-        log("Fetch error: " + e);
-        return null;
+      // content sniffing: if it looks like HTML, bail on this route
+      if(/^<!doctype html>|<html|<title>/i.test(text)){
+        say(`× ${label}: got HTML (likely blocked). Trying next route…`);
+        await new Promise(res=>setTimeout(res, delay));
+        delay = Math.min(delay*1.7, 4000);
+        continue;
       }
-    }
 
-    async function fetchPosts(sub) {
-      const url = `https://old.reddit.com/r/${sub}/hot.json?limit=20`;
-      updateProgress(20, `Fetching /r/${sub}...`);
-      const txt = await safeFetch(url);
-      if (!txt) return [];
-      try {
-        const json = JSON.parse(txt);
-        return json.data.children.map(c => c.data)
-          .filter(p => p.post_hint === "image" || p.url.endsWith(".jpg") || p.url.endsWith(".png"))
-          .map(p => ({ title: p.title, url: p.url }));
-      } catch (e) {
-        log(`Parse error for /r/${sub}: ${e}`);
-        return [];
+      // sometimes r.jina.ai forwards JSON as text already valid
+      try { return JSON.parse(text); }
+      catch(parseErr){
+        // Reddit may wrap weirdly; try to salvage
+        const trimmed = text.trim();
+        if(trimmed.startsWith('{') || trimmed.startsWith('[')){
+          return JSON.parse(trimmed);
+        }
+        say(`× ${label}: JSON parse failed on this route. Next…`);
       }
+    }catch(err){
+      say(`× ${label}: ${err}`);
     }
+    await new Promise(res=>setTimeout(res, delay));
+    delay = Math.min(delay*1.7, 4000);
+  }
+  say(`⚠ Failed all routes for ${label}`);
+  return null;
+}
 
-    async function newBatch() {
-      pool = [];
-      shown = 0;
-      document.getElementById("cards").innerHTML = "";
-      updateProgress(10, "Starting batch...");
-      for (let sub of subs) {
-        const posts = await fetchPosts(sub);
-        pool.push(...posts);
-        log(`Loaded ${posts.length} from /r/${sub}`);
-      }
-      document.getElementById("pool").textContent = pool.length;
-      document.getElementById("total").textContent = pool.length;
-      updateProgress(100, "Ready");
-      showNext();
-    }
+/* pull posts for one subreddit */
+async function fetchSub(sub){
+  const path = `/r/${encodeURIComponent(sub)}/hot.json?limit=30&raw_json=1`;
+  const data = await fetchJsonWithFallback(path, `/r/${sub}`);
+  if(!data || !data.data || !data.data.children){ return []; }
 
-    function showNext() {
-      if (!pool.length) return;
-      const post = pool.shift();
-      shown++;
-      document.getElementById("shown").textContent = shown;
-      document.getElementById("pool").textContent = pool.length;
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `<img src="${post.url}"><div class="name">${post.title}</div>`;
-      document.getElementById("cards").prepend(card);
-    }
+  const items = data.data.children
+    .map(c=>c.data)
+    .filter(d=>{
+      const u = (d.url_overridden_by_dest||d.url||"").toLowerCase();
+      return /(\.jpg|\.jpeg|\.png|\.gif)$/.test(u) || d.post_hint==='image';
+    })
+    .map(d=>{
+      const url = (d.url_overridden_by_dest||d.url||"");
+      return {title: d.title||'Untitled', url, sub: d.subreddit};
+    });
 
-    function loadMore() {
-      showNext();
-    }
+  say(`✓ ${sub}: +${items.length}`);
+  return items;
+}
 
-    function shuffleFeed() {
-      pool = pool.sort(() => Math.random() - 0.5);
-      log("Shuffled feed");
-    }
+/* ====== actions ====== */
+async function newBatch(){
+  pool=[]; shown=0; el('cards').innerHTML='';
+  counters();
 
-    function home() {
-      document.getElementById("cards").innerHTML = "";
-      shown = 0;
-      document.getElementById("shown").textContent = shown;
-    }
+  setProgress(8,'Requesting…');
+  say('Building new batch…');
 
-    function showLikes() {
-      document.getElementById("cards").innerHTML = likes.map(l =>
-        `<div class="card"><img src="${l.url}"><div class="name">${l.title}</div></div>`
-      ).join("");
-      log("Showing likes");
-    }
+  let gathered=[];
+  let step=0;
+  for(const s of subs){
+    step++;
+    setProgress(8 + Math.min(70, step*(70/subs.length)), `Fetching /r/${s}`);
+    const got = await fetchSub(s);
+    gathered = gathered.concat(got);
+  }
 
-    function toggleTroubleshoot() {
-      troubleshoot.style.display = troubleshoot.style.display === "block" ? "none" : "block";
-    }
-  </script>
+  // de-dup by URL
+  const seen=new Set();
+  pool = gathered.filter(p=>!seen.has(p.url) && seen.add(p.url));
+  counters();
+
+  if(pool.length===0){
+    setProgress(100,'No results — backoff 4s…');
+    await new Promise(r=>setTimeout(r, 4000));
+  }else{
+    setProgress(100,'Ready');
+    // show first few
+    for(let i=0;i<Math.min(4,pool.length);i++){ showMore(); }
+  }
+}
+
+function makeCard(item){
+  const div = document.createElement('div');
+  div.className='card';
+  div.innerHTML = `
+    <img loading="lazy" src="${item.url}" alt="">
+    <div class="meta">
+      <div class="title">${item.title}</div>
+      <div class="src">r/${item.sub}</div>
+    </div>`;
+  return div;
+}
+
+function showMore(){
+  if(!pool.length){ say('Pool empty. Tap New batch.'); return; }
+  const item = pool.shift();
+  shown++;
+  counters();
+  el('cards').prepend(makeCard(item));
+}
+
+function shuffleFeed(){
+  for(let i=pool.length-1;i>0;i--){ const j=(Math.random()* (i+1))|0; [pool[i],pool[j]]=[pool[j],pool[i]]; }
+  say('Shuffled feed');
+}
+
+function home(){ el('cards').innerHTML=''; shown=0; counters(); }
+function showLikes(){ el('cards').innerHTML = likes.map(makeCard).map(n=>n.outerHTML).join(''); say('Showing likes'); }
+
+function toggleLike(currentImg){
+  // (hook for future UI buttons – not visible in this build)
+}
+
+function toggleTroubleshoot(){ const s=el('sheet'); s.style.display=(s.style.display==='grid'?'none':'grid'); if(s.style.display!=='none') s.style.display='grid'; }
+
+/* init */
+setProgress(100,'Ready');
+</script>
 </body>
 </html>
