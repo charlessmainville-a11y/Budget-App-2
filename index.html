@@ -52,14 +52,23 @@
     background:var(--card);border-radius:22px;overflow:hidden;box-shadow:0 22px 40px #00000070,inset 0 1px 0 #ffffff12;
     position:relative;isolation:isolate
   }
+  /* old .polaroid kept in case we re-enable overlay later
   .polaroid{position:absolute;left:14px;top:14px;right:14px;z-index:2;
     padding:10px 12px;border-radius:14px;background:linear-gradient(180deg,#0a0e14cc,#0a0e14aa);
     backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
     color:#f3f7ff;font:800 22px/1.15 Inter,system-ui;text-shadow:0 2px 12px #000c;
   }
   .polaroid small{display:block;color:#c9d1dd;font:700 14px/1.1 Inter,system-ui;opacity:.9;margin-top:6px}
+  */
   .media{display:block;width:100%;height:auto;max-height:86vh;object-fit:cover;background:#0b0f15}
   video.media{max-height:86vh;background:#0b0f15}
+  /* NEW: bottom caption bar */
+  .caption{
+    padding:12px 14px;
+    border-top:1px solid #ffffff12;
+    background:linear-gradient(180deg,#0e1218,#0b0f15);
+    color:#f3f7ff;font:800 20px/1.2 Inter,system-ui;letter-spacing:.01em;
+  }
   .actions{display:flex;gap:16px;justify-content:space-between;padding:18px;background:linear-gradient(180deg,transparent 0%,#0e1218 20%)}
   .actions .btn{flex:1;border-radius:20px}
   /* pages */
@@ -167,10 +176,9 @@ const els = (sel) => [...document.querySelectorAll(sel)];
 const log = (msg) => { const t=new Date().toLocaleTimeString(); logEl.textContent += `[${t}] ${msg}\n`; logEl.scrollTop = logEl.scrollHeight; };
 const esc = (s) => String(s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
 
-/* ---------- name inference (NEW) ---------- */
+/* ---------- name inference ---------- */
 const PERSON_SUBS = new Set([
   ...OPTIONAL_NSFW,
-  // add obvious single-name celeb subs you use
   'LeaEluiGinet','charlidameliomommy'
 ]);
 const STOP_WORDS = /^(at|in|with|on|of|for|from|and|the|to|by|wearing|holding|during)\b/i;
@@ -184,43 +192,31 @@ function humanizeSubName(sub){
     .trim()
     .replace(/\b\w/g, m => m.toUpperCase());
 }
-
 function guessNameFromTitle(title){
   if(!title) return '';
-  // grab leading capitalized sequence until a stop word/punctuation
-  // e.g., "Selena Gomez at the VMAs" -> "Selena Gomez"
   const cleaned = title.replace(/\s+/g,' ').trim();
   const parts = [];
   for(const tok of cleaned.split(' ')){
     if(STOP_WORDS.test(tok)) break;
-    // keep words that start with capital or are connectors like de/van/Von/of (rarely at front)
     if(/^[A-ZÀ-Ý][\w’'\-\.]*$/.test(tok) || /^(de|van|von|da|di|del|la)$/i.test(tok)){
       parts.push(tok.replace(/[_-]/g,' '));
       continue;
     }
-    // stop if we hit punctuation/parenthesis
     if(/[.,;:()|\[\]]/.test(tok)) break;
-    // if first token isn't capitalized, bail early
     if(parts.length===0) break;
     parts.push(tok);
   }
   const name = parts.join(' ').trim();
-  // sanity: require at least 1–2 "namey" tokens
   if(name.split(' ').length >= 1 && /^[A-ZÀ-Ý]/.test(name)) return name;
   return '';
 }
-
 function inferPerformer(item){
-  // 1) person-style subreddit
   if(PERSON_SUBS.has(item.sub)) return humanizeSubName(item.sub);
-  // heuristic: a sub that looks like a single person (no plural keywords)
-  if(/^[A-Za-z][A-Za-z0-9_]*$/.test(item.sub) && !/(pics|pics$|porn|nsfw|celebs?|gowns|events|nips|slips|the|official|fans|hub|girls)/i.test(item.sub)){
+  if(/^[A-Za-z][A-Za-z0-9_]*$/.test(item.sub) && !/(pics|porn|nsfw|celebs?|gowns|events|nips|slips|the|official|fans|hub|girls)/i.test(item.sub)){
     return humanizeSubName(item.sub);
   }
-  // 2) from title
   const tGuess = guessNameFromTitle(item.title);
   if(tGuess) return tGuess;
-  // 3) fallback: try to prettify first 2–3 words of title
   const fallback = (item.title||'').split(' ').slice(0,3).join(' ').trim();
   return fallback || 'Unknown';
 }
@@ -247,7 +243,6 @@ const ui = {
 
 /* ------------- OAuth (implicit) ------------- */
 function rand(n=12){ return Array.from(crypto.getRandomValues(new Uint8Array(n))).map(v=>(v%36).toString(36)).join(''); }
-
 function beginOAuth(){
   let clientId   = localStorage.getItem('reddit_client_id')    || DEFAULT_CLIENT_ID;
   let redirectUri= localStorage.getItem('reddit_redirect_uri') || DEFAULT_REDIRECT_URI;
@@ -278,7 +273,6 @@ function beginOAuth(){
   const url = 'https://www.reddit.com/api/v1/authorize.compact?' + params.toString();
   location.href = url;
 }
-
 function captureTokenFromHash(){
   if(!location.hash) return;
   const h = new URLSearchParams(location.hash.slice(1));
@@ -294,13 +288,11 @@ function captureTokenFromHash(){
   log('Token stored, expires in ' + Math.round(expiresIn/60) + 'm');
   history.replaceState({}, document.title, location.pathname + location.search);
 }
-
 function clearToken(){
   localStorage.removeItem('reddit_token');
   ui.tokenBadge();
   log('Token cleared');
 }
-
 function getToken(){
   try{
     const t = JSON.parse(localStorage.getItem('reddit_token')||'null');
@@ -318,7 +310,6 @@ function subUrl(sub){
   if(token){ return { url:`https://oauth.reddit.com/r/${sub}/hot?limit=${LIMIT}`, headers:{'Authorization':`Bearer ${token}`} }; }
   return { url:CORS+base, headers:{} };
 }
-
 async function pullSubreddit(sub){
   try{
     const {url,headers} = subUrl(sub);
@@ -378,12 +369,7 @@ function card(item){
 
   const performer = inferPerformer(item);
 
-  const head = document.createElement('div');
-  head.className = 'polaroid';
-  // Show ONLY the performer/model name in the banner (no subreddit, no username)
-  head.innerHTML = `<div>${esc(performer)}</div>`;
-  wrap.appendChild(head);
-
+  // MEDIA
   let media;
   if(item.t==='video'){
     media = document.createElement('video');
@@ -399,6 +385,13 @@ function card(item){
   }
   wrap.appendChild(media);
 
+  // NEW: BOTTOM CAPTION (no overlay)
+  const caption = document.createElement('div');
+  caption.className = 'caption';
+  caption.textContent = performer;
+  wrap.appendChild(caption);
+
+  // ACTIONS
   const actions = document.createElement('div');
   actions.className='actions';
   actions.innerHTML = `
@@ -415,7 +408,6 @@ function card(item){
   wrap.appendChild(actions);
   return wrap;
 }
-
 function renderChunk(where, n=CHUNK){
   const feed = el('#'+where);
   const slice = pool.splice(0,n);
@@ -445,7 +437,6 @@ async function newBatch(){
   renderChunk('home', Math.min(CHUNK, pool.length));
   fetching = false;
 }
-
 function dedupeBy(arr, fn){ const seen=new Set(), out=[]; for(const x of arr){const k=fn(x); if(seen.has(k)) continue; seen.add(k); out.push(x);} return out; }
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j]]; } }
 
