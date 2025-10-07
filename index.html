@@ -63,6 +63,12 @@
   .btn.ok{background:linear-gradient(135deg,var(--like1),var(--like2));color:#0b0f16;font-weight:900}
   .btn.no{background:linear-gradient(135deg,var(--dismiss2),var(--dismiss1));color:#0b0f16;font-weight:900}
 
+  /* Animations used by actions */
+  .burst{animation:burst .45s ease forwards}
+  @keyframes burst{0%{transform:scale(1)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
+  .fade{animation:fade .28s ease forwards}
+  @keyframes fade{to{opacity:0;transform:translateY(10px)}}
+
   /* Bottom loader — bigger, centered */
   .bottom-load{display:flex;justify-content:center;margin:22px 0 10px}
   .bottom-load .btn{
@@ -340,20 +346,23 @@ async function pullSubreddit(sub){
   return out;
 }
 
-/* Normalize to {t,url,thumb,title,author,sub,link} */
+/* Normalize to {t,url,thumb,title,author,sub,link}
+   FIX: also accept static image from preview source even if d.url lacks an extension */
 function normalize(d){
   const rv = d.secure_media?.reddit_video || d.media?.reddit_video;
   if(rv?.fallback_url){
     return { t:'video', url:rv.fallback_url, thumb:pickThumb(d),
       title:d.title, author:d.author, sub:d.subreddit, link:`https://reddit.com${d.permalink}` };
   }
-  const preview = d.preview?.images?.[0]?.variants;
-  if(preview?.mp4?.source?.url){
-    return { t:'video', url:fix(preview.mp4.source.url), thumb:fix(d.preview.images[0].source.url),
+  const preview = d.preview?.images?.[0];
+  const variants = preview?.variants;
+
+  if(variants?.mp4?.source?.url){
+    return { t:'video', url:fix(variants.mp4.source.url), thumb:fix(preview.source?.url),
       title:d.title, author:d.author, sub:d.subreddit, link:`https://reddit.com${d.permalink}` };
   }
-  if(preview?.gif?.source?.url){
-    return { t:'gif', url:fix(preview.gif.source.url), thumb:fix(d.preview.images[0].source.url),
+  if(variants?.gif?.source?.url){
+    return { t:'gif', url:fix(variants.gif.source.url), thumb:fix(preview.source?.url),
       title:d.title, author:d.author, sub:d.subreddit, link:`https://reddit.com${d.permalink}` };
   }
   if(d.is_gallery && d.gallery_data?.items){
@@ -365,6 +374,11 @@ function normalize(d){
   const img = d.url_overridden_by_dest || d.url;
   if(img && /\.(jpg|jpeg|png|webp)$/i.test(img)){
     return { t:'image', url:img, thumb:img, title:d.title, author:d.author, sub:d.subreddit, link:`https://reddit.com${d.permalink}` };
+  }
+  // NEW: accept preview.source image when main url has no extension
+  if(preview?.source?.url){
+    const src = fix(preview.source.url);
+    return { t:'image', url:src, thumb:src, title:d.title, author:d.author, sub:d.subreddit, link:`https://reddit.com${d.permalink}` };
   }
   return null;
 }
