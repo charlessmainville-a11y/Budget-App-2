@@ -9,31 +9,23 @@
     --bg:#0d0f12;--panel:#12151a;--glass:#171b21;--muted:#9aa3ad;--txt:#eaf0f6;
     --pill:#1f2530;
     /* Button palettes */
-    --like1:#2aa0ff; /* blue */
-    --like2:#14c8b3; /* teal */
-    --dismiss1:#ff4757; /* red */
-    --dismiss2:#ff7ab8; /* pink */
+    --like1:#2aa0ff; --like2:#14c8b3;   /* blue → teal */
+    --dismiss1:#ff4757; --dismiss2:#ff7ab8; /* red → pink */
     --shine:linear-gradient(135deg,#ffffff25 0%,#ffffff05 60%,transparent 100%);
     --bar:linear-gradient(90deg,#a0d9ff 0%,#c8b6ff 50%,#ffb3c7 100%);
     --card:linear-gradient(180deg,#141922,#0f131a);
   }
   *{box-sizing:border-box}
   html,body{height:100%}
-  html{
-    background:#0d0f12;
-    overscroll-behavior:contain;
-    color-scheme:dark;
-  }
+  html{background:#0d0f12;overscroll-behavior:contain;color-scheme:dark}
   body{
-    margin:0;
-    background:radial-gradient(1000px 600px at 50% -200px,#151b23 0%,#0d0f12 40%,#0d0f12 100%);
-    color:var(--txt);
-    font:500 16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;
+    margin:0;background:radial-gradient(1000px 600px at 50% -200px,#151b23 0%,#0d0f12 40%,#0d0f12 100%);
+    color:var(--txt);font:500 16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial
   }
   a{color:inherit}
   .wrap{max-width:880px;margin:0 auto;padding:18px 14px 64px}
 
-  /* Progress bar + status */
+  /* Progress + status */
   .bar{height:14px;border-radius:99px;background:#ffffff10;position:relative;overflow:hidden;margin:14px 4px}
   .bar>.fill{position:absolute;inset:0 auto 0 0;width:0%;background:var(--bar)}
   .status{display:flex;justify-content:space-between;color:#b8c0cc;margin:6px 4px 14px;font-weight:700}
@@ -42,26 +34,22 @@
   .dash{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin:8px 0 12px}
   .btn{
     position:relative;border:none;border-radius:22px;padding:18px 22px;
-    color:#0f1624; /* darker, cooler text */
-    font:800 18px/1.05 Inter,system-ui;letter-spacing:.02em;
+    color:#0f1624;font:800 18px/1.05 Inter,system-ui;letter-spacing:.02em;
     background:linear-gradient(180deg,#151b22,#0e131a);
     box-shadow:inset 0 1px 0 #ffffff14,0 18px 30px #00000045;cursor:pointer;
     transform:translateZ(0);transition:transform .08s ease,opacity .2s ease,filter .2s ease;
   }
   .btn:active{transform:translateY(1px) scale(.99)}
-  .btn.glassy:before{
-    content:"";position:absolute;inset:0;border-radius:inherit;background:var(--shine);mix-blend-mode:screen;pointer-events:none
-  }
+  .btn.glassy:before{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--shine);mix-blend-mode:screen;pointer-events:none}
   .btn.small{padding:14px 18px;font-size:16px;border-radius:18px}
   .btn.tiny{padding:10px 14px;font-size:14px;border-radius:14px}
   .btn.hollow{background:#12161e;border:1px solid #ffffff12;color:#c9d4e6}
 
-  /* Action button vibes (force with !important so they always win) */
+  /* Action button vibes (forced) */
   .btn.ok{background:linear-gradient(135deg,var(--like1),var(--like2)) !important;color:#0b0f16 !important;text-shadow:none;filter:saturate(1.1)}
   .btn.no{background:linear-gradient(135deg,var(--dismiss2),var(--dismiss1)) !important;color:#0b0f16 !important;text-shadow:none;filter:saturate(1.1)}
 
   .pill{background:#12161e;border:1px solid #ffffff14;border-radius:18px;padding:10px 14px;color:#cbd4df}
-  .note{color:#aeb6c2}
 
   /* Feed / cards */
   .feed{display:grid;gap:18px}
@@ -69,14 +57,12 @@
     background:var(--card);border-radius:22px;overflow:hidden;box-shadow:0 22px 40px #00000070,inset 0 1px 0 #ffffff12;
     position:relative;isolation:isolate
   }
-
   .media{display:block;width:100%;height:auto;max-height:86vh;object-fit:cover;background:#0b0f15}
   video.media{max-height:86vh;background:#0b0f15}
 
   /* Bottom caption */
   .caption{
-    padding:12px 14px;
-    border-top:1px solid #ffffff12;
+    padding:12px 14px;border-top:1px solid #ffffff12;
     background:linear-gradient(180deg,#0e1218,#0b0f15);
     color:#f3f7ff;font:800 20px/1.2 Inter,system-ui;letter-spacing:.01em;
   }
@@ -84,17 +70,14 @@
   .actions{display:flex;gap:16px;justify-content:space-between;padding:18px;background:linear-gradient(180deg,transparent 0%,#0e1218 20%)}
   .actions .btn{flex:1;border-radius:20px}
 
-  /* Tabs */
   .tabs{display:flex;gap:10px;justify-content:center;margin:10px 0 6px}
   .hidden{display:none!important}
 
-  /* Animations */
   .burst{animation:burst .45s ease forwards}
   @keyframes burst{0%{transform:scale(1)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
   .fade{animation:fade .28s ease forwards}
   @keyframes fade{to{opacity:0;transform:translateY(10px)}}
 
-  /* Modal */
   .modal{position:fixed;inset:0;display:none;place-items:center;background:#0009;z-index:50}
   .modal.show{display:grid}
   .sheet{width:min(840px,92vw);max-height:80vh;overflow:auto;background:#0f141a;border-radius:22px;box-shadow:0 24px 60px #000; padding:18px}
@@ -103,12 +86,9 @@
 </head>
 <body>
 <div class="wrap">
-  <!-- (stats grid removed) -->
-
   <div class="bar"><div class="fill" id="bar"></div></div>
   <div class="status"><div id="phase">Ready</div><div id="pct">100%</div></div>
 
-  <!-- Dashboard -->
   <div class="dash">
     <button class="btn small hollow" id="homeBtn">Home</button>
     <button class="btn small hollow" id="likesBtn">Likes</button>
@@ -124,27 +104,23 @@
     <button class="btn small hollow" id="troubleBtn">Troubleshoot</button>
   </div>
 
-  <!-- Reddit connect -->
   <div class="dash">
     <button class="btn small hollow" id="connectBtn">Connect Reddit</button>
     <span class="pill" id="tokenPill">Token: none</span>
     <button class="btn tiny hollow" id="clearTokBtn">Clear token</button>
   </div>
 
-  <!-- Tabs -->
   <div class="tabs hidden" id="pageTabs">
     <span class="pill" id="tabHome">Home</span>
     <span class="pill" id="tabLikes">Likes</span>
     <span class="pill" id="tabDiscard">Discard</span>
   </div>
 
-  <!-- Feeds -->
   <div id="home" class="feed"></div>
   <div id="likes" class="feed hidden"></div>
   <div id="discard" class="feed hidden"></div>
 </div>
 
-<!-- Troubleshooter -->
 <div class="modal" id="modal">
   <div class="sheet">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px">
@@ -168,12 +144,11 @@ const STARTER_SUBS = [
 ];
 const OPTIONAL_NSFW = ['EvaElfie','RileyReid','Stoya','AbellaDanger','MiaMalkova'];
 const LIMIT = 30;
-const CHUNK = 30;                 /* load 30 at a time */
-const LIGHT_SHUFFLES = 2;         /* small extra shuffle passes */
+const CHUNK = 30;          // load 30 at a time
+const LIGHT_SHUFFLES = 2;
 
 /* ------------- state ------------- */
 let pool = [];
-let shown = 0;
 let likes = [];
 let discards = [];
 let currentFeed = 'home';
@@ -184,23 +159,19 @@ const logEl = document.getElementById('log');
 const el  = (sel) => document.querySelector(sel);
 const els = (sel) => [...document.querySelectorAll(sel)];
 const log = (msg) => { const t=new Date().toLocaleTimeString(); logEl.textContent += `[${t}] ${msg}\n`; logEl.scrollTop = logEl.scrollHeight; };
-const esc = (s) => String(s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+const esc = (s) => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
 /* ---------- name inference ---------- */
-const PERSON_SUBS = new Set([
-  ...OPTIONAL_NSFW,
-  'LeaEluiGinet','charlidameliomommy'
-]);
+const PERSON_SUBS = new Set([...OPTIONAL_NSFW,'LeaEluiGinet','charlidameliomommy']);
 const STOP_WORDS = /^(at|in|with|on|of|for|from|and|the|to|by|wearing|holding|during)\b/i;
 
 function humanizeSubName(sub){
-  return sub
-    .replace(/[_-]+/g,' ')
-    .replace(/([a-z])([A-Z])/g,'$1 $2')
-    .replace(/(\d+)/g,' $1 ')
-    .replace(/\s+/g,' ')
-    .trim()
-    .replace(/\b\w/g, m => m.toUpperCase());
+  return sub.replace(/[_-]+/g,' ')
+            .replace(/([a-z])([A-Z])/g,'$1 $2')
+            .replace(/(\d+)/g,' $1 ')
+            .replace(/\s+/g,' ')
+            .trim()
+            .replace(/\b\w/g, m => m.toUpperCase());
 }
 function guessNameFromTitle(title){
   if(!title) return '';
@@ -208,17 +179,13 @@ function guessNameFromTitle(title){
   const parts = [];
   for(const tok of cleaned.split(' ')){
     if(STOP_WORDS.test(tok)) break;
-    if(/^[A-ZÀ-Ý][\w’'\-\.]*$/.test(tok) || /^(de|van|von|da|di|del|la)$/i.test(tok)){
-      parts.push(tok.replace(/[_-]/g,' '));
-      continue;
-    }
+    if(/^[A-ZÀ-Ý][\w’'\-\.]*$/.test(tok) || /^(de|van|von|da|di|del|la)$/i.test(tok)){ parts.push(tok.replace(/[_-]/g,' ')); continue; }
     if(/[.,;:()|\[\]]/.test(tok)) break;
     if(parts.length===0) break;
     parts.push(tok);
   }
   const name = parts.join(' ').trim();
-  if(name.split(' ').length >= 1 && /^[A-ZÀ-Ý]/.test(name)) return name;
-  return '';
+  return (name.split(' ').length>=1 && /^[A-ZÀ-Ý]/.test(name)) ? name : '';
 }
 function inferPerformer(item){
   if(PERSON_SUBS.has(item.sub)) return humanizeSubName(item.sub);
@@ -234,8 +201,8 @@ function inferPerformer(item){
 /* ------------- UI helpers ------------- */
 const ui = {
   phase(s){ el('#phase').textContent = s; },
-  bar(p){ el('#bar').style.width = `${p}%`; el('#pct').textContent = `${Math.round(p)}%`; },
-  counts(){ /* stats removed: no-op */ },
+  bar(p){ el('#bar').style.width = p+'%'; el('#pct').textContent = Math.round(p)+'%'; },
+  counts(){ /* stats removed */ },
   showPage(name){
     currentFeed = name;
     ['home','likes','discard'].forEach(id => el('#'+id).classList.toggle('hidden', id!==name));
@@ -252,61 +219,25 @@ function rand(n=12){ return Array.from(crypto.getRandomValues(new Uint8Array(n))
 function beginOAuth(){
   let clientId   = localStorage.getItem('reddit_client_id')    || DEFAULT_CLIENT_ID;
   let redirectUri= localStorage.getItem('reddit_redirect_uri') || DEFAULT_REDIRECT_URI;
-
-  if(!clientId){
-    clientId = prompt('Enter your Reddit CLIENT ID (installed app):','');
-    if(!clientId) return;
-    localStorage.setItem('reddit_client_id', clientId);
-  }
-  if(!redirectUri){
-    redirectUri = prompt('Enter the exact Redirect URI you set on old.reddit.com/apps:', location.origin + location.pathname) || '';
-    if(!redirectUri) return;
-    localStorage.setItem('reddit_redirect_uri', redirectUri);
-  }
-
-  const state = rand(24);
-  localStorage.setItem('reddit_oauth_state', state);
-
-  const params = new URLSearchParams({
-    client_id: clientId,
-    response_type:'token',
-    state,
-    redirect_uri: redirectUri,
-    duration:'temporary',
-    scope:'read identity'
-  });
-
-  const url = 'https://www.reddit.com/api/v1/authorize.compact?' + params.toString();
-  location.href = url;
+  if(!clientId){ clientId = prompt('Enter your Reddit CLIENT ID (installed app):',''); if(!clientId) return; localStorage.setItem('reddit_client_id', clientId); }
+  if(!redirectUri){ redirectUri = prompt('Enter the exact Redirect URI you set on old.reddit.com/apps:', location.origin + location.pathname) || ''; if(!redirectUri) return; localStorage.setItem('reddit_redirect_uri', redirectUri); }
+  const state = rand(24); localStorage.setItem('reddit_oauth_state', state);
+  const params = new URLSearchParams({client_id:clientId,response_type:'token',state,redirect_uri:redirectUri,duration:'temporary',scope:'read identity'});
+  location.href = 'https://www.reddit.com/api/v1/authorize.compact?'+params.toString();
 }
 function captureTokenFromHash(){
   if(!location.hash) return;
   const h = new URLSearchParams(location.hash.slice(1));
-  const token = h.get('access_token');
-  const state = h.get('state');
-  if(!token) return;
-  const expected = localStorage.getItem('reddit_oauth_state');
-  if(expected && state !== expected){ log('State mismatch (ignored)'); return; }
+  const token = h.get('access_token'); const state = h.get('state'); if(!token) return;
+  const expected = localStorage.getItem('reddit_oauth_state'); if(expected && state !== expected){ log('State mismatch (ignored)'); return; }
   const expiresIn = parseInt(h.get('expires_in')||'3600',10);
   const rec = { access_token: token, expires_at: Date.now() + (expiresIn*1000) };
   localStorage.setItem('reddit_token', JSON.stringify(rec));
-  ui.tokenBadge();
-  log('Token stored, expires in ' + Math.round(expiresIn/60) + 'm');
+  ui.tokenBadge(); log('Token stored, expires in ' + Math.round(expiresIn/60) + 'm');
   history.replaceState({}, document.title, location.pathname + location.search);
 }
-function clearToken(){
-  localStorage.removeItem('reddit_token');
-  ui.tokenBadge();
-  log('Token cleared');
-}
-function getToken(){
-  try{
-    const t = JSON.parse(localStorage.getItem('reddit_token')||'null');
-    if(!t) return null;
-    if(Date.now() > t.expires_at) return null;
-    return t.access_token;
-  }catch{ return null; }
-}
+function clearToken(){ localStorage.removeItem('reddit_token'); ui.tokenBadge(); log('Token cleared'); }
+function getToken(){ try{ const t = JSON.parse(localStorage.getItem('reddit_token')||'null'); if(!t) return null; if(Date.now()>t.expires_at) return null; return t.access_token; }catch{ return null; } }
 
 /* ------------- fetchers ------------- */
 const CORS = 'https://cors.isomorphic-git.org/';
@@ -325,27 +256,21 @@ async function pullSubreddit(sub){
     const items = (data.data?.children||[]).map(n=>normalize(n.data)).filter(Boolean);
     log(`Loaded ${items.length} from /r/${sub}`);
     return items;
-  }catch(e){
-    log(`✖ /r/${sub}: ${e}`);
-    return [];
-  }
+  }catch(e){ log(`✖ /r/${sub}: ${e}`); return []; }
 }
 
 /* Normalize a reddit post into a {t,url,thumb,title,author,sub,link} */
 function normalize(d){
   const rv = d.secure_media?.reddit_video || d.media?.reddit_video;
   if(rv?.fallback_url){
-    return { t:'video', url:rv.fallback_url, thumb:pickThumb(d),
-      title:d.title, author:d.author, sub:d.subreddit, link:`https://reddit.com${d.permalink}` };
+    return { t:'video', url:rv.fallback_url, thumb:pickThumb(d), title:d.title, author:d.author, sub:d.subreddit, link:`https://reddit.com${d.permalink}` };
   }
   const preview = d.preview?.images?.[0]?.variants;
   if(preview?.mp4?.source?.url){
-    return { t:'video', url:fix(preview.mp4.source.url), thumb:fix(d.preview.images[0].source.url),
-      title:d.title, author:d.author, sub:d.subreddit, link:`https://reddit.com${d.permalink}` };
+    return { t:'video', url:fix(preview.mp4.source.url), thumb:fix(d.preview.images[0].source.url), title:d.title, author:d.author, sub:d.subreddit, link:`https://reddit.com${d.permalink}` };
   }
   if(preview?.gif?.source?.url){
-    return { t:'gif', url:fix(preview.gif.source.url), thumb:fix(d.preview.images[0].source.url),
-      title:d.title, author:d.author, sub:d.subreddit, link:`https://reddit.com${d.permalink}` };
+    return { t:'gif', url:fix(preview.gif.source.url), thumb:fix(d.preview.images[0].source.url), title:d.title, author:d.author, sub:d.subreddit, link:`https://reddit.com${d.permalink}` };
   }
   if(d.is_gallery && d.gallery_data?.items){
     const firstId = d.gallery_data.items[0]?.media_id;
@@ -359,60 +284,38 @@ function normalize(d){
   }
   return null;
 }
-function pickThumb(d){
-  const t = d.thumbnail;
-  if(t && t.startsWith('http')) return t;
-  const p = d.preview?.images?.[0]?.source?.url;
-  return p ? fix(p) : null;
-}
+function pickThumb(d){ const t=d.thumbnail; if(t && t.startsWith('http')) return t; const p=d.preview?.images?.[0]?.source?.url; return p ? fix(p) : null; }
 function bestMeta(meta){ if(!meta) return null; const s=meta.s; if(!s) return null; return fix(s.u||s.gif||s.mp4||null); }
 function fix(u){ return u ? u.replace(/&amp;/g,'&') : u; }
 
 /* -------- autoplay helpers (controls hidden) -------- */
-const io = new IntersectionObserver((entries)=>{
-  entries.forEach(e=>{
-    const v = e.target;
-    if(e.isIntersecting){
-      v.play().catch(()=>{});
-    }else{
-      v.pause();
-    }
-  });
-},{threshold:0.5});
+const io = ('IntersectionObserver' in window)
+  ? new IntersectionObserver((entries)=>{ entries.forEach(e=>{ const v=e.target; if(e.isIntersecting){ v.play().catch(()=>{}); } else { v.pause(); } }); },{threshold:0.5})
+  : null;
 
 function makeVideo(src, thumb, loop=false){
   const v = document.createElement('video');
   v.className='media';
-  v.autoplay = true;
-  v.muted = true;
-  v.playsInline = true;
-  v.preload = 'metadata';
-  v.loop = !!loop;
-  if(thumb) v.poster = thumb;
-  v.src = src;
-
-  /* Hide native UI completely */
+  v.autoplay = true; v.muted = true; v.playsInline = true; v.preload = 'metadata'; v.loop = !!loop;
+  if(thumb) v.poster = thumb; v.src = src;
   v.setAttribute('controlslist','nodownload noplaybackrate noremoteplayback');
   v.setAttribute('disablepictureinpicture','');
-
-  // Start ASAP
   v.addEventListener('canplay', ()=> v.play().catch(()=>{}), {once:true});
   requestAnimationFrame(()=> v.play().catch(()=>{}));
-  io.observe(v);
+  if(io) io.observe(v);
   return v;
 }
 
 /* -------- utils -------- */
-function shuffleArray(a){
-  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j]]; }
-}
+function shuffleArray(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=a[i]; a[i]=a[j]; a[j]=t; } }
 function interleaveBuckets(buckets){
   const keys = Object.keys(buckets);
   const out = [];
   let added = true;
   while(added){
     added = false;
-    for(const k of keys){
+    for(let i=0;i<keys.length;i++){
+      const k = keys[i];
       const arr = buckets[k];
       if(arr && arr.length){
         out.push(arr.shift());
@@ -420,7 +323,6 @@ function interleaveBuckets(buckets){
       }
     }
   }
-  // light extra shuffles to break subtle patterns
   for(let i=0;i<LIGHT_SHUFFLES;i++) shuffleArray(out);
   return out;
 }
@@ -433,25 +335,17 @@ function card(item){
 
   const performer = inferPerformer(item);
 
-  // Media
   let media;
-  if(item.t==='video'){
-    media = makeVideo(item.url, item.thumb || null, false);
-  }else if(item.t==='gif'){
-    media = makeVideo(item.url, item.thumb || null, true);
-  }else{
-    media = document.createElement('img');
-    media.className='media'; media.loading='lazy'; media.alt=item.title||''; media.src=item.url;
-  }
+  if(item.t==='video'){ media = makeVideo(item.url, item.thumb || null, false); }
+  else if(item.t==='gif'){ media = makeVideo(item.url, item.thumb || null, true); }
+  else { media = document.createElement('img'); media.className='media'; media.loading='lazy'; media.alt=item.title||''; media.src=item.url; }
   wrap.appendChild(media);
 
-  // Caption
   const caption = document.createElement('div');
   caption.className = 'caption';
   caption.textContent = performer;
   wrap.appendChild(caption);
 
-  // Actions
   const actions = document.createElement('div');
   actions.className='actions';
   actions.innerHTML = `
@@ -463,17 +357,15 @@ function card(item){
     if(b.dataset.act==='ok'){ likes.push(item); wrap.classList.add('burst'); }
     else { discards.push(item); wrap.classList.add('fade'); }
     setTimeout(()=>wrap.remove(), 260);
-    shown++; ui.counts();
   });
   wrap.appendChild(actions);
   return wrap;
 }
-
 function renderChunk(where, n=CHUNK){
   const feed = el('#'+where);
   const slice = pool.splice(0,n);
   slice.forEach(it => feed.appendChild(card(it)));
-  ui.counts();
+  if(slice.length===0) log('No more items to render.');
 }
 
 /* ------------- batching (interleave by subreddit) ------------- */
@@ -481,37 +373,43 @@ async function newBatch(){
   if(fetching) return;
   fetching = true; ui.phase('Fetching…'); ui.bar(10);
   pool.length = 0;
-  el('#home').innerHTML = ''; shown = 0; ui.counts();
+  el('#home').innerHTML = '';
 
-  const subs = [...STARTER_SUBS, ...OPTIONAL_NSFW];
-  const all = [];
-  let done = 0;
-  for(const s of subs){
-    const items = await pullSubreddit(s);
-    // tag sub on each item (already present as item.sub)
-    all.push(...items);
-    done++; ui.bar(10 + (done/subs.length)*80);
+  try{
+    const subs = [...STARTER_SUBS, ...OPTIONAL_NSFW];
+    const all = [];
+    let done = 0;
+    for(let i=0;i<subs.length;i++){
+      const s = subs[i];
+      const items = await pullSubreddit(s);
+      all.push(...items);
+      done++; ui.bar(10 + (done/subs.length)*80);
+    }
+
+    // Dedup by URL
+    const seen = Object.create(null);
+    const deduped = [];
+    for(let i=0;i<all.length;i++){
+      const it = all[i];
+      if(!seen[it.url]){ seen[it.url]=1; deduped.push(it); }
+    }
+
+    // Bucket by subreddit and interleave (no ||= for iOS)
+    const buckets = Object.create(null);
+    for(let i=0;i<deduped.length;i++){
+      const it = deduped[i];
+      if(!buckets[it.sub]) buckets[it.sub] = [];
+      buckets[it.sub].push(it);
+    }
+    pool = interleaveBuckets(buckets);
+
+    ui.bar(100); ui.phase('Ready');
+    renderChunk('home', Math.min(CHUNK, pool.length));
+  }catch(err){
+    log('✖ newBatch error: ' + (err && err.message ? err.message : err));
+  }finally{
+    fetching = false;
   }
-
-  // Dedup by URL
-  const seen = new Set();
-  const deduped = [];
-  for(const it of all){
-    if(seen.has(it.url)) continue;
-    seen.add(it.url);
-    deduped.push(it);
-  }
-
-  // Bucket by subreddit and interleave
-  const buckets = {};
-  for(const it of deduped){
-    (buckets[it.sub] ||= []).push(it);
-  }
-  pool = interleaveBuckets(buckets);
-
-  ui.bar(100); ui.phase('Ready'); ui.counts();
-  renderChunk('home', Math.min(CHUNK, pool.length));
-  fetching = false;
 }
 
 /* ------------- shuffle behavior ------------- */
@@ -519,13 +417,9 @@ function shuffleVisibleAndPool(){
   const feed = el('#home');
   const nodes = [...feed.children].filter(n=>n.classList.contains('card'));
   const visibleItems = nodes.map(n=>n.__item).filter(Boolean);
-
-  // Combine visible + pool, shuffle, then put the first N back as visible
   const combined = [...visibleItems, ...pool];
   shuffleArray(combined);
-
   const keep = visibleItems.length;
-  // Rebuild only the visible section (prevents empty screen bug)
   feed.innerHTML = '';
   for(let i=0;i<Math.min(keep, combined.length); i++){
     feed.appendChild(card(combined[i]));
@@ -537,23 +431,19 @@ function shuffleVisibleAndPool(){
 el('#newBatchBtn').addEventListener('click', newBatch);
 el('#shuffleBtn').addEventListener('click', shuffleVisibleAndPool);
 el('#loadMoreBtn').addEventListener('click', ()=> renderChunk('home'));
-
 el('#homeBtn').addEventListener('click', ()=> ui.showPage('home'));
 el('#likesBtn').addEventListener('click', ()=>{ ui.showPage('likes'); paintList('likes', likes); });
 el('#discardBtn').addEventListener('click', ()=>{ ui.showPage('discard'); paintList('discard', discards); });
-
 el('#addSubsBtn').addEventListener('click', async ()=>{
   const s = prompt('Add subreddits (comma-separated, no /r/):', 'Celebs, CelebEvents, celebritypics');
   if(!s) return;
   const list = s.split(',').map(x=>x.trim()).filter(Boolean);
   STARTER_SUBS.splice(0, STARTER_SUBS.length, ...list);
-  log(`Updated base subs: ${STARTER_SUBS.join(', ')}`);
+  log('Updated base subs: ' + STARTER_SUBS.join(', '));
   await newBatch();
 });
-
 el('#troubleBtn').addEventListener('click', ()=> el('#modal').classList.add('show'));
 el('#closeModal').addEventListener('click', ()=> el('#modal').classList.remove('show'));
-
 el('#connectBtn').addEventListener('click', beginOAuth);
 el('#clearTokBtn').addEventListener('click', clearToken);
 
@@ -566,9 +456,9 @@ function paintList(where, arr){
 /* ------------- boot ------------- */
 captureTokenFromHash();
 ui.tokenBadge();
-ui.counts(); ui.bar(100); ui.phase('Ready');
+ui.bar(100); ui.phase('Ready');
 log('Ready. Tap “Connect Reddit” (optional) then “New batch” to fetch.');
-newBatch(); // auto-fetch first batch
+newBatch();
 </script>
 </body>
 </html>
