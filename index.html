@@ -16,7 +16,17 @@
   }
   *{box-sizing:border-box}
   html,body{height:100%}
-  body{margin:0;background:radial-gradient(1000px 600px at 50% -200px,#151b23 0%,#0d0f12 40%,#0d0f12 100%);color:var(--txt);font:500 16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
+  html{
+    background:#0d0f12;          /* FIX: prevent iOS overscroll white flash */
+    overscroll-behavior:contain; /* reduce rubber-banding glow */
+    color-scheme: dark;
+  }
+  body{
+    margin:0;
+    background:radial-gradient(1000px 600px at 50% -200px,#151b23 0%,#0d0f12 40%,#0d0f12 100%);
+    color:var(--txt);
+    font:500 16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial
+  }
   a{color:inherit}
   .wrap{max-width:880px;margin:0 auto;padding:18px 14px 64px}
   .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
@@ -52,17 +62,9 @@
     background:var(--card);border-radius:22px;overflow:hidden;box-shadow:0 22px 40px #00000070,inset 0 1px 0 #ffffff12;
     position:relative;isolation:isolate
   }
-  /* old .polaroid kept in case we re-enable overlay later
-  .polaroid{position:absolute;left:14px;top:14px;right:14px;z-index:2;
-    padding:10px 12px;border-radius:14px;background:linear-gradient(180deg,#0a0e14cc,#0a0e14aa);
-    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-    color:#f3f7ff;font:800 22px/1.15 Inter,system-ui;text-shadow:0 2px 12px #000c;
-  }
-  .polaroid small{display:block;color:#c9d1dd;font:700 14px/1.1 Inter,system-ui;opacity:.9;margin-top:6px}
-  */
   .media{display:block;width:100%;height:auto;max-height:86vh;object-fit:cover;background:#0b0f15}
   video.media{max-height:86vh;background:#0b0f15}
-  /* NEW: bottom caption bar */
+  /* bottom caption */
   .caption{
     padding:12px 14px;
     border-top:1px solid #ffffff12;
@@ -362,30 +364,58 @@ function pickThumb(d){
 function bestMeta(meta){ if(!meta) return null; const s=meta.s; if(!s) return null; return fix(s.u||s.gif||s.mp4||null); }
 function fix(u){ return u ? u.replace(/&amp;/g,'&') : u; }
 
+/* -------- autoplay helpers (NEW) -------- */
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    const v = e.target;
+    if(e.isIntersecting){
+      v.play().catch(()=>{});      // try to play when in view
+    }else{
+      v.pause();                   // pause when offscreen
+    }
+  });
+},{threshold:0.5});
+
+function makeVideo(src, thumb, loop=false){
+  const v = document.createElement('video');
+  v.className='media';
+  v.autoplay = true;
+  v.muted = true;            // required for autoplay
+  v.playsInline = true;      // iOS inline playback
+  v.preload = 'metadata';
+  v.controls = true;         // keep controls (can disable if you prefer)
+  v.loop = !!loop;           // loop gifs, not normal videos
+  if(thumb) v.poster = thumb;
+  v.src = src;
+
+  // Kick playback ASAP
+  v.addEventListener('canplay', ()=> v.play().catch(()=>{}), {once:true});
+  requestAnimationFrame(()=> v.play().catch(()=>{}));
+  io.observe(v);
+  return v;
+}
+
 /* ------------- rendering ------------- */
 function card(item){
   const wrap = document.createElement('article');
   wrap.className = 'card';
+  wrap.__item = item; // store for shuffle
 
   const performer = inferPerformer(item);
 
   // MEDIA
   let media;
   if(item.t==='video'){
-    media = document.createElement('video');
-    media.className='media'; media.controls=true; media.playsInline=true; media.muted=false; media.preload='metadata';
-    media.src=item.url;
+    media = makeVideo(item.url, item.thumb || null, false);
   }else if(item.t==='gif'){
-    media = document.createElement('video');
-    media.className='media'; media.autoplay=true; media.loop=true; media.muted=true; media.playsInline=true;
-    media.src=item.url;
+    media = makeVideo(item.url, item.thumb || null, true);
   }else{
     media = document.createElement('img');
     media.className='media'; media.loading='lazy'; media.alt=item.title||''; media.src=item.url;
   }
   wrap.appendChild(media);
 
-  // NEW: BOTTOM CAPTION (no overlay)
+  // BOTTOM CAPTION
   const caption = document.createElement('div');
   caption.className = 'caption';
   caption.textContent = performer;
@@ -408,6 +438,7 @@ function card(item){
   wrap.appendChild(actions);
   return wrap;
 }
+
 function renderChunk(where, n=CHUNK){
   const feed = el('#'+where);
   const slice = pool.splice(0,n);
@@ -437,12 +468,27 @@ async function newBatch(){
   renderChunk('home', Math.min(CHUNK, pool.length));
   fetching = false;
 }
+
 function dedupeBy(arr, fn){ const seen=new Set(), out=[]; for(const x of arr){const k=fn(x); if(seen.has(k)) continue; seen.add(k); out.push(x);} return out; }
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j]]; } }
 
 /* ------------- events ------------- */
 el('#newBatchBtn').addEventListener('click', newBatch);
-el('#shuffleBtn').addEventListener('click', ()=>{ shuffle(pool); renderChunk('home', Math.min(CHUNK,pool.length)); });
+
+el('#shuffleBtn').addEventListener('click', ()=>{
+  const feed = el('#home');
+  const current = [...feed.children].map(c => c.__item).filter(Boolean);
+  const combined = [...current, ...pool];
+  shuffle(combined);
+  const keep = current.length; // render same number as visible before
+  feed.innerHTML = '';
+  for(let i=0;i<Math.min(keep, combined.length); i++){
+    feed.appendChild(card(combined[i]));
+  }
+  pool = combined.slice(keep);
+  ui.counts();
+});
+
 el('#loadMoreBtn').addEventListener('click', ()=> renderChunk('home'));
 el('#homeBtn').addEventListener('click', ()=> ui.showPage('home'));
 el('#likesBtn').addEventListener('click', ()=>{ ui.showPage('likes'); paintList('likes', likes); });
