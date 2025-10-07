@@ -1,289 +1,291 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>CelebWall — OAuth Build</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Celeb Wall — OAuth</title>
 <style>
-:root{--bg:#0d0f12;--glass:#171a1f;--ink:#e9edf3;--muted:#b9c0cc;--pill:#1f232b;
---glow1:#b39df7;--glow2:#7fe7e2;--teal:#43d6c7;--red:#ff6978;--chip:#111419}
-*{box-sizing:border-box} html,body{margin:0;background:radial-gradient(1200px 400px at 20% 0%,#171a1f,transparent),
-radial-gradient(1200px 400px at 80% -10%,#171a1f,transparent),var(--bg);color:var(--ink);font:400 16px/1.4 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto}
-.container{max-width:860px;margin:24px auto;padding:0 16px}
-.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
-@media (max-width:760px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.card{position:relative;background:rgba(255,255,255,0.04);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.07);
-border-radius:18px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.35)}
-.card .name{position:absolute;left:12px;top:12px;padding:6px 10px;border-radius:12px;background:rgba(0,0,0,.45);
-border:1px solid rgba(255,255,255,0.08);font-weight:700;letter-spacing:.2px}
-.card img,.card video{width:100%;display:block;background:#0c0e12;min-height:220px;object-fit:cover}
-.card video{outline:none}
-.card .bar{display:flex;gap:10px;padding:12px;background:linear-gradient( to right, rgba(255,255,255,.06), rgba(255,255,255,.03));align-items:center;justify-content:center}
-.btn{display:inline-flex;align-items:center;justify-content:center;height:56px;padding:0 22px;border-radius:18px;border:1px solid rgba(255,255,255,0.08);
-background:rgba(255,255,255,.05);backdrop-filter:blur(8px);color:var(--ink);font-weight:800;letter-spacing:.3px;cursor:pointer;transition:transform .06s ease,opacity .2s}
-.btn:active{transform:translateY(1px)} .btn.pill{height:64px;font-size:22px}
-.btn.primary{background:linear-gradient(120deg,var(--glow1),var(--glow2));color:#101216;border:0}
-.btn.teal{background:linear-gradient(120deg,#7ef5e7,#43d6c7);color:#081312;border:0}
-.btn.red{background:linear-gradient(120deg,#ff8ea0,#ff6978);color:#1a0e11;border:0}
-.pills{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}
-@media (min-width:720px){.pills{grid-template-columns:repeat(3,minmax(0,1fr))}}
-.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:14px}
-.kpi{background:var(--pill);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:14px 14px 10px}
-.kpi .lbl{color:var(--muted);font-weight:700} .kpi .val{font-size:34px;font-weight:900;margin-top:6px}
-.progress{height:12px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden;border:1px solid rgba(255,255,255,.08)}
-.progress > i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--glow1),var(--glow2));transition:width .2s ease}
-.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:14px 0 4px}
-.subtle{color:var(--muted)}
-.center{display:flex;justify-content:center}
-.badge{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:14px;background:var(--chip);border:1px solid rgba(255,255,255,.08)}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:20}
-.modal.open{display:flex} .sheet{width:min(860px,96vw);max-height:78vh;overflow:auto;background:var(--glass);border:1px solid rgba(255,255,255,.08);
-border-radius:22px;box-shadow:0 30px 70px rgba(0,0,0,.5);padding:16px}
-.sheet .hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.sheet pre{white-space:pre-wrap;font:500 14px/1.5 ui-monospace,Menlo,Consolas,monospace}
-.footerpad{height:28px}
+  :root{
+    --bg:#0c0e11;--panel:#14171c;--glass:rgba(255,255,255,.06);
+    --text:#e8edf7;--muted:#aab3c5;--pill:#1b2027;--ok:#23c9b8;--bad:#ff5a76;
+    --grad1:#b99cff;--grad2:#7dd6ff;--gradHot:#ff8ec3;--gradTeal:#8ff0d0;
+    --radius:20px;--radiusSm:14px;--shadow:0 8px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 600px at 70% -10%, #1a2030 0%, #0c0e11 45%) fixed;color:var(--text);font:600 18px/1.4 system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial}
+  .wrap{max-width:860px;margin:28px auto 80px;padding:0 16px}
+  .row{display:flex;flex-wrap:wrap;gap:16px;justify-content:center}
+  .pill{background:var(--pill);border-radius:24px;padding:18px 22px;box-shadow:var(--shadow);display:flex;align-items:center;gap:14px}
+  .big{font-size:34px;font-weight:800}
+  .muted{color:var(--muted)}
+  .btn{background:var(--panel);border:none;border-radius:22px;padding:18px 22px;color:var(--text);font-weight:800;box-shadow:var(--shadow);letter-spacing:.3px}
+  .btn:active{transform:translateY(1px)}
+  .btn.grad{background:linear-gradient(135deg,var(--grad1),var(--grad2))}
+  .btn.glass{background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.04));backdrop-filter:blur(6px)}
+  .btn.bad{background:linear-gradient(135deg,#ff7aa2,#ff4d6d)}
+  .btn.ok{background:linear-gradient(135deg,#27e8c8,#18b5a4)}
+  .grid{margin-top:18px;display:grid;grid-template-columns:1fr;gap:18px}
+  @media(min-width:700px){.grid{grid-template-columns:1fr 1fr}}
+  .card{position:relative;background:var(--panel);border-radius:26px;overflow:hidden;box-shadow:var(--shadow)}
+  .nameTag{position:absolute;top:14px;left:14px;background:var(--glass);backdrop-filter:blur(8px);padding:10px 14px;border-radius:14px;font-weight:900}
+  .srcTag{position:absolute;bottom:14px;left:14px;background:var(--glass);padding:8px 12px;border-radius:12px;font-size:14px;color:var(--muted)}
+  .media{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;background:#0a0c0f}
+  .bar{height:14px;border-radius:10px;background:#1b2027;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)}
+  .bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--grad1),var(--grad2),var(--gradHot));transition:width .25s ease}
+  .status{display:flex;justify-content:space-between;align-items:center;margin:8px 4px 0;color:var(--muted);font-size:16px}
+  .dash{display:grid;grid-template-columns:repeat(4,minmax(140px,1fr));gap:14px;margin:8px 0 18px}
+  @media(max-width:760px){.dash{grid-template-columns:repeat(2,1fr)}}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:20px}
+  .sheet{max-width:720px;width:100%;background:#12151b;border-radius:22px;padding:20px;box-shadow:var(--shadow)}
+  pre{white-space:pre-wrap;word-break:break-word;font:600 15px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#d7e1ff;background:#0b0d11;padding:14px;border-radius:14px;max-height:60vh;overflow:auto}
+  .hide{display:none!important}
 </style>
 </head>
 <body>
-  <div class="container" id="app">
-    <div class="kpis">
-      <div class="kpi"><div class="lbl">BUILD</div><div class="val" id="kvBuild">oauth-1.0</div></div>
-      <div class="kpi"><div class="lbl">SHOWN</div><div class="val" id="kvShown">0</div></div>
-      <div class="kpi"><div class="lbl">POOL</div><div class="val" id="kvPool">0</div></div>
-      <div class="kpi"><div class="lbl">TOTAL</div><div class="val" id="kvTotal">0</div></div>
-    </div>
+<div class="wrap">
 
-    <div class="progress" aria-label="progress"><i id="bar" style="width:0%"></i></div>
-    <div class="row" style="justify-content:space-between">
-      <div class="subtle" id="stage">Ready</div>
-      <div class="subtle" id="phase"></div>
-    </div>
-
-    <div class="pills">
-      <button class="btn" id="btnHome">Home</button>
-      <button class="btn" id="btnLikes">⭐ Likes <span id="likeCount" class="badge">0</span></button>
-      <button class="btn primary pill" id="btnNew">New batch</button>
-      <button class="btn" id="btnShuffle">Shuffle feed</button>
-      <button class="btn" id="btnMore">Load more</button>
-      <button class="btn" id="btnTrouble">Troubleshoot</button>
-    </div>
-
-    <div class="row"><span class="badge">r/celebs + selected subs</span></div>
-
-    <div id="cards" class="grid" style="margin-top:18px"></div>
-    <div class="center" style="margin:22px 0 10px"><button class="btn" id="btnBottomMore">Load more</button></div>
-    <div class="footerpad"></div>
+  <!-- top counters -->
+  <div class="dash">
+    <div class="pill"><div>BUILD</div><div class="big" id="build">v2.9-oauth</div></div>
+    <div class="pill"><div>SHOWN</div><div class="big" id="shown">0</div></div>
+    <div class="pill"><div>POOL</div><div class="big" id="pool">0</div></div>
+    <div class="pill"><div>TOTAL</div><div class="big" id="total">0</div></div>
   </div>
 
-  <!-- Troubleshoot modal -->
-  <div class="modal" id="modal">
-    <div class="sheet">
-      <div class="hd">
-        <div class="btn" style="pointer-events:none">Troubleshoot</div>
-        <button class="btn primary" id="closeModal">Close</button>
-      </div>
-      <pre id="log"></pre>
-    </div>
+  <!-- progress -->
+  <div class="bar"><i id="bar"></i></div>
+  <div class="status"><span id="phase">Ready</span><span id="percent">0%</span></div>
+
+  <!-- controls -->
+  <div class="row" style="margin:18px 0 8px">
+    <button class="btn" id="btnHome">Home</button>
+    <button class="btn glass" id="btnLikes">⭐ Likes <span id="likeCount" class="muted">0</span></button>
+    <button class="btn grad" id="btnBatch">New batch</button>
+    <button class="btn glass" id="btnShuffle">Shuffle feed</button>
+    <button class="btn" id="btnMore">Load more</button>
+    <button class="btn" id="btnAuth">Connect Reddit</button>
+    <button class="btn" id="btnTrouble">Troubleshoot</button>
   </div>
 
-<script>
-/* ========================== CONFIG — EDIT THESE 4 LINES ========================== */
-const CONFIG = {
-  clientId: "-ZjCpRiT6UPJVawJqRU_9g",
-  clientSecret: "tQ7eSkZI5J5Ocpct2_wfHkzIyVevPQ",
-  username: "charlessmainville@gmail.com",
-  password: "528491Csm",
+  <!-- cards -->
+  <section id="cards" class="grid"></section>
+</div>
 
-  subs: ["Celebs","BeautifulCelebrities","celebrityhotties"],
-  names: [
-    "Alexandra Daddario","Hailee Steinfeld","Kendall Jenner","Irina Shayk",
-    "Vanessa Hudgens","Sydney Sweeney","Madison Beer","Ana de Armas",
-    "Emma Watson","Gal Gadot","Emily Ratajkowski","Sabrina Carpenter"
-  ],
-  perSub: 25,
-  perName: 10,
-  cardBatch: 18
-};
-/* ================================================================================
-WARNING: This file embeds credentials client-side. Keep your repo private.
-================================================================================ */
-</script>
+<!-- modal -->
+<div id="modal" class="modal">
+  <div class="sheet">
+    <div class="row" style="justify-content:space-between;margin-bottom:8px">
+      <div class="pill">Troubleshoot</div>
+      <button class="btn grad" id="btnClose">Close</button>
+    </div>
+    <pre id="log"></pre>
+  </div>
+</div>
 
 <script>
-/* ========================== APP (UI + OAuth + Logic) ========================== */
-(() => {
-  // ---- state & helpers
-  let token=null, expAt=0;
-  const UA = "CelebWall/1.0 (by u/" + CONFIG.username + ")";
-  let pool=[], shown=0, likes=loadSet("cw_likes_v1"), hides=loadSet("cw_hides_v1");
-  let building=false, inLikes=false;
+/* ====== CONFIG — edit these ====== */
+const REDDIT_CLIENT_ID = "-ZjCpRiT6UPJVawJqRU_9g"; // <-- paste your client id
+// The redirect URI must exactly match what you set in your Reddit app.
+// By default we use the current page URL:
+const REDIRECT_URI = location.origin + location.pathname;
 
-  const $ = s => document.querySelector(s);
-  const ui = {
-    cards: $("#cards"), bar: $("#bar"), stage: $("#stage"), phase: $("#phase"),
-    kvShown: $("#kvShown"), kvPool: $("#kvPool"), kvTotal: $("#kvTotal"), likeCount: $("#likeCount"),
-    log: $("#log"), modal: $("#modal")
-  };
-  const sleep = ms => new Promise(r=>setTimeout(r,ms));
-  const isMedia = u => /\.(jpg|jpeg|png|gif|gifv|webp|mp4|webm)$/i.test(u||"");
-  function loadSet(key){ try{ return new Set(JSON.parse(localStorage.getItem(key)||"[]")); }catch{ return new Set(); } }
-  function saveSet(key,set){ localStorage.setItem(key, JSON.stringify([...set])); }
-  function setStage(x){ ui.stage.textContent=x; }
-  function setPhase(x){ ui.phase.textContent=x; }
-  function setProgress(p){ ui.bar.style.width = `${Math.max(0,Math.min(100,p))}%`; }
-  function log(line){ ui.log.textContent = `[${new Date().toLocaleTimeString()}] ${line}\n` + ui.log.textContent; }
-  function kpis(){ ui.kvShown.textContent=shown; ui.kvPool.textContent=pool.length; ui.kvTotal.textContent=shown+pool.length; ui.likeCount.textContent=likes.size; }
+// Subreddits to search
+const SUBS = [
+  "Celebs","BeautifulCelebrities","celebrityhotties",
+  "celebrities","celeblegs","LadiesOfWrestling"
+];
 
-  // ---- oauth
-  async function getToken(){
-    const now = Date.now();
-    if (token && now < expAt - 10000) return token;
-    setStage("Authorizing…"); setProgress(6);
-    const auth = btoa(`${CONFIG.clientId}:${CONFIG.clientSecret}`);
-    const res = await fetch("https://www.reddit.com/api/v1/access_token", {
-      method:"POST",
-      headers:{
-        "Authorization":`Basic ${auth}`,
-        "Content-Type":"application/x-www-form-urlencoded",
-        "User-Agent":UA
-      },
-      body:new URLSearchParams({
-        grant_type:"password",
-        username:CONFIG.username,
-        password:CONFIG.password
-      })
-    });
-    if(!res.ok){ const t=await res.text(); throw new Error(`Token ${res.status}: ${t}`); }
-    const j=await res.json();
-    token=j.access_token; expAt=Date.now()+(j.expires_in||3600)*1000;
+// Initial list of names (you can add more)
+const NAMES = [
+  "Alexandra Daddario","Ana de Armas","Dua Lipa","Hailee Steinfeld",
+  "Hailey Bieber","Madison Beer","Megan Fox","Sydney Sweeney",
+  "Selena Gomez","Sabrina Carpenter","Emilia Clarke","Gal Gadot",
+  "Taylor Swift","Margot Robbie","Vanessa Hudgens","Olivia Rodrigo"
+];
+
+/* ====== UI helpers ====== */
+const $ = s => document.querySelector(s);
+const cards = $("#cards");
+const log = $("#log");
+const shownEl = $("#shown"), poolEl = $("#pool"), totalEl = $("#total");
+const likeCountEl = $("#likeCount");
+const phaseEl = $("#phase"), percentEl = $("#percent"), barEl = $("#bar");
+const modal = $("#modal");
+
+function setProgress(p, phase=""){ barEl.style.width = (p*100|0)+"%"; percentEl.textContent = (p*100|0)+"%"; if(phase) phaseEl.textContent = phase; }
+function say(m){ const t = new Date().toLocaleTimeString(); log.textContent = `[${t}] ${m}\n` + log.textContent; }
+function pillNum(el, n){ el.textContent = n; }
+
+/* ====== OAuth token (implicit flow) ====== */
+const TOKEN_KEY = "cw_token";
+function tokenFromHash(){
+  const h = new URLSearchParams(location.hash.replace(/^#/,""));
+  if (h.get("access_token")){
+    const token = h.get("access_token");
+    const expires = Date.now() + (parseInt(h.get("expires_in")||"3600",10)*1000);
+    localStorage.setItem(TOKEN_KEY, JSON.stringify({token,expires}));
+    // clean hash
+    history.replaceState({}, document.title, location.pathname + location.search);
     return token;
   }
-  async function oauthJSON(path, params={}){
-    const t = await getToken();
-    const url = new URL(/^https?:/.test(path)?path:`https://oauth.reddit.com${path}`);
-    Object.entries(params).forEach(([k,v])=> (v!==undefined&&v!==null) && url.searchParams.set(k,String(v)));
-    const res = await fetch(url, { headers:{ "Authorization":`Bearer ${t}`, "User-Agent":UA }});
-    if(res.status===401){ token=null; return oauthJSON(path, params); }
-    if(!res.ok){ const txt=await res.text(); throw new Error(`API ${res.status}: ${txt.slice(0,140)}`); }
-    return res.json();
-  }
+  return null;
+}
+function getStoredToken(){
+  const raw = localStorage.getItem(TOKEN_KEY);
+  if(!raw) return null;
+  try{
+    const o = JSON.parse(raw);
+    if(o.expires && o.expires> Date.now()+5000) return o.token;
+  }catch{}
+  return null;
+}
+function authUrl(){
+  const params = new URLSearchParams({
+    client_id: REDDIT_CLIENT_ID,
+    response_type: "token",
+    state: (Math.random().toString(36).slice(2)),
+    redirect_uri: REDIRECT_URI,
+    duration: "temporary",
+    scope: "read"
+  });
+  return `https://www.reddit.com/api/v1/authorize.compact?${params}`;
+}
+let ACCESS_TOKEN = tokenFromHash() || getStoredToken();
 
-  // ---- collectors
-  async function fromSubs(subs, perSub, onProgress){
-    const out=[];
-    for(const s of subs){
-      try{
-        onProgress?.(`Fetching /r/${s}…`); log(`→ /r/${s}`);
-        const j=await oauthJSON(`/r/${s}/new.json`, {limit:perSub, include_over_18:"on"});
-        (j?.data?.children||[]).forEach(c=>{
-          const d=c.data||{}; const url=d.url_overridden_by_dest||d.url||"";
-          if(isMedia(url)&&!hides.has(d.id)){ out.push(pack(d,url)); }
-        });
-        await sleep(350);
-      }catch(e){ log(`× /r/${s}: ${e.message}`); await sleep(800); }
-    }
-    return out;
-  }
-  async function byNames(names, perName, onProgress){
-    const out=[];
-    for(const name of names){
-      try{
-        onProgress?.(`Searching ${name}…`); log(`→ search r/celebs: ${name}`);
-        const j=await oauthJSON(`/r/celebs/search.json`, { q:name, restrict_sr:1, sort:"new", limit:perName, include_over_18:"on" });
-        (j?.data?.children||[]).forEach(c=>{
-          const d=c.data||{}; const url=d.url_overridden_by_dest||d.url||"";
-          if(isMedia(url)&&!hides.has(d.id)){ out.push(pack(d,url,name)); }
-        });
-        await sleep(350);
-      }catch(e){ log(`× ${name}: ${e.message}`); await sleep(800); }
-    }
-    return out;
-  }
-  function pack(d,url,forcedName=null){
-    return {
-      id:d.id, title:d.title, name: forcedName || extractName(d.title),
-      sub:d.subreddit_name_prefixed, url, perma:"https://reddit.com"+d.permalink
-    };
-  }
-  function extractName(t){
-    const s=String(t||""); const dash=s.split(" - ")[0]; const par=s.split("(")[0];
-    const base=(dash.length<par.length?dash:par).trim(); return (base||s).split(/\s+/).slice(0,3).join(" ");
-  }
+/* ====== Data + feed ====== */
+let pool = [];      // queued items not shown yet
+let shown = 0;      // shown count
+let likes = JSON.parse(localStorage.getItem("cw_likes")||"[]");
 
-  // ---- build batch
-  async function newBatch(){
-    if(building) return;
-    building=true; pool=[]; shown=0; ui.cards.innerHTML=""; kpis();
+function saveLikes(){ localStorage.setItem("cw_likes", JSON.stringify(likes)); likeCountEl.textContent = likes.length; }
+saveLikes();
+
+function buildCard(item){
+  const card = document.createElement("article");
+  card.className = "card";
+  card.innerHTML = `
+    <img class="media" src="${item.url}" alt="${item.title}">
+    <div class="nameTag">${item.person||"Unknown"}</div>
+    <div class="srcTag">r/${item.sub} • ${item.score}↑</div>
+    <div style="display:flex;gap:12px;position:absolute;bottom:14px;right:14px">
+      <button class="btn bad" data-act="dislike">Dismiss</button>
+      <button class="btn ok" data-act="like">Like</button>
+    </div>
+  `;
+  card.addEventListener("click", (e)=>{
+    const act = e.target?.dataset?.act;
+    if(!act) return;
+    if(act==="like"){ likes.push(item); saveLikes(); card.remove(); }
+    else { card.remove(); }
+  });
+  return card;
+}
+
+function renderNext(n=6){
+  let added=0;
+  while(pool.length && added<n){
+    const it = pool.shift();
+    cards.appendChild(buildCard(it));
+    added++; shown++;
+  }
+  pillNum(poolEl, pool.length); pillNum(shownEl, shown); pillNum(totalEl, shown + pool.length);
+}
+
+async function api(path){
+  if(!ACCESS_TOKEN) throw new Error("No token");
+  const res = await fetch(`https://oauth.reddit.com${path}`, {
+    headers:{
+      "Authorization": `Bearer ${ACCESS_TOKEN}`,
+      "User-Agent": "celebwall/1.0 by personal"
+    }
+  });
+  if(!res.ok){
+    const t = await res.text();
+    throw new Error(`HTTP ${res.status}: ${t.slice(0,160)}`);
+  }
+  return res.json();
+}
+
+function extractItems(json, person, sub){
+  const out=[];
+  const list = json?.data?.children || [];
+  for(const ch of list){
+    const d=ch.data;
+    if(!d) continue;
+    // media filters: images & gifs
+    const isImg = /\.(jpg|jpeg|png|gif)$/i.test(d.url_overridden_by_dest||"") || (d.post_hint==="image");
+    if(!isImg) continue;
+    out.push({
+      id:d.id, url:(d.url_overridden_by_dest||d.url), title:d.title, score:d.ups||0,
+      sub: d.subreddit, person
+    });
+  }
+  return out;
+}
+
+async function fetchForPerson(person){
+  // try each sub with a search query limited to that sub
+  const batch=[];
+  for(const sub of SUBS){
     try{
-      setStage("Building batch…"); setPhase(""); setProgress(10);
-      await getToken();
-      setProgress(14);
-      const [a,b]=await Promise.all([
-        fromSubs(CONFIG.subs, CONFIG.perSub, m=>setPhase(m)),
-        byNames(CONFIG.names, CONFIG.perName, m=>setPhase(m))
-      ]);
-      const seen=new Set(); pool=[...a,...b].filter(x=>!seen.has(x.id)&&seen.add(x.id));
-      setProgress(100); setPhase("Ready"); kpis(); log(`Batch ready: ${pool.length}`);
-      loadMore();
-    }catch(e){
-      setStage("Error"); setPhase(e.message); log(`ERROR: ${e.stack||e.message}`);
-    }finally{ building=false; }
-  }
-
-  // ---- render
-  function loadMore(){
-    setStage("Rendering…");
-    const take=pool.splice(0, CONFIG.cardBatch);
-    for(const it of take){ ui.cards.appendChild(renderCard(it)); }
-    shown+=take.length; kpis(); setStage("Ready");
-  }
-  function renderCard(it){
-    const card = document.createElement("div"); card.className="card"; card.id=`c_${it.id}`;
-    const nm = document.createElement("div"); nm.className="name"; nm.textContent = it.name || "—";
-    const m = media(it.url);
-    const bar = document.createElement("div"); bar.className="bar";
-    const bDis = button("Dismiss","red"); const bOpen = link(it.perma, it.sub||"Reddit"); const bLike = button("Like","teal");
-    bDis.onclick=()=>dismiss(it, card); bLike.onclick=()=>like(it, card);
-    bar.append(bDis,bOpen,bLike); card.append(nm,m,bar); return card;
-  }
-  function media(url){
-    if(/\.(mp4|webm)$/i.test(url)){ const v=document.createElement("video");
-      v.src=url; v.controls=true; v.muted=true; v.playsInline=true; v.loop=true;
-      v.addEventListener("mouseenter",()=>v.play()); return v;
+      const q = encodeURIComponent(person);
+      const json = await api(`/r/${sub}/search.json?q=${q}&restrict_sr=1&sort=top&limit=10&raw_json=1`);
+      const items = extractItems(json, person, sub);
+      say(`+ ${person} • r/${sub}: ${items.length}`);
+      batch.push(...items);
+      setProgress(Math.min(0.95, (shown + pool.length) / 60), `Searching ${person}`);
+      if(batch.length>12) break;
+    }catch(err){
+      say(`× r/${sub} (${person}): ${err.message}`);
     }
-    const img=document.createElement("img"); img.loading="lazy"; img.src=url; img.alt=""; return img;
   }
-  function button(txt, kind){ const b=document.createElement("button"); b.className=`btn ${kind||""}`; b.textContent = txt; return b; }
-  function link(href, txt){ const a=document.createElement("a"); a.className="btn"; a.href=href; a.target="_blank"; a.textContent=txt; return a; }
-  function like(it, card){ likes.add(it.id); saveSet("cw_likes_v1",likes); ui.likeCount.textContent=likes.size; card.remove(); }
-  function dismiss(it, card){ hides.add(it.id); saveSet("cw_hides_v1",hides); card.remove(); }
-  function shuffleFeed(){
-    if(inLikes) return;
-    for(let i=pool.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
-    setStage("Shuffled");
-  }
-  function showLikes(){
-    inLikes=true;
-    const ids=[...likes]; if(!ids.length){ setStage("No likes yet"); return; }
-    const all=[...document.querySelectorAll(".card")];
-    const liked = all.filter(n=>likes.has(n.id.replace("c_","")));
-    ui.cards.innerHTML=""; liked.forEach(n=>ui.cards.appendChild(n.cloneNode(true)));
-    setStage("Showing likes");
-  }
+  return batch;
+}
 
-  // ---- wire buttons
-  $("#btnTrouble").onclick=()=>ui.modal.classList.add("open");
-  $("#closeModal").onclick=()=>ui.modal.classList.remove("open");
-  $("#btnBottomMore").onclick = $("#btnMore").onclick = ()=>loadMore();
-  $("#btnShuffle").onclick=()=>shuffleFeed();
-  $("#btnHome").onclick=()=>{ inLikes=false; shown=0; ui.cards.innerHTML=""; kpis(); loadMore(); };
-  $("#btnLikes").onclick=()=>showLikes();
-  $("#btnNew").onclick=()=>newBatch();
+async function buildBatch(maxPeople=8){
+  if(!ACCESS_TOKEN){ say("No token. Tap Connect Reddit."); return; }
+  setProgress(0.05,"Starting…");
+  const names = [...NAMES].sort(()=>Math.random()-.5).slice(0,maxPeople);
+  const collected=[];
+  for(const name of names){
+    const got = await fetchForPerson(name);
+    collected.push(...got);
+    await new Promise(r=>setTimeout(r,200)); // polite
+  }
+  // de-dup by url
+  const seen=new Set();
+  pool = collected.filter(it=>{ if(seen.has(it.url)) return false; seen.add(it.url); return true; });
+  pillNum(poolEl, pool.length); pillNum(totalEl, shown + pool.length);
+  say(`Batch ready: +${pool.length}`);
+  setProgress(1,"Ready");
+  renderNext(8);
+}
 
-  // ---- boot
-  kpis(); setStage("Ready");
-  newBatch(); // auto-load on first visit
-})();
+/* ====== wire up UI ====== */
+$("#btnBatch").onclick = ()=> buildBatch();
+$("#btnMore").onclick = ()=> renderNext(8);
+$("#btnShuffle").onclick = ()=> { pool.sort(()=>Math.random()-.5); say("Shuffled feed"); };
+$("#btnHome").onclick = ()=> { cards.innerHTML=""; pool.length=0; shown=0; pillNum(shownEl,0); pillNum(poolEl,0); pillNum(totalEl,0); say("Cleared feed"); };
+$("#btnTrouble").onclick = ()=> modal.style.display="flex";
+$("#btnClose").onclick = ()=> modal.style.display="none";
+$("#btnLikes").onclick = ()=>{
+  cards.innerHTML="";
+  if(!likes.length){ say("No likes yet"); return; }
+  for(const it of likes.slice().reverse()) cards.appendChild(buildCard(it));
+  pillNum(shownEl,0); pillNum(poolEl,likes.length); pillNum(totalEl,likes.length);
+  say("Showing likes");
+};
+$("#btnAuth").onclick = ()=>{
+  const url = authUrl();
+  location.href = url;
+};
+
+/* ====== startup ====== */
+window.addEventListener("load", ()=>{
+  if(ACCESS_TOKEN){ $("#btnAuth").textContent="Connected ✓"; say("OAuth token ready"); }
+  else { say("Tap Connect Reddit to authorize"); }
+  setProgress(1,"Ready");
+});
 </script>
 </body>
 </html>
