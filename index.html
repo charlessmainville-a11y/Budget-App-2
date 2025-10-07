@@ -3,229 +3,287 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Celeb Wall v2.8.2-stable</title>
+<title>CelebWall — OAuth Build</title>
 <style>
-  :root{
-    --bg:#0d0e11;--card:rgba(255,255,255,.06);--pill:rgba(255,255,255,.08);
-    --glass:blur(10px);--txt:#e9ecf1;--muted:#9aa3ad;
-    --grad:linear-gradient(135deg,#c4a3ff 0%,#a785ff 40%,#ff9fd3 100%);
-    --bar:linear-gradient(90deg,#ff7fb0,#8fdcff);
-  }
-  html,body{height:100%}
-  body{margin:0;background:radial-gradient(1200px 900px at 50% -200px,#171926 0%,#0e1016 38%,#0b0c10 100%) fixed;color:var(--txt);font:600 18px/1.3 system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial}
-  .wrap{max-width:860px;margin:0 auto;padding:20px}
-  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-  .pill{padding:16px 14px;border-radius:18px;background:var(--pill);backdrop-filter:var(--glass);text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.25)}
-  .k{display:block;font-size:15px;letter-spacing:.08em;color:var(--muted)}
-  .v{display:block;font-size:34px;margin-top:6px}
-  .progress{margin:16px 6px 6px;height:10px;border-radius:8px;background:rgba(255,255,255,.08);overflow:hidden}
-  .bar{width:0;height:100%;background:var(--bar);transition:width .25s ease}
-  .status{display:flex;justify-content:space-between;color:var(--muted);font-weight:700;margin:0 6px 16px}
-  .btns{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
-  button{all:unset;text-align:center;cursor:pointer;padding:16px;border-radius:18px;background:var(--pill);backdrop-filter:var(--glass);box-shadow:0 10px 30px rgba(0,0,0,.25)}
-  .primary{background:var(--grad);color:#101014;text-shadow:0 1px 0 rgba(255,255,255,.25);font-weight:800}
-  #cards{display:grid;gap:16px;margin-top:18px}
-  .card{background:var(--card);border-radius:18px;overflow:hidden;backdrop-filter:var(--glass);box-shadow:0 18px 40px rgba(0,0,0,.35)}
-  .card img{width:100%;display:block}
-  .meta{display:flex;justify-content:space-between;gap:10px;padding:12px 14px}
-  .title{font-weight:800}
-  .src{color:var(--muted);font-weight:700}
-  /* modal */
-  .sheet{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.5)}
-  .panel{width:min(740px,92vw);max-height:70vh;overflow:auto;background:rgba(22,24,34,.96);border-radius:18px;padding:16px 16px 10px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-  .panel h3{margin:4px 0 12px;font-size:20px}
-  .close{float:right;background:var(--grad);padding:10px 16px;border-radius:14px;color:#12131a}
-  pre{white-space:pre-wrap;margin:0;font:600 14px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}
-  .muted{color:var(--muted)}
-  a,button:focus{outline:none}
+:root{--bg:#0d0f12;--glass:#171a1f;--ink:#e9edf3;--muted:#b9c0cc;--pill:#1f232b;
+--glow1:#b39df7;--glow2:#7fe7e2;--teal:#43d6c7;--red:#ff6978;--chip:#111419}
+*{box-sizing:border-box} html,body{margin:0;background:radial-gradient(1200px 400px at 20% 0%,#171a1f,transparent),
+radial-gradient(1200px 400px at 80% -10%,#171a1f,transparent),var(--bg);color:var(--ink);font:400 16px/1.4 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto}
+.container{max-width:860px;margin:24px auto;padding:0 16px}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+@media (max-width:760px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.card{position:relative;background:rgba(255,255,255,0.04);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.07);
+border-radius:18px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.35)}
+.card .name{position:absolute;left:12px;top:12px;padding:6px 10px;border-radius:12px;background:rgba(0,0,0,.45);
+border:1px solid rgba(255,255,255,0.08);font-weight:700;letter-spacing:.2px}
+.card img,.card video{width:100%;display:block;background:#0c0e12;min-height:220px;object-fit:cover}
+.card video{outline:none}
+.card .bar{display:flex;gap:10px;padding:12px;background:linear-gradient( to right, rgba(255,255,255,.06), rgba(255,255,255,.03));align-items:center;justify-content:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:56px;padding:0 22px;border-radius:18px;border:1px solid rgba(255,255,255,0.08);
+background:rgba(255,255,255,.05);backdrop-filter:blur(8px);color:var(--ink);font-weight:800;letter-spacing:.3px;cursor:pointer;transition:transform .06s ease,opacity .2s}
+.btn:active{transform:translateY(1px)} .btn.pill{height:64px;font-size:22px}
+.btn.primary{background:linear-gradient(120deg,var(--glow1),var(--glow2));color:#101216;border:0}
+.btn.teal{background:linear-gradient(120deg,#7ef5e7,#43d6c7);color:#081312;border:0}
+.btn.red{background:linear-gradient(120deg,#ff8ea0,#ff6978);color:#1a0e11;border:0}
+.pills{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}
+@media (min-width:720px){.pills{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:14px}
+.kpi{background:var(--pill);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:14px 14px 10px}
+.kpi .lbl{color:var(--muted);font-weight:700} .kpi .val{font-size:34px;font-weight:900;margin-top:6px}
+.progress{height:12px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden;border:1px solid rgba(255,255,255,.08)}
+.progress > i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--glow1),var(--glow2));transition:width .2s ease}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:14px 0 4px}
+.subtle{color:var(--muted)}
+.center{display:flex;justify-content:center}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:14px;background:var(--chip);border:1px solid rgba(255,255,255,.08)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:20}
+.modal.open{display:flex} .sheet{width:min(860px,96vw);max-height:78vh;overflow:auto;background:var(--glass);border:1px solid rgba(255,255,255,.08);
+border-radius:22px;box-shadow:0 30px 70px rgba(0,0,0,.5);padding:16px}
+.sheet .hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.sheet pre{white-space:pre-wrap;font:500 14px/1.5 ui-monospace,Menlo,Consolas,monospace}
+.footerpad{height:28px}
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="grid">
-      <div class="pill"><span class="k">BUILD</span><span class="v" id="build">v2.8.2-stable</span></div>
-      <div class="pill"><span class="k">SHOWN</span><span class="v" id="shown">0</span></div>
-      <div class="pill"><span class="k">POOL</span><span class="v" id="pool">0</span></div>
-      <div class="pill"><span class="k">TOTAL</span><span class="v" id="total">0</span></div>
+  <div class="container" id="app">
+    <div class="kpis">
+      <div class="kpi"><div class="lbl">BUILD</div><div class="val" id="kvBuild">oauth-1.0</div></div>
+      <div class="kpi"><div class="lbl">SHOWN</div><div class="val" id="kvShown">0</div></div>
+      <div class="kpi"><div class="lbl">POOL</div><div class="val" id="kvPool">0</div></div>
+      <div class="kpi"><div class="lbl">TOTAL</div><div class="val" id="kvTotal">0</div></div>
     </div>
 
-    <div class="progress"><div class="bar" id="bar"></div></div>
-    <div class="status"><span id="phase" class="muted">Ready</span><span id="pct" class="muted">100%</span></div>
-
-    <div class="btns" style="margin-bottom:14px">
-      <button onclick="home()">Home</button>
-      <button onclick="showLikes()">⭐ Likes <span id="likesCount">0</span></button>
-      <button class="primary" onclick="newBatch()">New batch</button>
-      <button onclick="shuffleFeed()">Shuffle feed</button>
-      <button onclick="showMore()">Load more</button>
-      <button onclick="toggleTroubleshoot()">Troubleshoot</button>
+    <div class="progress" aria-label="progress"><i id="bar" style="width:0%"></i></div>
+    <div class="row" style="justify-content:space-between">
+      <div class="subtle" id="stage">Ready</div>
+      <div class="subtle" id="phase"></div>
     </div>
 
-    <div id="cards"></div>
+    <div class="pills">
+      <button class="btn" id="btnHome">Home</button>
+      <button class="btn" id="btnLikes">⭐ Likes <span id="likeCount" class="badge">0</span></button>
+      <button class="btn primary pill" id="btnNew">New batch</button>
+      <button class="btn" id="btnShuffle">Shuffle feed</button>
+      <button class="btn" id="btnMore">Load more</button>
+      <button class="btn" id="btnTrouble">Troubleshoot</button>
+    </div>
+
+    <div class="row"><span class="badge">r/celebs + selected subs</span></div>
+
+    <div id="cards" class="grid" style="margin-top:18px"></div>
+    <div class="center" style="margin:22px 0 10px"><button class="btn" id="btnBottomMore">Load more</button></div>
+    <div class="footerpad"></div>
   </div>
 
-  <!-- Troubleshoot -->
-  <div id="sheet" class="sheet" onclick="if(event.target.id==='sheet')toggleTroubleshoot()">
-    <div class="panel">
-      <button class="close" onclick="toggleTroubleshoot()">Close</button>
-      <h3>Troubleshoot</h3>
+  <!-- Troubleshoot modal -->
+  <div class="modal" id="modal">
+    <div class="sheet">
+      <div class="hd">
+        <div class="btn" style="pointer-events:none">Troubleshoot</div>
+        <button class="btn primary" id="closeModal">Close</button>
+      </div>
       <pre id="log"></pre>
     </div>
   </div>
 
 <script>
-/* ====== state ====== */
-const el = (id)=>document.getElementById(id);
-const logEl = el('log'), bar = el('bar'), phase = el('phase'), pct = el('pct');
-const subs = [
-  "Celebs","BeautifulCelebrities","celebrityhotties","TheCelebArchive","Models",
-  "CelebrityArmpits","celebritylegs","Celebhotties","celebritybellies"
-];
+/* ========================== CONFIG — EDIT THESE 4 LINES ========================== */
+const CONFIG = {
+  clientId: "-ZjCpRiT6UPJVawJqRU_9g",
+  clientSecret: "tQ7eSkZI5J5Ocpct2_wfHkzIyVevPQ",
+  username: "charlessmainville@gmail.com",
+  password: "528491Csm",
 
-let pool=[], shown=0, likes=[];
+  subs: ["Celebs","BeautifulCelebrities","celebrityhotties"],
+  names: [
+    "Alexandra Daddario","Hailee Steinfeld","Kendall Jenner","Irina Shayk",
+    "Vanessa Hudgens","Sydney Sweeney","Madison Beer","Ana de Armas",
+    "Emma Watson","Gal Gadot","Emily Ratajkowski","Sabrina Carpenter"
+  ],
+  perSub: 25,
+  perName: 10,
+  cardBatch: 18
+};
+/* ================================================================================
+WARNING: This file embeds credentials client-side. Keep your repo private.
+================================================================================ */
+</script>
 
-/* ====== ui helpers ====== */
-function setProgress(v, pText){ bar.style.width = v+"%"; pct.textContent = Math.round(v)+"%"; if(pText) phase.textContent=pText; }
-function say(s){ const t=`[${new Date().toLocaleTimeString()}] ${s}\n`; logEl.textContent+=t; logEl.scrollTop=logEl.scrollHeight; }
-function toggleTroubleshoot(){ const s=el('sheet'); s.style.display = (s.style.display==='grid'?'none':'grid'); if(s.style.display!=='none') s.style.display='grid'; }
-function counters(){ el('pool').textContent = pool.length; el('total').textContent = pool.length; el('shown').textContent = shown; el('likesCount').textContent = likes.length; }
+<script>
+/* ========================== APP (UI + OAuth + Logic) ========================== */
+(() => {
+  // ---- state & helpers
+  let token=null, expAt=0;
+  const UA = "CelebWall/1.0 (by u/" + CONFIG.username + ")";
+  let pool=[], shown=0, likes=loadSet("cw_likes_v1"), hides=loadSet("cw_hides_v1");
+  let building=false, inLikes=false;
 
-/* ====== robust fetch chain ======
-   We try 3 CORS routes × 2 hosts with exponential backoff and content sniffing.
-*/
-const routes = [
-  (path)=>`https://r.jina.ai/http://www.reddit.com${path}`,
-  (path)=>`https://r.jina.ai/http://old.reddit.com${path}`,
-  (path)=>`https://cors.isomorphic-git.org/https://www.reddit.com${path}`
-];
+  const $ = s => document.querySelector(s);
+  const ui = {
+    cards: $("#cards"), bar: $("#bar"), stage: $("#stage"), phase: $("#phase"),
+    kvShown: $("#kvShown"), kvPool: $("#kvPool"), kvTotal: $("#kvTotal"), likeCount: $("#likeCount"),
+    log: $("#log"), modal: $("#modal")
+  };
+  const sleep = ms => new Promise(r=>setTimeout(r,ms));
+  const isMedia = u => /\.(jpg|jpeg|png|gif|gifv|webp|mp4|webm)$/i.test(u||"");
+  function loadSet(key){ try{ return new Set(JSON.parse(localStorage.getItem(key)||"[]")); }catch{ return new Set(); } }
+  function saveSet(key,set){ localStorage.setItem(key, JSON.stringify([...set])); }
+  function setStage(x){ ui.stage.textContent=x; }
+  function setPhase(x){ ui.phase.textContent=x; }
+  function setProgress(p){ ui.bar.style.width = `${Math.max(0,Math.min(100,p))}%`; }
+  function log(line){ ui.log.textContent = `[${new Date().toLocaleTimeString()}] ${line}\n` + ui.log.textContent; }
+  function kpis(){ ui.kvShown.textContent=shown; ui.kvPool.textContent=pool.length; ui.kvTotal.textContent=shown+pool.length; ui.likeCount.textContent=likes.size; }
 
-async function fetchJsonWithFallback(path, label){
-  let attempt=0, delay=600;
-  for(const mk of routes){
-    attempt++;
-    const url = mk(path);
-    say(`→ Requesting ${label} via route ${attempt}: ${url}`);
-    try{
-      const r = await fetch(url, {headers:{'Accept':'application/json,text/*;q=0.9,*/*;q=0.8'}});
-      const text = await r.text();
-
-      // content sniffing: if it looks like HTML, bail on this route
-      if(/^<!doctype html>|<html|<title>/i.test(text)){
-        say(`× ${label}: got HTML (likely blocked). Trying next route…`);
-        await new Promise(res=>setTimeout(res, delay));
-        delay = Math.min(delay*1.7, 4000);
-        continue;
-      }
-
-      // sometimes r.jina.ai forwards JSON as text already valid
-      try { return JSON.parse(text); }
-      catch(parseErr){
-        // Reddit may wrap weirdly; try to salvage
-        const trimmed = text.trim();
-        if(trimmed.startsWith('{') || trimmed.startsWith('[')){
-          return JSON.parse(trimmed);
-        }
-        say(`× ${label}: JSON parse failed on this route. Next…`);
-      }
-    }catch(err){
-      say(`× ${label}: ${err}`);
-    }
-    await new Promise(res=>setTimeout(res, delay));
-    delay = Math.min(delay*1.7, 4000);
-  }
-  say(`⚠ Failed all routes for ${label}`);
-  return null;
-}
-
-/* pull posts for one subreddit */
-async function fetchSub(sub){
-  const path = `/r/${encodeURIComponent(sub)}/hot.json?limit=30&raw_json=1`;
-  const data = await fetchJsonWithFallback(path, `/r/${sub}`);
-  if(!data || !data.data || !data.data.children){ return []; }
-
-  const items = data.data.children
-    .map(c=>c.data)
-    .filter(d=>{
-      const u = (d.url_overridden_by_dest||d.url||"").toLowerCase();
-      return /(\.jpg|\.jpeg|\.png|\.gif)$/.test(u) || d.post_hint==='image';
-    })
-    .map(d=>{
-      const url = (d.url_overridden_by_dest||d.url||"");
-      return {title: d.title||'Untitled', url, sub: d.subreddit};
+  // ---- oauth
+  async function getToken(){
+    const now = Date.now();
+    if (token && now < expAt - 10000) return token;
+    setStage("Authorizing…"); setProgress(6);
+    const auth = btoa(`${CONFIG.clientId}:${CONFIG.clientSecret}`);
+    const res = await fetch("https://www.reddit.com/api/v1/access_token", {
+      method:"POST",
+      headers:{
+        "Authorization":`Basic ${auth}`,
+        "Content-Type":"application/x-www-form-urlencoded",
+        "User-Agent":UA
+      },
+      body:new URLSearchParams({
+        grant_type:"password",
+        username:CONFIG.username,
+        password:CONFIG.password
+      })
     });
-
-  say(`✓ ${sub}: +${items.length}`);
-  return items;
-}
-
-/* ====== actions ====== */
-async function newBatch(){
-  pool=[]; shown=0; el('cards').innerHTML='';
-  counters();
-
-  setProgress(8,'Requesting…');
-  say('Building new batch…');
-
-  let gathered=[];
-  let step=0;
-  for(const s of subs){
-    step++;
-    setProgress(8 + Math.min(70, step*(70/subs.length)), `Fetching /r/${s}`);
-    const got = await fetchSub(s);
-    gathered = gathered.concat(got);
+    if(!res.ok){ const t=await res.text(); throw new Error(`Token ${res.status}: ${t}`); }
+    const j=await res.json();
+    token=j.access_token; expAt=Date.now()+(j.expires_in||3600)*1000;
+    return token;
+  }
+  async function oauthJSON(path, params={}){
+    const t = await getToken();
+    const url = new URL(/^https?:/.test(path)?path:`https://oauth.reddit.com${path}`);
+    Object.entries(params).forEach(([k,v])=> (v!==undefined&&v!==null) && url.searchParams.set(k,String(v)));
+    const res = await fetch(url, { headers:{ "Authorization":`Bearer ${t}`, "User-Agent":UA }});
+    if(res.status===401){ token=null; return oauthJSON(path, params); }
+    if(!res.ok){ const txt=await res.text(); throw new Error(`API ${res.status}: ${txt.slice(0,140)}`); }
+    return res.json();
   }
 
-  // de-dup by URL
-  const seen=new Set();
-  pool = gathered.filter(p=>!seen.has(p.url) && seen.add(p.url));
-  counters();
-
-  if(pool.length===0){
-    setProgress(100,'No results — backoff 4s…');
-    await new Promise(r=>setTimeout(r, 4000));
-  }else{
-    setProgress(100,'Ready');
-    // show first few
-    for(let i=0;i<Math.min(4,pool.length);i++){ showMore(); }
+  // ---- collectors
+  async function fromSubs(subs, perSub, onProgress){
+    const out=[];
+    for(const s of subs){
+      try{
+        onProgress?.(`Fetching /r/${s}…`); log(`→ /r/${s}`);
+        const j=await oauthJSON(`/r/${s}/new.json`, {limit:perSub, include_over_18:"on"});
+        (j?.data?.children||[]).forEach(c=>{
+          const d=c.data||{}; const url=d.url_overridden_by_dest||d.url||"";
+          if(isMedia(url)&&!hides.has(d.id)){ out.push(pack(d,url)); }
+        });
+        await sleep(350);
+      }catch(e){ log(`× /r/${s}: ${e.message}`); await sleep(800); }
+    }
+    return out;
   }
-}
+  async function byNames(names, perName, onProgress){
+    const out=[];
+    for(const name of names){
+      try{
+        onProgress?.(`Searching ${name}…`); log(`→ search r/celebs: ${name}`);
+        const j=await oauthJSON(`/r/celebs/search.json`, { q:name, restrict_sr:1, sort:"new", limit:perName, include_over_18:"on" });
+        (j?.data?.children||[]).forEach(c=>{
+          const d=c.data||{}; const url=d.url_overridden_by_dest||d.url||"";
+          if(isMedia(url)&&!hides.has(d.id)){ out.push(pack(d,url,name)); }
+        });
+        await sleep(350);
+      }catch(e){ log(`× ${name}: ${e.message}`); await sleep(800); }
+    }
+    return out;
+  }
+  function pack(d,url,forcedName=null){
+    return {
+      id:d.id, title:d.title, name: forcedName || extractName(d.title),
+      sub:d.subreddit_name_prefixed, url, perma:"https://reddit.com"+d.permalink
+    };
+  }
+  function extractName(t){
+    const s=String(t||""); const dash=s.split(" - ")[0]; const par=s.split("(")[0];
+    const base=(dash.length<par.length?dash:par).trim(); return (base||s).split(/\s+/).slice(0,3).join(" ");
+  }
 
-function makeCard(item){
-  const div = document.createElement('div');
-  div.className='card';
-  div.innerHTML = `
-    <img loading="lazy" src="${item.url}" alt="">
-    <div class="meta">
-      <div class="title">${item.title}</div>
-      <div class="src">r/${item.sub}</div>
-    </div>`;
-  return div;
-}
+  // ---- build batch
+  async function newBatch(){
+    if(building) return;
+    building=true; pool=[]; shown=0; ui.cards.innerHTML=""; kpis();
+    try{
+      setStage("Building batch…"); setPhase(""); setProgress(10);
+      await getToken();
+      setProgress(14);
+      const [a,b]=await Promise.all([
+        fromSubs(CONFIG.subs, CONFIG.perSub, m=>setPhase(m)),
+        byNames(CONFIG.names, CONFIG.perName, m=>setPhase(m))
+      ]);
+      const seen=new Set(); pool=[...a,...b].filter(x=>!seen.has(x.id)&&seen.add(x.id));
+      setProgress(100); setPhase("Ready"); kpis(); log(`Batch ready: ${pool.length}`);
+      loadMore();
+    }catch(e){
+      setStage("Error"); setPhase(e.message); log(`ERROR: ${e.stack||e.message}`);
+    }finally{ building=false; }
+  }
 
-function showMore(){
-  if(!pool.length){ say('Pool empty. Tap New batch.'); return; }
-  const item = pool.shift();
-  shown++;
-  counters();
-  el('cards').prepend(makeCard(item));
-}
+  // ---- render
+  function loadMore(){
+    setStage("Rendering…");
+    const take=pool.splice(0, CONFIG.cardBatch);
+    for(const it of take){ ui.cards.appendChild(renderCard(it)); }
+    shown+=take.length; kpis(); setStage("Ready");
+  }
+  function renderCard(it){
+    const card = document.createElement("div"); card.className="card"; card.id=`c_${it.id}`;
+    const nm = document.createElement("div"); nm.className="name"; nm.textContent = it.name || "—";
+    const m = media(it.url);
+    const bar = document.createElement("div"); bar.className="bar";
+    const bDis = button("Dismiss","red"); const bOpen = link(it.perma, it.sub||"Reddit"); const bLike = button("Like","teal");
+    bDis.onclick=()=>dismiss(it, card); bLike.onclick=()=>like(it, card);
+    bar.append(bDis,bOpen,bLike); card.append(nm,m,bar); return card;
+  }
+  function media(url){
+    if(/\.(mp4|webm)$/i.test(url)){ const v=document.createElement("video");
+      v.src=url; v.controls=true; v.muted=true; v.playsInline=true; v.loop=true;
+      v.addEventListener("mouseenter",()=>v.play()); return v;
+    }
+    const img=document.createElement("img"); img.loading="lazy"; img.src=url; img.alt=""; return img;
+  }
+  function button(txt, kind){ const b=document.createElement("button"); b.className=`btn ${kind||""}`; b.textContent = txt; return b; }
+  function link(href, txt){ const a=document.createElement("a"); a.className="btn"; a.href=href; a.target="_blank"; a.textContent=txt; return a; }
+  function like(it, card){ likes.add(it.id); saveSet("cw_likes_v1",likes); ui.likeCount.textContent=likes.size; card.remove(); }
+  function dismiss(it, card){ hides.add(it.id); saveSet("cw_hides_v1",hides); card.remove(); }
+  function shuffleFeed(){
+    if(inLikes) return;
+    for(let i=pool.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
+    setStage("Shuffled");
+  }
+  function showLikes(){
+    inLikes=true;
+    const ids=[...likes]; if(!ids.length){ setStage("No likes yet"); return; }
+    const all=[...document.querySelectorAll(".card")];
+    const liked = all.filter(n=>likes.has(n.id.replace("c_","")));
+    ui.cards.innerHTML=""; liked.forEach(n=>ui.cards.appendChild(n.cloneNode(true)));
+    setStage("Showing likes");
+  }
 
-function shuffleFeed(){
-  for(let i=pool.length-1;i>0;i--){ const j=(Math.random()* (i+1))|0; [pool[i],pool[j]]=[pool[j],pool[i]]; }
-  say('Shuffled feed');
-}
+  // ---- wire buttons
+  $("#btnTrouble").onclick=()=>ui.modal.classList.add("open");
+  $("#closeModal").onclick=()=>ui.modal.classList.remove("open");
+  $("#btnBottomMore").onclick = $("#btnMore").onclick = ()=>loadMore();
+  $("#btnShuffle").onclick=()=>shuffleFeed();
+  $("#btnHome").onclick=()=>{ inLikes=false; shown=0; ui.cards.innerHTML=""; kpis(); loadMore(); };
+  $("#btnLikes").onclick=()=>showLikes();
+  $("#btnNew").onclick=()=>newBatch();
 
-function home(){ el('cards').innerHTML=''; shown=0; counters(); }
-function showLikes(){ el('cards').innerHTML = likes.map(makeCard).map(n=>n.outerHTML).join(''); say('Showing likes'); }
-
-function toggleLike(currentImg){
-  // (hook for future UI buttons – not visible in this build)
-}
-
-function toggleTroubleshoot(){ const s=el('sheet'); s.style.display=(s.style.display==='grid'?'none':'grid'); if(s.style.display!=='none') s.style.display='grid'; }
-
-/* init */
-setProgress(100,'Ready');
+  // ---- boot
+  kpis(); setStage("Ready");
+  newBatch(); // auto-load on first visit
+})();
 </script>
 </body>
 </html>
