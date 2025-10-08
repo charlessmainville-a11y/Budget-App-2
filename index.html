@@ -74,8 +74,16 @@
   video.media{max-height:86vh;background:#0b0f15}
   .caption{padding:12px 14px;border-top:1px solid #ffffff12;background:linear-gradient(180deg,#0e1218,#0b0f15);
            color:#f3f7ff;font:900 20px/1.2 Inter,system-ui;letter-spacing:.01em;}
+
+  /* Card actions — same shape/feel as tiles */
   .actions{display:flex;gap:16px;justify-content:space-between;padding:18px;background:linear-gradient(180deg,transparent 0%,#0e1218 20%)}
-  .actions .btn{flex:1;border-radius:20px}
+  .actions .btn{
+    flex:1;
+    border-radius:22px;
+    padding:16px 18px;
+    font-size:18px;
+    box-shadow:inset 0 1px 0 #ffffff20, 0 10px 22px #00000070;
+  }
   .btn.ok{background:linear-gradient(135deg,var(--like1),var(--like2));color:#0b0f16;font-weight:900}
   .btn.no{background:linear-gradient(135deg,var(--dismiss2),var(--dismiss1));color:#0b0f16;font-weight:900}
 
@@ -87,7 +95,7 @@
   .stamp.like{left:12px;background:linear-gradient(135deg,var(--like1),var(--like2));color:#04131a}
   .stamp.no{right:12px;background:linear-gradient(135deg,var(--dismiss2),var(--dismiss1));color:#2b060b}
 
-  /* Animations used by actions */
+  /* Small effects */
   .burst{animation:burst .45s ease forwards}
   @keyframes burst{0%{transform:scale(1)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
   .fade{animation:fade .28s ease forwards}
@@ -129,7 +137,7 @@
 </head>
 <body>
 <div class="wrap">
-  <div class="bar"><div class="fill" id="bar"></div></div>
+  <!-- Status stays above, bar is moved BELOW the buttons per request -->
   <div class="status"><div id="phase">Ready</div><div id="pct">100%</div></div>
 
   <!-- Dashboard -->
@@ -146,13 +154,13 @@
   <div class="dash">
     <button class="btn tile small" id="manageSubsBtn">Subreddits</button>
     <button class="btn tile small" id="troubleBtn">Troubleshoot</button>
+    <button class="btn tile small" id="connectBtn">Connect Reddit</button>
+    <button class="btn tile small" id="clearTokBtn">Clear token</button>
+    <span class="pill" id="tokenPill" style="justify-self:start">Token: none</span>
   </div>
 
-  <div class="dash">
-    <button class="btn tile small" id="connectBtn">Connect Reddit</button>
-    <span class="pill" id="tokenPill">Token: none</span>
-    <button class="btn tiny tile" id="clearTokBtn">Clear token</button>
-  </div>
+  <!-- Progress bar moved here -->
+  <div class="bar"><div class="fill" id="bar"></div></div>
 
   <!-- Tabs indicator -->
   <div class="tabs hidden" id="pageTabs">
@@ -219,9 +227,7 @@ const _escRx = s => s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 const NAME_RX = new RegExp("\\b(" + CELEB_NAMES.map(_escRx).join("|") + ")\\b","i");
 
 /* -------------------- app config -------------------- */
-const DEFAULT_STARTER_SUBS   = ['Celebs']; // focus on /r/Celebs by default
-
-/* Added your requested subs as defaults in OPTIONAL_NSFW */
+const DEFAULT_STARTER_SUBS   = ['Celebs'];
 const DEFAULT_OPTIONAL_NSFW  = [
   'charlidameliomommy','leaeluig_nr','leaeluiginet','lea_bellybutton',
   'nsfwfashion','naked_models','Dixied_nsfw','dixiedameliofans'
@@ -229,12 +235,12 @@ const DEFAULT_OPTIONAL_NSFW  = [
 
 const saved = JSON.parse(localStorage.getItem('subs_toggle')||'{}');
 let STARTER_SUBS  = saved.starters || [...DEFAULT_STARTER_SUBS];
-let OPTIONAL_NSFW = saved.nsfw     || [...DEFAULT_OPTIONAL_NSFW];  // fixed extra bracket from earlier
+let OPTIONAL_NSFW = saved.nsfw     || [...DEFAULT_OPTIONAL_NSFW];
 
 /* Bigger fetch: 100 per page, 3 pages per sub (up to 300 each) */
 const LIMIT = 100;
 const PAGES = 3;
-const CHUNK = 30;       // how many we append per click
+const CHUNK = 30;
 const LIGHT_SHUFFLES = 2;
 
 /* ------------- state ------------- */
@@ -243,7 +249,7 @@ let likes = [];
 let discards = [];
 let currentFeed = 'home';
 let fetching = false;
-let lastErrors = []; // collect fetch errors for troubleshooting
+let lastErrors = [];
 const logEl = document.getElementById('log');
 
 /* viewed persistence */
@@ -251,12 +257,21 @@ const viewed = new Set(JSON.parse(localStorage.getItem('viewed')||'[]'));
 function markViewed(url){
   if(!url) return;
   viewed.add(url);
-  // trim to keep storage light
   if(viewed.size > 5000){
     const arr = Array.from(viewed).slice(-4000);
     viewed.clear(); arr.forEach(v=>viewed.add(v));
   }
   localStorage.setItem('viewed', JSON.stringify(Array.from(viewed)));
+}
+
+/* -------- tiny haptics helper -------- */
+function haptic(type='light'){
+  try{
+    if(!('vibrate' in navigator)) return;
+    if(type==='success') navigator.vibrate([10,40,10]);
+    else if(type==='error') navigator.vibrate([30,50,30]);
+    else navigator.vibrate(15);
+  }catch{}
 }
 
 /* ------------- helpers ------------- */
@@ -509,10 +524,9 @@ function attachSwipe(wrap, item){
       wrap.style.transition = 'transform .28s ease-out, opacity .28s ease-out';
       wrap.style.transform = `translateX(${off}px) rotate(${off>0?rotFactor:-rotFactor}deg)`;
       wrap.style.opacity = '0.2';
-      // record + remove
       setTimeout(()=>{
-        if(liked){ likes.push(item); }
-        else { discards.push(item); }
+        if(liked){ likes.push(item); haptic('success'); }
+        else { discards.push(item); haptic('error'); }
         markViewed(item.url);
         wrap.remove();
       }, 280);
@@ -533,7 +547,6 @@ function attachSwipe(wrap, item){
   wrap.addEventListener('pointermove', (e)=>{
     if(!dragging) return;
     dx = e.clientX - startX; dy = e.clientY - startY;
-    // lock mostly-horizontal drags
     if(Math.abs(dx) > Math.abs(dy)*0.7){
       setTransform(dx);
     }
@@ -569,16 +582,14 @@ function card(item){
   `;
   actions.addEventListener('click', (e)=>{
     const b = e.target.closest('button'); if(!b) return;
-    if(b.dataset.act==='ok'){ likes.push(item); wrap.classList.add('burst'); }
-    else { discards.push(item); wrap.classList.add('fade'); }
+    if(b.dataset.act==='ok'){ likes.push(item); wrap.classList.add('burst'); haptic('success'); }
+    else { discards.push(item); wrap.classList.add('fade'); haptic('error'); }
     markViewed(item.url);
     setTimeout(()=>wrap.remove(), 260);
   });
   wrap.appendChild(actions);
 
-  // enable swipe gestures
   attachSwipe(wrap, item);
-
   return wrap;
 }
 
@@ -613,7 +624,7 @@ async function newBatch(){
   for(const it of all){
     if(!it?.url) continue;
     if(seen.has(it.url)) continue;
-    if(viewed.has(it.url)) continue;      // 👈 skip viewed
+    if(viewed.has(it.url)) continue;
     seen.add(it.url);
     deduped.push(it);
   }
