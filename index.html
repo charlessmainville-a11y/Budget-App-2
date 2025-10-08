@@ -26,10 +26,42 @@
   a{color:inherit}
   .wrap{max-width:880px;margin:0 auto;padding:18px 14px 96px}
 
-  /* Progress + status */
-  .bar{height:14px;border-radius:99px;background:#ffffff10;position:relative;overflow:hidden;margin:14px 4px}
-  .bar>.fill{position:absolute;inset:0 auto 0 0;width:0%;background:linear-gradient(90deg,#a0d9ff 0%,#c8b6ff 50%,#ffb3c7 100%)}
-  .status{display:flex;justify-content:space-between;color:#b8c0cc;margin:6px 4px 14px;font-weight:800}
+  /* ---------- Glass utility ---------- */
+  .glass{
+    background:
+      linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
+    border:1px solid rgba(255,255,255,.18);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    backdrop-filter: blur(14px) saturate(140%);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.25),
+      0 10px 22px rgba(0,0,0,.55);
+  }
+  .glass-dark{
+    background:
+      linear-gradient(180deg,rgba(13,15,18,.55),rgba(13,15,18,.35)),
+      linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
+  }
+
+  /* Progress + status (glass bar below buttons) */
+  .bar{
+    height:14px;border-radius:99px;position:relative;overflow:hidden;margin:14px 4px;
+  }
+  .bar, .status, .pill{border-radius:18px}
+  .bar, .status, .pill{ /* make these glassy */
+    background: linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));
+    border:1px solid rgba(255,255,255,.18);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    backdrop-filter: blur(14px) saturate(140%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 6px 14px rgba(0,0,0,.45);
+  }
+  .bar>.fill{
+    position:absolute;inset:0 auto 0 0;width:0%;
+    background:
+      linear-gradient(90deg,#a0d9ff 0%,#c8b6ff 50%,#ffb3c7 100%);
+    box-shadow:0 8px 16px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.25);
+  }
+  .status{display:flex;justify-content:space-between;color:#d5deea;margin:6px 4px 14px;font-weight:800;padding:10px 14px}
 
   /* Dashboard (responsive grid) */
   .dash{
@@ -43,16 +75,23 @@
 
   .btn{position:relative;border:none;cursor:pointer;transform:translateZ(0);
        transition:transform .08s ease,filter .18s ease,opacity .18s ease;}
-  .btn.tile{border-radius:22px;padding:22px 24px;background:linear-gradient(180deg,#1a1f28,#12161f);
-            color:#f5f7ff;font:900 20px/1.1 Inter,system-ui;letter-spacing:.01em;
-            box-shadow:inset 0 1px 0 #ffffff15, 0 10px 22px #00000070;}
+  .btn.tile{
+    border-radius:22px;padding:22px 24px;
+    color:#f5f7ff;font:900 20px/1.1 Inter,system-ui;letter-spacing:.01em;
+  }
+  /* Glass tiles with a soft color glaze on .grad */
+  .btn.tile{background:linear-gradient(180deg,rgba(20,25,34,.6),rgba(18,22,31,.4));}
+  .btn.tile{border:1px solid rgba(255,255,255,.18);-webkit-backdrop-filter:blur(14px) saturate(140%);backdrop-filter:blur(14px) saturate(140%);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 10px 22px rgba(0,0,0,.55);}
+  .btn.tile.grad{
+    background:
+      linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03)),
+      linear-gradient(135deg, var(--tile-grad1), var(--tile-grad2));
+  }
   .btn.tile:hover{transform:translateY(-1px);filter:brightness(1.06)}
   .btn.tile:active{transform:translateY(0);filter:brightness(.96)}
-  .btn.grad{background:linear-gradient(135deg,var(--tile-grad1),var(--tile-grad2));color:#fff;
-            text-shadow:0 1px 10px #00000030;}
   .btn.small{padding:16px 18px;border-radius:18px;font-size:18px}
   .btn.tiny{padding:10px 14px;border-radius:14px;font-size:14px}
-  .pill{background:#12161e;border:1px solid #ffffff14;border-radius:18px;padding:10px 14px;color:#cbd4df}
+  .pill{padding:10px 14px;color:#e9f1ff}
 
   /* Tabs */
   .tabs{display:flex;gap:10px;justify-content:center;margin:10px 0 6px}
@@ -61,39 +100,61 @@
   /* Feed / cards */
   .feed{display:grid;gap:18px}
   .card{
-    position:relative;
-    background:linear-gradient(180deg,#141922,#0f131a);
-    border-radius:22px;overflow:hidden;
-    box-shadow:0 22px 40px #00000070,inset 0 1px 0 #ffffff12;
-    isolation:isolate;
-    touch-action:pan-y;            /* allow horizontal swipe */
-    will-change:transform;
+    position:relative;border-radius:22px;overflow:hidden;
+    isolation:isolate;touch-action:pan-y;will-change:transform;
+    background:
+      linear-gradient(180deg,rgba(20,25,34,.55),rgba(15,19,26,.40));
+    border:1px solid rgba(255,255,255,.18);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    backdrop-filter: blur(14px) saturate(140%);
+    box-shadow:0 22px 40px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.18);
   }
   .card.swiping{transition:none}
   .media{display:block;width:100%;height:auto;max-height:86vh;object-fit:cover;background:#0b0f15}
   video.media{max-height:86vh;background:#0b0f15}
-  .caption{padding:12px 14px;border-top:1px solid #ffffff12;background:linear-gradient(180deg,#0e1218,#0b0f15);
-           color:#f3f7ff;font:900 20px/1.2 Inter,system-ui;letter-spacing:.01em;}
-
-  /* Card actions — same shape/feel as tiles */
-  .actions{display:flex;gap:16px;justify-content:space-between;padding:18px;background:linear-gradient(180deg,transparent 0%,#0e1218 20%)}
-  .actions .btn{
-    flex:1;
-    border-radius:22px;
-    padding:16px 18px;
-    font-size:18px;
-    box-shadow:inset 0 1px 0 #ffffff20, 0 10px 22px #00000070;
+  .caption{
+    padding:12px 14px;border-top:1px solid rgba(255,255,255,.18);
+    background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));
+    -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%);
+    color:#f3f7ff;font:900 20px/1.2 Inter,system-ui;letter-spacing:.01em;
   }
-  .btn.ok{background:linear-gradient(135deg,var(--like1),var(--like2));color:#0b0f16;font-weight:900}
-  .btn.no{background:linear-gradient(135deg,var(--dismiss2),var(--dismiss1));color:#0b0f16;font-weight:900}
 
-  /* Swipe "stamps" */
+  /* Card actions — frosted with vibrant color under glass */
+  .actions{
+    display:flex;gap:16px;justify-content:space-between;padding:18px;
+    background:linear-gradient(180deg,transparent 0%,rgba(255,255,255,.03) 20%);
+    -webkit-backdrop-filter: blur(12px) saturate(140%); backdrop-filter: blur(12px) saturate(140%);
+  }
+  .actions .btn{
+    flex:1;border-radius:22px;padding:16px 18px;font-size:18px;
+    border:1px solid rgba(255,255,255,.18);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.25), 0 10px 22px rgba(0,0,0,.55);
+    position:relative;overflow:hidden;
+  }
+  /* color gradient + glass sheen */
+  .btn.ok{
+    color:#04131a;font-weight:900;
+    background:
+      linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03)),
+      linear-gradient(135deg,var(--like1),var(--like2));
+  }
+  .btn.no{
+    color:#2b060b;font-weight:900;
+    background:
+      linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03)),
+      linear-gradient(135deg,var(--dismiss2),var(--dismiss1));
+  }
+
+  /* Swipe "stamps" — frosted chips */
   .stamp{
     position:absolute;top:12px;padding:6px 12px;border-radius:12px;font:900 14px/1 Inter,system-ui;
-    opacity:0;transform:scale(.9);pointer-events:none;box-shadow:0 8px 18px #0006,inset 0 1px 0 #ffffff20;
+    opacity:0;transform:scale(.9);pointer-events:none;
+    border:1px solid rgba(255,255,255,.22);
+    -webkit-backdrop-filter: blur(10px) saturate(140%); backdrop-filter: blur(10px) saturate(140%);
+    box-shadow:0 8px 18px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.3);
   }
-  .stamp.like{left:12px;background:linear-gradient(135deg,var(--like1),var(--like2));color:#04131a}
-  .stamp.no{right:12px;background:linear-gradient(135deg,var(--dismiss2),var(--dismiss1));color:#2b060b}
+  .stamp.like{left:12px;background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04)),linear-gradient(135deg,var(--like1),var(--like2));color:#04131a}
+  .stamp.no{right:12px;background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04)),linear-gradient(135deg,var(--dismiss2),var(--dismiss1));color:#2b060b}
 
   /* Small effects */
   .burst{animation:burst .45s ease forwards}
@@ -101,37 +162,50 @@
   .fade{animation:fade .28s ease forwards}
   @keyframes fade{to{opacity:0;transform:translateY(10px)}}
 
-  /* Bottom loader — bigger, centered */
+  /* Bottom loader — frosted button with color gradient */
   .bottom-load{display:flex;justify-content:center;margin:22px 0 10px}
   .bottom-load .btn{
-    border-radius:22px;
-    padding:18px 22px;
-    font-size:18px;
-    width:min(460px,100%);
-    background:linear-gradient(135deg,var(--load1),var(--load2));
+    border-radius:22px;padding:18px 22px;font-size:18px;width:min(460px,100%);
+    background:
+      linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03)),
+      linear-gradient(135deg,var(--load1),var(--load2));
     color:#fff;
-    box-shadow:0 12px 26px #00000070, inset 0 1px 0 #ffffff20;
+    border:1px solid rgba(255,255,255,.18);
+    -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%);
+    box-shadow:0 12px 26px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.22);
   }
 
   /* Subreddit manager page */
   #subsPage{max-width:880px;margin:0 auto}
-  .subs-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:10px 4px 16px}
+  .subs-head{
+    display:flex;justify-content:space-between;align-items:center;gap:10px;margin:10px 4px 16px;
+    padding:10px 12px;border-radius:16px;
+    background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));
+    border:1px solid rgba(255,255,255,.18);
+    -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%);
+  }
   .subs-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   @media (min-width:640px){ .subs-grid{grid-template-columns:repeat(3,1fr)} }
   @media (min-width:820px){ .subs-grid{grid-template-columns:repeat(4,1fr)} }
   .sub-tile{
-    display:flex;align-items:center;gap:10px;
-    padding:12px;border-radius:14px;
-    background:linear-gradient(180deg,#151b22,#10151b);
-    border:1px solid #ffffff14;color:#dfe7ff;
-    box-shadow:inset 0 1px 0 #ffffff10;
+    display:flex;align-items:center;gap:10px;padding:12px;border-radius:14px;
+    background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));
+    border:1px solid rgba(255,255,255,.18);color:#dfe7ff;
+    -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.22);
   }
   .sub-tile input{accent-color:#67d0ff;width:18px;height:18px}
 
-  /* Modal (Troubleshoot) */
-  .modal{position:fixed;inset:0;display:none;place-items:center;background:#0009;z-index:50}
+  /* Modal (Troubleshoot) — glass sheet */
+  .modal{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.55);z-index:50}
   .modal.show{display:grid}
-  .sheet{width:min(920px,92vw);max-height:80vh;overflow:auto;background:#0f141a;border-radius:22px;box-shadow:0 24px 60px #000; padding:18px}
+  .sheet{
+    width:min(920px,92vw);max-height:80vh;overflow:auto;border-radius:22px;
+    background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));
+    border:1px solid rgba(255,255,255,.18);
+    -webkit-backdrop-filter: blur(16px) saturate(160%); backdrop-filter: blur(16px) saturate(160%);
+    box-shadow:0 24px 60px rgba(0,0,0,.85); padding:18px
+  }
   .log{white-space:pre-wrap;font:600 14px/1.45 ui-monospace,Menlo,Consolas,monospace;color:#d7e3f5}
 </style>
 </head>
