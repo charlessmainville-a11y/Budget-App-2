@@ -196,7 +196,13 @@ const NAME_RX = new RegExp("\\b(" + CELEB_NAMES.map(_escRx).join("|") + ")\\b","
 
 /* -------------------- app config -------------------- */
 const DEFAULT_STARTER_SUBS   = ['Celebs']; // focus on /r/Celebs by default
-const DEFAULT_OPTIONAL_NSFW  = [];         // keep empty by default; you can add in manager
+
+/* Added your requested subs as defaults in OPTIONAL_NSFW */
+const DEFAULT_OPTIONAL_NSFW  = [
+  'charlidameliomommy','leaeluig_nr','leaeluiginet','lea_bellybutton',
+  'nsfwfashion','naked_models','Dixied_nsfw','dixiedameliofans'
+];
+
 const saved = JSON.parse(localStorage.getItem('subs_toggle')||'{}');
 let STARTER_SUBS  = saved.starters || [...DEFAULT_STARTER_SUBS];
 let OPTIONAL_NSFW = saved.nsfw     || [...DEFAULT_OPTIONAL_NSFW];
@@ -230,7 +236,12 @@ function textMatchesAnyName(t){
 }
 
 /* ---------- name inference ---------- */
-const PERSON_SUBS = new Set(['LeaEluiGinet','charlidameliomommy']); // keep a couple special cases
+/* Whitelist these subs so captions infer a readable name even if sub contains "nsfw" or "fans" */
+const PERSON_SUBS = new Set([
+  'LeaEluiGinet','charlidameliomommy',
+  'leaeluig_nr','leaeluiginet','lea_bellybutton',
+  'nsfwfashion','naked_models','Dixied_nsfw','dixiedameliofans'
+]);
 const STOP_WORDS = /^(at|in|with|on|of|for|from|and|the|to|by|wearing|holding|during)\b/i;
 function humanizeSubName(sub){return sub.replace(/[_-]+/g,' ').replace(/([a-z])([A-Z])/g,'$1 $2').replace(/(\d+)/g,' $1 ').replace(/\s+/g,' ').trim().replace(/\b\w/g,m=>m.toUpperCase());}
 function guessNameFromTitle(title){
