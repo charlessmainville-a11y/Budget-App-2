@@ -31,8 +31,16 @@
   .bar>.fill{position:absolute;inset:0 auto 0 0;width:0%;background:linear-gradient(90deg,#a0d9ff 0%,#c8b6ff 50%,#ffb3c7 100%)}
   .status{display:flex;justify-content:space-between;color:#b8c0cc;margin:6px 4px 14px;font-weight:800}
 
-  /* Dashboard */
-  .dash{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin:8px 0 12px}
+  /* Dashboard (now a responsive grid) */
+  .dash{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:14px;
+    justify-items:stretch;
+    margin:8px 0 12px;
+  }
+  .dash .btn{width:100%}
+
   .btn{position:relative;border:none;cursor:pointer;transform:translateZ(0);
        transition:transform .08s ease,filter .18s ease,opacity .18s ease;}
   .btn.tile{border-radius:22px;padding:22px 24px;background:linear-gradient(180deg,#1a1f28,#12161f);
@@ -205,7 +213,7 @@ const DEFAULT_OPTIONAL_NSFW  = [
 
 const saved = JSON.parse(localStorage.getItem('subs_toggle')||'{}');
 let STARTER_SUBS  = saved.starters || [...DEFAULT_STARTER_SUBS];
-let OPTIONAL_NSFW = saved.nsfw     || [...DEFAULT_OPTIONAL_NSFW];
+let OPTIONAL_NSFW = saved.nsfw     || [...DEFAULT_OPTIONAL_NSFW]];
 
 /* Bigger fetch: 100 per page, 3 pages per sub (up to 300 each) */
 const LIMIT = 100;
@@ -412,12 +420,14 @@ function makeVideo(src, thumb, loop=false){
   v.muted = true;
   v.playsInline = true;
   v.preload = 'metadata';
-  v.loop = !!loop;
+  v.loop = !!loop;              /* loops when true */
   if(thumb) v.poster = thumb;
   v.src = src;
   v.setAttribute('controlslist','nodownload noplaybackrate noremoteplayback');
   v.setAttribute('disablepictureinpicture','');
   v.addEventListener('canplay', ()=> v.play().catch(()=>{}), {once:true});
+  /* safety: if a browser ignores loop due to codec quirk */
+  v.addEventListener('ended', ()=> { if(!v.loop){ v.currentTime = 0; v.play().catch(()=>{}); }});
   requestAnimationFrame(()=> v.play().catch(()=>{}));
   io.observe(v);
   return v;
@@ -449,7 +459,8 @@ function card(item){
   const performer = inferPerformer(item);
 
   let media;
-  if(item.t==='video'){ media = makeVideo(item.url, item.thumb || null, false); }
+  /* CHANGED: set loop=true for videos and gifs */
+  if(item.t==='video'){ media = makeVideo(item.url, item.thumb || null, true); }
   else if(item.t==='gif'){ media = makeVideo(item.url, item.thumb || null, true); }
   else { media = document.createElement('img'); media.className='media'; media.loading='lazy'; media.alt=item.title||''; media.src=item.url; }
   wrap.appendChild(media);
@@ -589,7 +600,6 @@ function dumpTroubleshoot(){
   starters=[${STARTER_SUBS.join(', ')}]
   nsfw=[${OPTIONAL_NSFW.join(', ')}]`);
 
-  /* FIXED: unescaped template literal (no leading backslash) */
   info.push(`Fetch plan:
   LIMIT=${LIMIT}, PAGES=${PAGES}, CHUNK=${CHUNK}
   celebNames=${CELEB_NAMES.length} (name-biased priority)`);
