@@ -213,7 +213,7 @@ const DEFAULT_OPTIONAL_NSFW  = [
 
 const saved = JSON.parse(localStorage.getItem('subs_toggle')||'{}');
 let STARTER_SUBS  = saved.starters || [...DEFAULT_STARTER_SUBS];
-let OPTIONAL_NSFW = saved.nsfw     || [...DEFAULT_OPTIONAL_NSFW]];
+let OPTIONAL_NSFW = saved.nsfw     || [...DEFAULT_OPTIONAL_NSFW];  // <-- fixed extra bracket
 
 /* Bigger fetch: 100 per page, 3 pages per sub (up to 300 each) */
 const LIMIT = 100;
