@@ -13,7 +13,7 @@
     --dismiss1:#ff4757; --dismiss2:#ff7ab8;
     /* Dashboard tile gradients */
     --tile-grad1:#b08cff; --tile-grad2:#ff9ecf;
-    /* Bottom loader gradient */
+    /* Progress/CTA gradient (subtle) */
     --load1:#3a66ff; --load2:#12c2e9;
   }
   *{box-sizing:border-box}
@@ -26,50 +26,25 @@
   a{color:inherit}
   .wrap{max-width:880px;margin:0 auto;padding:18px 14px 96px}
 
-  /* ---------- Glass utility ---------- */
+  /* ---------- Frosted glass base ---------- */
   .glass{
-    background:
-      linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
+    background: linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
     border:1px solid rgba(255,255,255,.18);
     -webkit-backdrop-filter: blur(14px) saturate(140%);
     backdrop-filter: blur(14px) saturate(140%);
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.25),
-      0 10px 22px rgba(0,0,0,.55);
-  }
-  .glass-dark{
-    background:
-      linear-gradient(180deg,rgba(13,15,18,.55),rgba(13,15,18,.35)),
-      linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 10px 22px rgba(0,0,0,.55);
   }
 
-  /* Progress + status (glass bar below buttons) */
-  .bar{
-    height:14px;border-radius:99px;position:relative;overflow:hidden;margin:14px 4px;
-  }
-  .bar, .status, .pill{border-radius:18px}
-  .bar, .status, .pill{ /* make these glassy */
-    background: linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));
-    border:1px solid rgba(255,255,255,.18);
-    -webkit-backdrop-filter: blur(14px) saturate(140%);
-    backdrop-filter: blur(14px) saturate(140%);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 6px 14px rgba(0,0,0,.45);
-  }
-  .bar>.fill{
-    position:absolute;inset:0 auto 0 0;width:0%;
-    background:
-      linear-gradient(90deg,#a0d9ff 0%,#c8b6ff 50%,#ffb3c7 100%);
-    box-shadow:0 8px 16px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.25);
-  }
-  .status{display:flex;justify-content:space-between;color:#d5deea;margin:6px 4px 14px;font-weight:800;padding:10px 14px}
-
-  /* Dashboard (responsive grid) */
+  /* ---------- Dashboard (two-up grid) ---------- */
   .dash{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    grid-template-columns:repeat(2,minmax(0,1fr));
     gap:14px;
     justify-items:stretch;
     margin:8px 0 12px;
+  }
+  @media (min-width:920px){
+    .dash{grid-template-columns:repeat(3,minmax(0,1fr))}
   }
   .dash .btn{width:100%}
 
@@ -78,10 +53,11 @@
   .btn.tile{
     border-radius:22px;padding:22px 24px;
     color:#f5f7ff;font:900 20px/1.1 Inter,system-ui;letter-spacing:.01em;
+    background:linear-gradient(180deg,rgba(20,25,34,.6),rgba(18,22,31,.4));
+    border:1px solid rgba(255,255,255,.18);
+    -webkit-backdrop-filter:blur(14px) saturate(140%);backdrop-filter:blur(14px) saturate(140%);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 10px 22px rgba(0,0,0,.55);
   }
-  /* Glass tiles with a soft color glaze on .grad */
-  .btn.tile{background:linear-gradient(180deg,rgba(20,25,34,.6),rgba(18,22,31,.4));}
-  .btn.tile{border:1px solid rgba(255,255,255,.18);-webkit-backdrop-filter:blur(14px) saturate(140%);backdrop-filter:blur(14px) saturate(140%);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 10px 22px rgba(0,0,0,.55);}
   .btn.tile.grad{
     background:
       linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03)),
@@ -91,10 +67,41 @@
   .btn.tile:active{transform:translateY(0);filter:brightness(.96)}
   .btn.small{padding:16px 18px;border-radius:18px;font-size:18px}
   .btn.tiny{padding:10px 14px;border-radius:14px;font-size:14px}
-  .pill{padding:10px 14px;color:#e9f1ff}
+
+  /* ---------- Unified progress / load button ---------- */
+  .progressBtn{
+    grid-column:1 / -1;                 /* full row */
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 18px;border-radius:22px;font-size:18px;
+    position:relative;overflow:hidden;
+    color:#e9f1ff;
+  }
+  .progressBtn .fill{
+    position:absolute;inset:0 auto 0 0;width:0%;
+    background:linear-gradient(90deg,#a0d9ff 0%,#c8b6ff 50%,#ffb3c7 100%);
+    opacity:.95;
+    pointer-events:none;
+  }
+  .progressBtn .label{position:relative;z-index:1;font-weight:900}
+  .progressBtn .pct{position:relative;z-index:1;font-weight:900;opacity:.9}
+  .progressBtn.is-cta{
+    background:
+      linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03)),
+      linear-gradient(135deg,var(--load1),var(--load2));
+    color:#fff;
+  }
+  .progressBtn[disabled]{opacity:.7;cursor:not-allowed}
 
   /* Tabs */
   .tabs{display:flex;gap:10px;justify-content:center;margin:10px 0 6px}
+  .pill{
+    border-radius:18px;padding:10px 14px;color:#e9f1ff;
+    background: linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));
+    border:1px solid rgba(255,255,255,.18);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    backdrop-filter: blur(14px) saturate(140%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 6px 14px rgba(0,0,0,.45);
+  }
   .hidden{display:none!important}
 
   /* Feed / cards */
@@ -102,8 +109,7 @@
   .card{
     position:relative;border-radius:22px;overflow:hidden;
     isolation:isolate;touch-action:pan-y;will-change:transform;
-    background:
-      linear-gradient(180deg,rgba(20,25,34,.55),rgba(15,19,26,.40));
+    background:linear-gradient(180deg,rgba(20,25,34,.55),rgba(15,19,26,.40));
     border:1px solid rgba(255,255,255,.18);
     -webkit-backdrop-filter: blur(14px) saturate(140%);
     backdrop-filter: blur(14px) saturate(140%);
@@ -131,18 +137,15 @@
     box-shadow:inset 0 1px 0 rgba(255,255,255,.25), 0 10px 22px rgba(0,0,0,.55);
     position:relative;overflow:hidden;
   }
-  /* color gradient + glass sheen */
   .btn.ok{
     color:#04131a;font-weight:900;
-    background:
-      linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03)),
-      linear-gradient(135deg,var(--like1),var(--like2));
+    background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03)),
+               linear-gradient(135deg,var(--like1),var(--like2));
   }
   .btn.no{
     color:#2b060b;font-weight:900;
-    background:
-      linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03)),
-      linear-gradient(135deg,var(--dismiss2),var(--dismiss1));
+    background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03)),
+               linear-gradient(135deg,var(--dismiss2),var(--dismiss1));
   }
 
   /* Swipe "stamps" — frosted chips */
@@ -162,41 +165,7 @@
   .fade{animation:fade .28s ease forwards}
   @keyframes fade{to{opacity:0;transform:translateY(10px)}}
 
-  /* Bottom loader — frosted button with color gradient */
-  .bottom-load{display:flex;justify-content:center;margin:22px 0 10px}
-  .bottom-load .btn{
-    border-radius:22px;padding:18px 22px;font-size:18px;width:min(460px,100%);
-    background:
-      linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03)),
-      linear-gradient(135deg,var(--load1),var(--load2));
-    color:#fff;
-    border:1px solid rgba(255,255,255,.18);
-    -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%);
-    box-shadow:0 12px 26px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.22);
-  }
-
-  /* Subreddit manager page */
-  #subsPage{max-width:880px;margin:0 auto}
-  .subs-head{
-    display:flex;justify-content:space-between;align-items:center;gap:10px;margin:10px 4px 16px;
-    padding:10px 12px;border-radius:16px;
-    background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));
-    border:1px solid rgba(255,255,255,.18);
-    -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%);
-  }
-  .subs-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-  @media (min-width:640px){ .subs-grid{grid-template-columns:repeat(3,1fr)} }
-  @media (min-width:820px){ .subs-grid{grid-template-columns:repeat(4,1fr)} }
-  .sub-tile{
-    display:flex;align-items:center;gap:10px;padding:12px;border-radius:14px;
-    background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));
-    border:1px solid rgba(255,255,255,.18);color:#dfe7ff;
-    -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.22);
-  }
-  .sub-tile input{accent-color:#67d0ff;width:18px;height:18px}
-
-  /* Modal (Troubleshoot) — glass sheet */
+  /* Modal (Troubleshoot) */
   .modal{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.55);z-index:50}
   .modal.show{display:grid}
   .sheet{
@@ -211,30 +180,32 @@
 </head>
 <body>
 <div class="wrap">
-  <!-- Status stays above, bar is moved BELOW the buttons per request -->
-  <div class="status"><div id="phase">Ready</div><div id="pct">100%</div></div>
-
-  <!-- Dashboard -->
+  <!-- Condensed two-up controls -->
   <div class="dash">
     <button class="btn tile small" id="homeBtn">Home</button>
     <button class="btn tile small" id="likesBtn">Likes</button>
+
     <button class="btn tile small" id="discardBtn">Discard</button>
-  </div>
-  <div class="dash">
-    <button class="btn tile grad"  id="newBatchBtn">New batch</button>
+    <button class="btn tile grad small" id="newBatchBtn">New batch</button>
+
     <button class="btn tile small" id="shuffleBtn">Shuffle feed</button>
     <button class="btn tile small" id="loadMoreBtn">Load more</button>
-  </div>
-  <div class="dash">
+
     <button class="btn tile small" id="manageSubsBtn">Subreddits</button>
     <button class="btn tile small" id="troubleBtn">Troubleshoot</button>
+
     <button class="btn tile small" id="connectBtn">Connect Reddit</button>
     <button class="btn tile small" id="clearTokBtn">Clear token</button>
-    <span class="pill" id="tokenPill" style="justify-self:start">Token: none</span>
-  </div>
 
-  <!-- Progress bar moved here -->
-  <div class="bar"><div class="fill" id="bar"></div></div>
+    <span class="pill" id="tokenPill" style="align-self:stretch;display:flex;align-items:center;justify-content:center">Token: none</span>
+
+    <!-- Unified progress / load more -->
+    <button class="btn tile progressBtn glass" id="progressBtn">
+      <div class="fill" id="bar"></div>
+      <span class="label" id="phase">Ready</span>
+      <span class="pct" id="pct">100%</span>
+    </button>
+  </div>
 
   <!-- Tabs indicator -->
   <div class="tabs hidden" id="pageTabs">
@@ -246,23 +217,25 @@
 
   <!-- Pages -->
   <div id="home" class="feed"></div>
-  <div class="bottom-load"><button class="btn" id="loadMoreBottom">Load 30 more</button></div>
+  <!-- bottom-load removed; progressBtn replaces it -->
 
   <div id="likes" class="feed hidden"></div>
   <div id="discard" class="feed hidden"></div>
 
   <!-- Subreddit manager page -->
   <section id="subsPage" class="hidden">
-    <div class="subs-head">
-      <h2 style="margin:0;font:900 22px/1.2 Inter,system-ui">Manage subreddits</h2>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn tile small" id="subsSelectAll">Select all</button>
-        <button class="btn tile small" id="subsClearAll">Clear all</button>
-        <button class="btn tile small grad" id="subsSave">Save & New batch</button>
-        <button class="btn tile small" id="subsBack">← Back</button>
+    <div class="sheet glass" style="padding:12px">
+      <div class="subs-head" style="background:none;border:0;box-shadow:none;padding:0">
+        <h2 style="margin:0;font:900 22px/1.2 Inter,system-ui">Manage subreddits</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn tile small" id="subsSelectAll">Select all</button>
+          <button class="btn tile small" id="subsClearAll">Clear all</button>
+          <button class="btn tile small grad" id="subsSave">Save & New batch</button>
+          <button class="btn tile small" id="subsBack">← Back</button>
+        </div>
       </div>
+      <div class="subs-grid" id="subsGrid"></div>
     </div>
-    <div class="subs-grid" id="subsGrid"></div>
   </section>
 </div>
 
@@ -398,7 +371,23 @@ function inferPerformer(item){
 /* ------------- UI helpers ------------- */
 const ui = {
   phase(s){ el('#phase').textContent = s; },
-  bar(p){ el('#bar').style.width = `${p}%`; el('#pct').textContent = `${Math.round(p)}%`; },
+  bar(p){
+    el('#bar').style.width = `${p}%`;
+    el('#pct').textContent = `${Math.round(p)}%`;
+  },
+  setProgressMode(isFetching){
+    const btn = el('#progressBtn');
+    if(isFetching){
+      btn.classList.remove('is-cta');
+      btn.setAttribute('disabled','');
+    }else{
+      btn.classList.add('is-cta');      // appears as CTA when idle
+      btn.removeAttribute('disabled');
+      this.bar(100);
+      this.phase('Ready');
+      el('#pct').textContent = '100%';
+    }
+  },
   showPage(name){
     currentFeed = name;
     ['home','likes','discard','subsPage'].forEach(id => el('#'+id).classList.add('hidden'));
@@ -408,15 +397,17 @@ const ui = {
     if(name==='subs') el('#subsPage').classList.remove('hidden');
     el('#pageTabs').classList.remove('hidden');
     el('#tabSubs').style.display = (name==='subs' ? '' : (el('#tabSubs').style.display || ''));
-    this.bottomLoadVisibility();
+    this.progressVisibility();
   },
   tokenBadge(){
     const t = getToken();
     el('#tokenPill').textContent = 'Token: ' + (t ? 'stored' : 'none');
   },
-  bottomLoadVisibility(){
-    const hasMore = pool.length > 0 && !el('#home').classList.contains('hidden');
-    el('#loadMoreBottom').parentElement.style.display = hasMore ? 'flex' : 'none';
+  progressVisibility(){
+    // show unified button only on Home when there’s more to load
+    const host = el('#progressBtn').parentElement;
+    const visible = currentFeed==='home' && (pool.length>0 || !fetching);
+    el('#progressBtn').style.display = visible ? '' : 'none';
   }
 };
 
@@ -578,7 +569,7 @@ function attachSwipe(wrap, item){
   let startX=0, startY=0, dx=0, dy=0, dragging=false;
 
   const threshold = Math.max(120, window.innerWidth*0.22);
-  const rotFactor = 20; // deg at full swipe
+  const rotFactor = 20;
 
   function setTransform(x){
     const r = (x/threshold)*rotFactor;
@@ -625,7 +616,7 @@ function attachSwipe(wrap, item){
       setTransform(dx);
     }
   });
-  wrap.addEventListener('pointerup', (e)=>{ if(!dragging) return; dragging=false; endSwipe(dx); });
+  wrap.addEventListener('pointerup', ()=>{ if(!dragging) return; dragging=false; endSwipe(dx); });
   wrap.addEventListener('pointercancel', ()=>{ if(!dragging) return; dragging=false; endSwipe(0); });
 }
 
@@ -671,13 +662,13 @@ function renderChunk(where, n=CHUNK){
   const feed = el('#'+where);
   const slice = pool.splice(0,n);
   slice.forEach(it => feed.appendChild(card(it)));
-  ui.bottomLoadVisibility();
+  ui.progressVisibility();
 }
 
 /* ------------- batching (name-biased + interleave) ------------- */
 async function newBatch(){
   if(fetching) return;
-  fetching = true; ui.phase('Fetching…'); ui.bar(10);
+  fetching = true; ui.phase('Fetching…'); ui.bar(10); ui.setProgressMode(true);
   pool.length = 0;
   el('#home').innerHTML = '';
 
@@ -718,7 +709,7 @@ async function newBatch(){
 
   pool = [...interleaveBuckets(bucketsTop), ...interleaveBuckets(bucketsRest)];
 
-  ui.bar(100); ui.phase('Ready');
+  ui.bar(100); ui.phase('Ready'); ui.setProgressMode(false);
   renderChunk('home', Math.min(CHUNK, pool.length));
   fetching = false;
 }
@@ -734,7 +725,7 @@ function shuffleVisibleAndPool(){
   feed.innerHTML = '';
   for(let i=0;i<Math.min(keep, combined.length); i++){ feed.appendChild(card(combined[i])); }
   pool = combined.slice(keep);
-  ui.bottomLoadVisibility();
+  ui.progressVisibility();
 }
 
 /* ------------- subreddit manager ------------- */
@@ -805,7 +796,11 @@ function dumpTroubleshoot(){
 el('#newBatchBtn').addEventListener('click', newBatch);
 el('#shuffleBtn').addEventListener('click', shuffleVisibleAndPool);
 el('#loadMoreBtn').addEventListener('click', ()=> renderChunk('home'));
-el('#loadMoreBottom').addEventListener('click', ()=> renderChunk('home'));
+el('#progressBtn').addEventListener('click', (e)=>{
+  // behaves as "Load 30 more" when not in fetching mode
+  if(e.currentTarget.hasAttribute('disabled')) return;
+  renderChunk('home');
+});
 
 el('#homeBtn').addEventListener('click', ()=> ui.showPage('home'));
 el('#likesBtn').addEventListener('click', ()=>{ ui.showPage('likes'); paintList('likes', likes); });
@@ -816,6 +811,12 @@ el('#manageSubsBtn').addEventListener('click', ()=>{
   ui.showPage('subs');
   el('#tabSubs').style.display = '';
 });
+
+el('#troubleBtn').addEventListener('click', ()=>{ dumpTroubleshoot(); el('#modal').classList.add('show'); });
+el('#closeModal').addEventListener('click', ()=> el('#modal').classList.remove('show'));
+
+el('#connectBtn').addEventListener('click', beginOAuth);
+el('#clearTokBtn').addEventListener('click', clearToken);
 
 el('#subsSelectAll').addEventListener('click', ()=>{
   document.querySelectorAll('#subsGrid input[type="checkbox"]').forEach(c=>c.checked=true);
@@ -830,12 +831,6 @@ el('#subsSave').addEventListener('click', async ()=>{
   ui.showPage('home');
 });
 
-el('#troubleBtn').addEventListener('click', ()=>{ dumpTroubleshoot(); el('#modal').classList.add('show'); });
-el('#closeModal').addEventListener('click', ()=> el('#modal').classList.remove('show'));
-
-el('#connectBtn').addEventListener('click', beginOAuth);
-el('#clearTokBtn').addEventListener('click', clearToken);
-
 /* helper to render Likes/Discard pages like cards */
 function paintList(where, arr){
   const host = el('#'+where);
@@ -846,6 +841,7 @@ function paintList(where, arr){
 /* ------------- boot ------------- */
 captureTokenFromHash();
 ui.tokenBadge();
+ui.setProgressMode(false);
 ui.bar(100); ui.phase('Ready');
 log('Ready. Swipe right to Like, left to Dismiss. “Viewed” items are skipped.');
 newBatch(); // auto-fetch first batch
