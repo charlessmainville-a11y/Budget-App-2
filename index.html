@@ -867,6 +867,15 @@ el('#subsSave').addEventListener('click', async ()=>{
 
 /* helper to render Likes/Discard pages like cards */
 function paintList(where, arr){
+  const likes = JSON.parse(localStorage.getItem('likes')) || {};
+
+arr.forEach(item => {
+  // Append the card
+  host.appendChild(item);
+
+  // Update local storage with the like status
+  localStorage.setItem('likes', JSON.stringify(likes));
+});
   const host = el('#'+where);
   host.innerHTML = '';
   arr.forEach(it => host.appendChild(card(it)));
