@@ -877,7 +877,8 @@ function onScrollAuto(){
   if(!AUTOLOAD || currentFeed!=='home') return;
   if(loadLock) return;
   const nearBottom = (document.documentElement.scrollHeight - (window.scrollY + window.innerHeight)) < AUTOLOAD_THRESHOLD_PX;
-  const AUTOLOAD_THROTTLE_MS = 300
+  const AUTOLOAD_THROTTLE_MS = 100
+
   const now = performance.now();
   if(nearBottom && (now - lastAutoTs) > AUTOLOAD_THROTTLE_MS){
     lastAutoTs = now;
