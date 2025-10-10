@@ -293,7 +293,7 @@ const LIGHT_SHUFFLES = 2;
 /* ----------- NEW: autoload tunables ----------- */
 const AUTOLOAD = true;                         /* NEW */
 const AUTOLOAD_THRESHOLD_PX = 1400;            /* NEW */
-const AUTOLOAD_THROTTLE_MS  = 600;             /* NEW */
+const AUTOLOAD_THROTTLE_MS  = 1000;             /* NEW */
 const MAX_APPEND_PER_FRAME  = 6;               /* NEW */
 
 /* ------------- state ------------- */
@@ -895,6 +895,33 @@ function onScrollAuto(){
   }
 }
 window.addEventListener('scroll', onScrollAuto, {passive:true});
+
+ // 1. Load existing likes from local storage, or start with empty object
+let likes = JSON.parse(localStorage.getItem('likes')) || {};
+
+// 2. Function to update a like
+function updateLike(itemId, isLiked) {
+  likes[itemId] = isLiked;                  // Update in-memory object
+  localStorage.setItem('likes', JSON.stringify(likes)); // Save to local storage
+}
+
+// 3. Example: applying likes when rendering cards
+arr.forEach(item => {
+  const card = createCard(item); // however you create your card
+  // Check if this item was liked previously
+  if (likes[item.id]) {
+    card.classList.add('liked'); // or whatever your UI uses
+  }
+  host.appendChild(card);
+
+  // Optional: add event listener to like button
+  card.querySelector('.like-button').addEventListener('click', () => {
+    const currentlyLiked = likes[item.id] || false;
+    updateLike(item.id, !currentlyLiked);
+    card.classList.toggle('liked');
+  });
+});
+ 
 
 /* ------------- boot ------------- */
 captureTokenFromHash();
