@@ -915,27 +915,6 @@ window.addEventListener('scroll', onScrollAuto, {passive:true})
     }
   });
 
-  function smoothScrollToTop() {
-    const duration = 500; // duration in ms
-    const startY = window.scrollY;
-    let startTime = null;
-
-    function scrollStep(currentTime) {
-      if (!startTime) startTime = currentTime;
-      const timeElapsed = currentTime - startTime;
-      const progress = Math.min(timeElapsed / duration, 1);
-      const ease = 1 - Math.pow(1 - progress, 3); // ease out cubic
-
-      window.scrollTo(0, startY * (1 - ease));
-
-      if (timeElapsed < duration) {
-        requestAnimationFrame(scrollStep);
-      }
-    }
-
-    requestAnimationFrame(scrollStep);
-  }
-})();
 
 /* ------------- boot ------------- */
 captureTokenFromHash();
