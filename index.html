@@ -1,4 +1,4 @@
-<!doctype html>
+g<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -888,29 +888,54 @@ function onScrollAuto(){
 }
 window.addEventListener('scroll', onScrollAuto, {passive:true})
 
-  <script>
-function cappedScrollToTop() {
-  const maxStep = 80; // max pixels per frame (cap speed)
-  
-  function step() {
-    const currentY = window.scrollY;
-    if (currentY > 0) {
-      // Move up but never more than maxStep
-      const newY = Math.max(currentY - maxStep, 0);
-      window.scrollTo(0, newY);
-      requestAnimationFrame(step);
+(function() {
+  let isThrottling = false;
+  const throttleDelay = 16; // roughly 60fps
+
+  // Smooth scroll for touch move
+  window.addEventListener('touchmove', function(event) {
+    if (isThrottling) {
+      event.preventDefault();
+      return;
     }
+
+    isThrottling = true;
+    setTimeout(() => {
+      isThrottling = false;
+    }, throttleDelay);
+  }, { passive: false });
+
+  // Smooth scroll for tap-to-top
+  window.addEventListener('click', function(event) {
+    if (window.scrollY === 0) return; // Already at the top
+
+    if (event.target === document.documentElement || event.target === document.body) {
+      event.preventDefault();
+      smoothScrollToTop();
+    }
+  });
+
+  function smoothScrollToTop() {
+    const duration = 500; // duration in ms
+    const startY = window.scrollY;
+    let startTime = null;
+
+    function scrollStep(currentTime) {
+      if (!startTime) startTime = currentTime;
+      const timeElapsed = currentTime - startTime;
+      const progress = Math.min(timeElapsed / duration, 1);
+      const ease = 1 - Math.pow(1 - progress, 3); // ease out cubic
+
+      window.scrollTo(0, startY * (1 - ease));
+
+      if (timeElapsed < duration) {
+        requestAnimationFrame(scrollStep);
+      }
+    }
+
+    requestAnimationFrame(scrollStep);
   }
-
-  requestAnimationFrame(step);
-}
-
-// Example trigger
-document.getElementById("scrollTopBtn").addEventListener("click", cappedScrollToTop);
-</script>
-
-<button id="scrollTopBtn">⬆ Smooth Top</button>
-
+})();
 
 /* ------------- boot ------------- */
 captureTokenFromHash();
