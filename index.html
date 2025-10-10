@@ -887,7 +887,30 @@ function onScrollAuto(){
   }
 }
 window.addEventListener('scroll', onScrollAuto, {passive:true})
- 
+
+  <script>
+function cappedScrollToTop() {
+  const maxStep = 80; // max pixels per frame (cap speed)
+  
+  function step() {
+    const currentY = window.scrollY;
+    if (currentY > 0) {
+      // Move up but never more than maxStep
+      const newY = Math.max(currentY - maxStep, 0);
+      window.scrollTo(0, newY);
+      requestAnimationFrame(step);
+    }
+  }
+
+  requestAnimationFrame(step);
+}
+
+// Example trigger
+document.getElementById("scrollTopBtn").addEventListener("click", cappedScrollToTop);
+</script>
+
+<button id="scrollTopBtn">⬆ Smooth Top</button>
+
 
 /* ------------- boot ------------- */
 captureTokenFromHash();
