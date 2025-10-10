@@ -336,6 +336,39 @@ const el  = (sel) => document.querySelector(sel);
 const log = (msg) => { const t=new Date().toLocaleTimeString(); logEl.textContent += `[${t}] ${msg}\n`; logEl.scrollTop = logEl.scrollHeight; };
 const esc = (s) => String(s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
 
+
+<script>
+function easeScrollToTop() {
+  const start = window.scrollY;             // current scroll position
+  const startTime = performance.now();
+  const duration = 600;                     // animation duration in ms
+
+  function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);          // easing curve
+  }
+
+  function animate(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = easeOutCubic(progress);
+
+    window.scrollTo(0, start * (1 - eased));
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    }
+  }
+
+  requestAnimationFrame(animate);
+}
+
+// Example: attach to a button
+document.getElementById("scrollTopBtn").addEventListener("click", easeScrollToTop);
+</script>
+
+<button id="scrollTopBtn">⬆ Back to Top</button>
+
+  
 /* ---------- name helpers ---------- */
 function titleHasName(t){ return !!t && NAME_RX.test(t); }
 function textMatchesAnyName(t){
