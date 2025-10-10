@@ -249,6 +249,34 @@
 </div>
 
 <script>
+
+// 1. Load existing likes from local storage, or start with empty object
+let likes = JSON.parse(localStorage.getItem('likes')) || {};
+
+// 2. Function to update a like
+function updateLike(itemId, isLiked) {
+  likes[itemId] = isLiked;                  // Update in-memory object
+  localStorage.setItem('likes', JSON.stringify(likes)); // Save to local storage
+}
+
+// 3. Example: applying likes when rendering cards
+arr.forEach(item => {
+  const card = createCard(item); // however you create your card
+  // Check if this item was liked previously
+  if (likes[item.id]) {
+    card.classList.add('liked'); // or whatever your UI uses
+  }
+  host.appendChild(card);
+
+  // Optional: add event listener to like button
+  card.querySelector('.like-button').addEventListener('click', () => {
+    const currentlyLiked = likes[item.id] || false;
+    updateLike(item.id, !currentlyLiked);
+    card.classList.toggle('liked');
+  });
+});
+
+  
 /* -------------------- OAuth config -------------------- */
 const DEFAULT_CLIENT_ID   = localStorage.getItem('reddit_client_id')    || '';
 const DEFAULT_REDIRECT_URI= localStorage.getItem('reddit_redirect_uri') || (location.origin + location.pathname);
@@ -894,33 +922,7 @@ function onScrollAuto(){
     renderChunk('home');
   }
 }
-window.addEventListener('scroll', onScrollAuto, {passive:true});
-
- // 1. Load existing likes from local storage, or start with empty object
-let likes = JSON.parse(localStorage.getItem('likes')) || {};
-
-// 2. Function to update a like
-function updateLike(itemId, isLiked) {
-  likes[itemId] = isLiked;                  // Update in-memory object
-  localStorage.setItem('likes', JSON.stringify(likes)); // Save to local storage
-}
-
-// 3. Example: applying likes when rendering cards
-arr.forEach(item => {
-  const card = createCard(item); // however you create your card
-  // Check if this item was liked previously
-  if (likes[item.id]) {
-    card.classList.add('liked'); // or whatever your UI uses
-  }
-  host.appendChild(card);
-
-  // Optional: add event listener to like button
-  card.querySelector('.like-button').addEventListener('click', () => {
-    const currentlyLiked = likes[item.id] || false;
-    updateLike(item.id, !currentlyLiked);
-    card.classList.toggle('liked');
-  });
-});
+window.addEventListener('scroll', onScrollAuto, {passive:true})
  
 
 /* ------------- boot ------------- */
