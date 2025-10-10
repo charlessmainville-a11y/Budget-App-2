@@ -250,30 +250,6 @@
 
 <script>
 
-// 1. Load existing likes from local storage, or start with empty object
-let likes = JSON.parse(localStorage.getItem('likes')) || {};
-
-// 2. Function to update a like
-function updateLike(itemId, isLiked) {
-  likes[itemId] = isLiked;                  // Update in-memory object
-  localStorage.setItem('likes', JSON.stringify(likes)); // Save to local storage
-}
-
-// 3. Example: applying likes when rendering cards
-  // Check if this item was liked previously
-  if (likes[item.id]) {
-    card.classList.add('liked'); // or whatever your UI uses
-  }
-  host.appendChild(card);
-
-  // Optional: add event listener to like button
-  card.querySelector('.like-button').addEventListener('click', () => {
-    const currentlyLiked = likes[item.id] || false;
-    updateLike(item.id, !currentlyLiked);
-    card.classList.toggle('liked');
-  });
-});
-
   
 /* -------------------- OAuth config -------------------- */
 const DEFAULT_CLIENT_ID   = localStorage.getItem('reddit_client_id')    || '';
