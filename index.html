@@ -295,7 +295,7 @@ const LIGHT_SHUFFLES = 2;
 /* ----------- NEW: autoload tunables ----------- */
 const AUTOLOAD = true;                         /* NEW */
 const AUTOLOAD_THRESHOLD_PX = 1400;            /* NEW */
-const AUTOLOAD_THROTTLE_MS  = 1000;             /* NEW */
+const AUTOLOAD_THROTTLE_MS  = 1400;             /* NEW */
 const MAX_APPEND_PER_FRAME  = 6;               /* NEW */
 
 /* ------------- state ------------- */
@@ -879,8 +879,6 @@ function onScrollAuto(){
   if(!AUTOLOAD || currentFeed!=='home') return;
   if(loadLock) return;
   const nearBottom = (document.documentElement.scrollHeight - (window.scrollY + window.innerHeight)) < AUTOLOAD_THRESHOLD_PX;
-  const AUTOLOAD_THROTTLE_MS = 1000
-
   const now = performance.now();
   if(nearBottom && (now - lastAutoTs) > AUTOLOAD_THROTTLE_MS){
     lastAutoTs = now;
