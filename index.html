@@ -888,33 +888,6 @@ function onScrollAuto(){
 }
 window.addEventListener('scroll', onScrollAuto, {passive:true})
 
-(function() {
-  let isThrottling = false;
-  const throttleDelay = 16; // roughly 60fps
-
-  // Smooth scroll for touch move
-  window.addEventListener('touchmove', function(event) {
-    if (isThrottling) {
-      event.preventDefault();
-      return;
-    }
-
-    isThrottling = true;
-    setTimeout(() => {
-      isThrottling = false;
-    }, throttleDelay);
-  }, { passive: false });
-
-  // Smooth scroll for tap-to-top
-  window.addEventListener('click', function(event) {
-    if (window.scrollY === 0) return; // Already at the top
-
-    if (event.target === document.documentElement || event.target === document.body) {
-      event.preventDefault();
-      smoothScrollToTop();
-    }
-  });
-
 
 /* ------------- boot ------------- */
 captureTokenFromHash();
