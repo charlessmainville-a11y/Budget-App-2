@@ -260,8 +260,6 @@ function updateLike(itemId, isLiked) {
 }
 
 // 3. Example: applying likes when rendering cards
-arr.forEach(item => {
-  const card = createCard(item); // however you create your card
   // Check if this item was liked previously
   if (likes[item.id]) {
     card.classList.add('liked'); // or whatever your UI uses
@@ -326,7 +324,6 @@ const MAX_APPEND_PER_FRAME  = 6;               /* NEW */
 
 /* ------------- state ------------- */
 let pool = [];
-let likes = [];
 let discards = [];
 let currentFeed = 'home';
 let fetching = false;
@@ -895,15 +892,6 @@ el('#subsSave').addEventListener('click', async ()=>{
 
 /* helper to render Likes/Discard pages like cards */
 function paintList(where, arr){
-  const likes = JSON.parse(localStorage.getItem('likes')) || {};
-
-arr.forEach(item => {
-  // Append the card
-  host.appendChild(item);
-
-  // Update local storage with the like status
-  localStorage.setItem('likes', JSON.stringify(likes));
-});
   const host = el('#'+where);
   host.innerHTML = '';
   arr.forEach(it => host.appendChild(card(it)));
