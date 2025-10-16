@@ -32,7 +32,7 @@
   a{color:inherit}
   .wrap{max-width:880px;margin:0 auto;padding:18px 14px 96px}
 
-  .glass{
+  .glass-dark{
     background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
     border:1px solid rgba(255,255,255,.18);
     -webkit-backdrop-filter:blur(14px) saturate(140%);
@@ -858,14 +858,16 @@ document.getElementById('progressBtn').addEventListener('click', (e)=>{
   renderChunk('home');
 });
 
-document.getElementById('homeBtn').addEventListener('click', ()=> ui.showPage('home'));
+document.getElementById('homeBtn').addEventListener('click', ()=>ui.showPage('home'));
+
+/* ✅ Safari-safe Likes / Discard ordering */
 document.getElementById('likesBtn').addEventListener('click', ()=>{
   paintList('likes', likes);
-  requestAnimationFrame(()=>ui.showPage('likes'));   /* Safari-safe */
+  requestAnimationFrame(()=>ui.showPage('likes'));
 });
 document.getElementById('discardBtn').addEventListener('click', ()=>{
   paintList('discard', discards);
-  requestAnimationFrame(()=>ui.showPage('discard')); /* Safari-safe */
+  requestAnimationFrame(()=>ui.showPage('discard'));
 });
 
 document.getElementById('manageSubsBtn').addEventListener('click', ()=>{
