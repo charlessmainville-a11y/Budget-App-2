@@ -213,7 +213,7 @@ document.getElementById('progressBtn').addEventListener('click', e=>{
 });
 document.getElementById('homeBtn').addEventListener('click', ()=>ui.showPage('home'));
 
-/* ✅ Safari-safe Likes / Discard ordering */
+/* Safari-safe Likes / Discard ordering */
 document.getElementById('likesBtn').addEventListener('click', ()=>{
   paintList('likes', likes);
   requestAnimationFrame(()=>ui.showPage('likes'));
