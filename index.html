@@ -924,6 +924,84 @@ ui.setProgressMode(false);
 ui.bar(100); ui.phase('Ready');
 log('Ready. Swipe right to Like, left to Dismiss. “Viewed” items are skipped.');
 newBatch(); // auto-fetch first batch
+/* ------------------------------------------------------
+   🔗 Generic External API Fetcher
+   ------------------------------------------------------ */
+/**
+ * Fetches media JSON from any legal public API endpoint and
+ * integrates the results into the existing CelebWall feed.
+ * Expects JSON in the shape:
+ *   [ { url, thumb, title, author?, sub?, link?, t? }, ... ]
+ */
+async function fetchExternalFeed(apiUrl) {
+  if (!apiUrl) {
+    log('⚠ No API URL provided');
+    return;
+  }
+  if (fetching) return;
+  fetching = true;
+  ui.phase('Fetching external feed…');
+  ui.bar(10);
+  ui.setProgressMode(true);
+
+  try {
+    const res = await fetch(apiUrl);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    // Basic validation
+    if (!Array.isArray(data)) {
+      log('⚠ External feed returned non-array data.');
+      ui.phase('Bad data');
+      ui.setProgressMode(false);
+      fetching = false;
+      return;
+    }
+
+    const normalized = data
+      .map(item => {
+        if (!item?.url) return null;
+        return {
+          t: item.t || (item.url.match(/\.(mp4|webm|gif)$/i) ? 'video' : 'image'),
+          url: item.url,
+          thumb: item.thumb || item.url,
+          title: item.title || 'Untitled',
+          author: item.author || 'external',
+          sub: item.sub || 'external',
+          link: item.link || item.url
+        };
+      })
+      .filter(Boolean);
+
+    log(`Fetched ${normalized.length} items from external API.`);
+    pool = normalized;
+
+    ui.bar(100);
+    ui.phase('Ready');
+    ui.setProgressMode(false);
+
+    // Clear current feed & render
+    document.getElementById('home').innerHTML = '';
+    await renderChunk('home', Math.min(CHUNK, pool.length));
+  } catch (err) {
+    log(`✖ External fetch failed: ${err.message}`);
+    ui.phase('Error');
+    ui.setProgressMode(false);
+  } finally {
+    fetching = false;
+  }
+}
+
+/* Optional: hook it to a button for testing */
+const testBtn = document.createElement('button');
+testBtn.className = 'btn tile grad small';
+testBtn.textContent = 'Load External Feed';
+testBtn.addEventListener('click', () => {
+  const apiUrl = prompt('Enter external API endpoint:');
+  if (apiUrl) fetchExternalFeed(apiUrl);
+});
+document.querySelector('.dash').appendChild(testBtn);
+  
 </script>
 </body>
 </html>
