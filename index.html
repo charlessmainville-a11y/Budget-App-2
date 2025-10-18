@@ -1001,6 +1001,144 @@ testBtn.addEventListener('click', () => {
   if (apiUrl) fetchExternalFeed(apiUrl);
 });
 document.querySelector('.dash').appendChild(testBtn);
+
+/* ------------------------------------------------------
+   🔴 RedGifs Integration (auth + celeb-biased fetch + merge)
+   ------------------------------------------------------ */
+const REDGIFS_MAX_NAMES_PER_BATCH   = 6;   // how many celeb names to query per load
+const REDGIFS_COUNT_PER_QUERY       = 6;   // how many results per celeb search
+const REDGIFS_TRENDING_COUNT        = 12;  // extra trending items to mix in
+const REDGIFS_PAGE                  = 1;   // page index for search/trending
+const REDGIFS_NAME_BIAS_FIRST       = true;// put name-matches earlier in pool
+
+let _redgifsTokenCache = { token:null, exp:0 };
+async function getRedGifsToken(){
+  try{
+    if(_redgifsTokenCache.token && Date.now() < _redgifsTokenCache.exp) return _redgifsTokenCache.token;
+    const r = await fetch('https://api.redgifs.com/v2/auth/temporary', { method:'POST' });
+    if(!r.ok) throw new Error('Auth HTTP ' + r.status);
+    const j = await r.json();
+    const tok = j?.token || null;
+    if(!tok) throw new Error('No token');
+    // Token lasts ~24h; set a conservative expiry (e.g., 6h)
+    _redgifsTokenCache = { token: tok, exp: Date.now() + 6*60*60*1000 };
+    return tok;
+  }catch(e){
+    log('✖ RedGifs auth failed: ' + e.message);
+    return null;
+  }
+}
+
+function normalizeRedGifsItem(g){
+  try{
+    const urls = g?.urls || {};
+    const vid  = urls.hd || urls.sd || urls.vthumbnail || null;
+    const thumb= urls.thumbnail || urls.poster || urls.mobilePoster || null;
+    if(!vid) return null;
+    return {
+      t: 'video',
+      url: vid,
+      thumb: thumb || vid,
+      title: g.title || g.id || 'RedGifs',
+      author: g.userName || 'redgifs',
+      sub: 'RedGifs',
+      link: vid
+    };
+  }catch{ return null; }
+}
+
+async function redgifsFetch(endpoint, token){
+  const r = await fetch(endpoint, { headers: { 'Authorization': `Bearer ${token}` }});
+  if(!r.ok) throw new Error('HTTP ' + r.status);
+  const j = await r.json();
+  const arr = j?.gifs || [];
+  return arr.map(normalizeRedGifsItem).filter(Boolean);
+}
+
+async function fetchRedGifsByName(token, name, page=REDGIFS_PAGE, count=REDGIFS_COUNT_PER_QUERY){
+  const url = `https://api.redgifs.com/v2/gifs/search?search_text=${encodeURIComponent(name)}&page=${page}&count=${count}`;
+  return redgifsFetch(url, token);
+}
+
+async function fetchRedGifsTrending(token, page=REDGIFS_PAGE, count=REDGIFS_TRENDING_COUNT){
+  const url = `https://api.redgifs.com/v2/gifs/trending?page=${page}&count=${count}`;
+  return redgifsFetch(url, token);
+}
+
+/* Pick a handful of celeb names (different each time) */
+function pickCelebNames(n=REDGIFS_MAX_NAMES_PER_BATCH){
+  const names = [...CELEB_NAMES];
+  shuffleArray(names);
+  return names.slice(0, n);
+}
+
+/**
+ * Auto-load RedGifs and merge into the current pool/feed
+ * - Runs after the initial Reddit batch
+ * - Interleaves name-biased results first, then trending
+ */
+async function autoLoadRedGifs(){
+  try{
+    ui.phase('Adding RedGifs…'); ui.setProgressMode(true); ui.bar(15);
+    const token = await getRedGifsToken();
+    if(!token){ ui.setProgressMode(false); ui.phase('Ready'); return; }
+
+    // 1) celeb-biased searches
+    const picked = pickCelebNames();
+    const namePromises = picked.map(n => fetchRedGifsByName(token, n));
+    const nameGroups = await Promise.allSettled(namePromises);
+    const byName = nameGroups.flatMap(res => res.status==='fulfilled' ? res.value : []);
+    ui.bar(55);
+
+    // 2) trending as filler
+    let trending = [];
+    try{
+      trending = await fetchRedGifsTrending(token);
+    }catch(e){ log('RedGifs trending failed: ' + e.message); }
+    ui.bar(75);
+
+    // 3) dedupe against existing pool & previously viewed
+    const seen = new Set();
+    const existing = new Set(pool.map(i=>i.url));
+    const outName = [];
+    const outTrend= [];
+    for(const it of byName){
+      if(!it?.url) continue;
+      if(viewed.has(it.url)) continue;
+      if(existing.has(it.url)) continue;
+      if(seen.has(it.url)) continue;
+      seen.add(it.url); outName.push(it);
+    }
+    for(const it of trending){
+      if(!it?.url) continue;
+      if(viewed.has(it.url)) continue;
+      if(existing.has(it.url)) continue;
+      if(seen.has(it.url)) continue;
+      seen.add(it.url); outTrend.push(it);
+    }
+
+    // 4) interleave with current pool (keep name-biased ahead)
+    let merged;
+    if(REDGIFS_NAME_BIAS_FIRST){
+      const bucketsTop = { redgifs: outName, reddit: pool.slice() };
+      const bucketsRest= { redgifs: outTrend };
+      merged = [...interleaveBuckets(bucketsTop), ...interleaveBuckets(bucketsRest)];
+    }else{
+      const buckets = { reddit: pool.slice(), redgifs: [...outName, ...outTrend] };
+      merged = interleaveBuckets(buckets);
+    }
+    pool = merged;
+
+    // 5) append a chunk to show mixed results immediately
+    await renderChunk('home', Math.min(CHUNK, pool.length));
+    ui.bar(100); ui.phase('Ready'); ui.setProgressMode(false);
+    log(`✅ RedGifs merged: ${outName.length} name-matched + ${outTrend.length} trending`);
+  }catch(e){
+    log('✖ RedGifs integration error: ' + e.message);
+    ui.setProgressMode(false); ui.phase('Ready');
+  }
+}
+  
   
 </script>
 </body>
