@@ -528,6 +528,92 @@ function makeVideo(src, thumb, loop=false){
   v.className = 'media';
   v.src = src;
   v.autoplay = true;
+  v.muted = true;
+  v.playsInline = true;
+  v.preload = 'metadata';
+  v.loop = !!loop;
+  if (thumb) v.poster = thumb;
+  v.setAttribute('controlslist','nodownload noplaybackrate noremoteplayback');
+  v.setAttribute('disablepictureinpicture','');
+
+  v.addEventListener('canplay', ()=>v.play().catch(()=>{}), {once:true});
+  v.addEventListener('ended', ()=>{ if(!v.loop){ v.currentTime=0; v.play().catch(()=>{}); }});
+  v.addEventListener('error', ()=>v.closest('.card')?.remove());
+
+  // click/tap toggles mute
+  v.addEventListener('click', e=>{
+    e.stopPropagation();
+    v.muted = !v.muted;
+    showMuteToast(v.muted);
+  });
+
+  // fullscreen button
+  const fsBtn = document.createElement('button');
+  fsBtn.textContent = '⛶';
+  fsBtn.title = 'Fullscreen';
+  Object.assign(fsBtn.style, {
+    position: 'absolute', bottom: '12px', right: '12px',
+    fontSize: '22px', padding: '4px 10px',
+    border: 'none', borderRadius: '12px',
+    background: 'rgba(0,0,0,0.55)', color: '#fff',
+    cursor: 'pointer', zIndex: '2', opacity: '0',
+    transition: 'opacity .25s ease'
+  });
+  wrap.addEventListener('mouseenter', ()=> fsBtn.style.opacity='0.85');
+  wrap.addEventListener('mouseleave', ()=> fsBtn.style.opacity='0');
+  fsBtn.addEventListener('click', e=>{
+    e.stopPropagation();
+    if (v.requestFullscreen) v.requestFullscreen();
+    else if (v.webkitRequestFullscreen) v.webkitRequestFullscreen();
+  });
+
+  wrap.appendChild(v);
+  wrap.appendChild(fsBtn);
+  io.observe(v);
+  requestAnimationFrame(()=>v.play().catch(()=>{}));
+  return wrap;
+}
+
+function showMuteToast(isMuted){
+  const toast = document.createElement('div');
+  toast.textContent = isMuted ? '🔇 Muted' : '🔊 Unmuted';
+  Object.assign(toast.style, {
+    position: 'fixed', bottom: '24px', left: '50%',
+    transform: 'translateX(-50%)',
+    background: 'rgba(0,0,0,0.7)', color: '#fff',
+    padding: '8px 16px', borderRadius: '12px',
+    font: '900 16px/1 Inter,system-ui', zIndex: 9999,
+    transition: 'opacity .3s ease'
+  });
+  document.body.appendChild(toast);
+  setTimeout(()=>toast.style.opacity='0', 1000);
+  setTimeout(()=>toast.remove(), 1300);
+}
+
+function showMuteToast(isMuted){
+  const toast = document.createElement('div');
+  toast.textContent = isMuted ? '🔇 Muted' : '🔊 Unmuted';
+  Object.assign(toast.style, {
+    position: 'fixed', bottom: '24px', left: '50%',
+    transform: 'translateX(-50%)',
+    background: 'rgba(0,0,0,0.7)', color: '#fff',
+    padding: '8px 16px', borderRadius: '12px',
+    font: '900 16px/1 Inter,system-ui', zIndex: 9999,
+    transition: 'opacity .3s ease'
+  });
+  document.body.appendChild(toast);
+  setTimeout(()=>toast.style.opacity='0', 1000);
+  setTimeout(()=>toast.remove(), 1300);
+}
+nction makeVideo(src, thumb, loop=false){
+  const wrap = document.createElement('div');
+  wrap.style.position = 'relative';
+  wrap.style.width = '100%';
+
+  const v = document.createElement('video');
+  v.className = 'media';
+  v.src = src;
+  v.autoplay = true;
   v.muted = true;            // allow autoplay in browsers
   v.playsInline = true;
   v.preload = 'metadata';
