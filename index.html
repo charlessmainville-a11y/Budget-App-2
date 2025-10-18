@@ -923,9 +923,10 @@ ui.tokenBadge();
 ui.setProgressMode(false);
 ui.bar(100); ui.phase('Ready');
 log('Ready. Swipe right to Like, left to Dismiss. “Viewed” items are skipped.');
-newBatch();         // Reddit first
-autoLoadRedGifs();  // then merge in RedGifs automatically
-
+(async () => {
+  await newBatch();          // wait for Reddit to fully load
+  setTimeout(autoLoadRedGifs, 3000); // small delay for smoother merge
+})();
   
 /* ------------------------------------------------------
    🔗 Generic External API Fetcher
