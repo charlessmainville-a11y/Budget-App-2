@@ -454,24 +454,32 @@ function makeVideo(src, thumb, loop=false){
   v.addEventListener('loadeddata', buildOverlay);
 
   // Tap video behavior
-  v.addEventListener('click', async (e)=>{
-    e.stopPropagation();
-    if(v.dataset.userStarted!=='1'){
-      // First interaction acts like tapping overlay
-      const o = buildOverlay();
-      v.dataset.userStarted='1';
-      if(o){ o.style.opacity='0'; setTimeout(()=>o.remove(), 300); }
-      try { await v.play(); } catch {}
-      showMuteToast(v.muted);
-      return;
-    }
-    // Already started: toggle mute
-    v.muted = !v.muted;
-    if(!v.muted){ try { await v.play(); } catch {} }
+  v.addEventListener('click', async e => {
+  e.stopPropagation();
+  if (v.dataset.userStarted !== '1') {
+    // First ever tap → start muted
+    v.dataset.userStarted = '1';
+    v.muted = true;
+    try { await v.play(); } catch {}
     showMuteToast(v.muted);
-  });
-
-  v.addEventListener('error', () => v.closest('.card')?.remove());
+    return;
+  }
+  // Second tap → unmute and restart in same gesture
+  if (v.muted) {
+    const t = v.currentTime;
+    v.muted = false;
+    try {
+      await v.play();                 // Safari/Quest accepts this gesture
+      v.currentTime = t;              // jump back where we left off
+    } catch (err) {
+      console.warn('Retrying muted playback', err);
+      v.muted = true;
+      await v.play();
+    }
+  } else {
+    v.muted = true;
+    showMuteToast(v.muted);
+  }
 
   // Minimal fullscreen button
   const fsBtn = document.createElement('button');
