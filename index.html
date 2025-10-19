@@ -508,6 +508,50 @@ document.getElementById('troubleBtn').addEventListener('click', ()=>{
   dbg('--- Live debug logging started ---');
 });
 
+/* =========================================================
+   🔍 VIDEO DEBUG DIAGNOSTICS
+   ========================================================= */
+function attachVideoDiagnostics(){
+  const vids = document.querySelectorAll('video.media');
+  dbg(`🎬 Diagnostics attached to ${vids.length} videos`);
+  vids.forEach(v=>{
+    const src=v.currentSrc||v.src;
+    dbg('🔍 checking video element', src);
+
+    // basic load/error state watchers
+    v.addEventListener('loadstart', ()=>dbg('loadstart', src));
+    v.addEventListener('loadedmetadata', ()=>dbg('loadedmetadata', src));
+    v.addEventListener('loadeddata', ()=>dbg('loadeddata', src));
+    v.addEventListener('canplay', ()=>dbg('canplay', src));
+    v.addEventListener('canplaythrough', ()=>dbg('canplaythrough', src));
+    v.addEventListener('stalled', ()=>dbg('⚠️ stalled', src));
+    v.addEventListener('waiting', ()=>dbg('⌛ waiting for data', src));
+    v.addEventListener('suspend', ()=>dbg('suspend (network paused)', src));
+    v.addEventListener('playing', ()=>dbg('▶ playing ok', src));
+    v.addEventListener('pause', ()=>dbg('⏸ paused', src));
+    v.addEventListener('error', e=>{
+      const err=v.error;
+      if(err){
+        dbg(`❌ video error [${err.code}] ${err.message||'(no msg)'} src=${src}`);
+      }else{
+        dbg('❌ video error (unknown)', src);
+      }
+    });
+
+    // network readyState polling (Safari sometimes hides this)
+    const poll=()=>{
+      const rs=v.readyState;
+      const ns=v.networkState;
+      dbg(`ℹ️ readyState=${rs} networkState=${ns} muted=${v.muted}`, src);
+      if(rs<2) setTimeout(poll,1500);
+    };
+    poll();
+  });
+}
+
+/* hook it to new batches */
+document.addEventListener('videosBuilt', attachVideoDiagnostics);
+
 /* -------------------- Reddit fetchers -------------------- */
 const CORS = 'https://cors.isomorphic-git.org/';
 function baseUrl(sub, token){
@@ -704,6 +748,8 @@ async function newBatch(){
   ui.bar(100); ui.phase('Ready'); ui.setProgressMode(false);
   await renderChunk('home', Math.min(CHUNK, pool.length));
   fetching=false;
+  
+  document.dispatchEvent(new Event('videosBuilt'));
 }
 
 /* -------------------- shuffle/subs/troubleshoot -------------------- */
