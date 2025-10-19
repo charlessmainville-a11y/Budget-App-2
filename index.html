@@ -333,9 +333,28 @@ document.addEventListener('visibilitychange', ()=>{
 /* One-gesture unlock for stubborn autoplay */
 let gestureUnlocked = false;
 function gestureUnlock(){
-  if(gestureUnlocked) return;
+  if (gestureUnlocked) return;
   gestureUnlocked = true;
-  document.querySelectorAll('video.media').forEach(v=>safePlay(v));
+
+  // Unmute and restart all videos once user has interacted
+  document.querySelectorAll('video.media').forEach(v=>{
+    v.muted = false;
+    v.defaultMuted = false;
+    safePlay(v);
+  });
+
+  // Optional: toast feedback
+  const toast = document.createElement('div');
+  toast.textContent = '🔊 Sound enabled';
+  Object.assign(toast.style, {
+    position:'fixed',bottom:'24px',left:'50%',transform:'translateX(-50%)',
+    background:'rgba(0,0,0,0.7)',color:'#fff',padding:'8px 16px',
+    borderRadius:'12px',font:'900 16px/1 Inter,system-ui',zIndex:9999,
+    transition:'opacity .3s ease'
+  });
+  document.body.appendChild(toast);
+  setTimeout(()=>toast.style.opacity='0',1000);
+  setTimeout(()=>toast.remove(),1300);
 }
 ['pointerdown','touchstart','click','keydown'].forEach(evt=>{
   window.addEventListener(evt, gestureUnlock, {once:true, passive:true});
