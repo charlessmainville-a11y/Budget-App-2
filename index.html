@@ -395,7 +395,7 @@ async function safePlay(v){
   }catch{/* autoplay may fail until user interacts */}
 }
 
-/* Build video element (autoplay muted; tap toggles; audio-safe) */
+/* Build video element (tap to play; tap again to unmute) */
 function makeVideo(src, thumb, loop=false){
   const wrap = document.createElement('div');
   wrap.style.position = 'relative';
@@ -404,8 +404,8 @@ function makeVideo(src, thumb, loop=false){
   const v = document.createElement('video');
   v.className = 'media';
   v.src = src;
-  v.autoplay = true;                 // default autoplay for silent clips
-  v.muted = true;                    // start muted for policy
+  v.autoplay = false;                // no autoplay: Safari-safe
+  v.muted = true;                    // start muted
   v.playsInline = true;
   v.setAttribute('webkit-playsinline', '');
   v.preload = 'metadata';
@@ -416,47 +416,87 @@ function makeVideo(src, thumb, loop=false){
   v.setAttribute('controlslist', 'nodownload noplaybackrate noremoteplayback');
   v.setAttribute('disablepictureinpicture', '');
 
-  // Detect audio and handle appropriately
-  v.addEventListener('loadedmetadata', () => {
-    const hasAudio = v.mozHasAudio || !!v.webkitAudioDecodedByteCount || (v.audioTracks && v.audioTracks.length);
-    if (hasAudio) {
-      v.autoplay = false;
-      v.pause();
-
-      // add frosted-glass play overlay
-      const playOverlay = document.createElement('div');
-      playOverlay.textContent = '▶ Tap to Play';
-      Object.assign(playOverlay.style, {
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%,-50%)',
-        padding: '16px 28px',
-        borderRadius: '20px',
-        font: '900 18px/1 Inter,system-ui',
-        letterSpacing: '.01em',
-        color: '#eaf0f6',
-        background: 'linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.06))',
-        border: '1px solid rgba(255,255,255,.18)',
-        backdropFilter: 'blur(14px) saturate(140%)',
-        WebkitBackdropFilter: 'blur(14px) saturate(140%)',
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,.22), 0 6px 16px rgba(0,0,0,.55)',
-        cursor: 'pointer',
-        zIndex: 3
-      });
-      wrap.appendChild(playOverlay);
-
-      playOverlay.addEventListener('click', async e => {
-        e.stopPropagation();
-        playOverlay.remove();
-        try { await v.play(); } catch {}
-        showMuteToast(v.muted);
-      });
-    } else {
-      // silent clips autoplay normally
-      safePlay(v);
-    }
+  // Frosted-glass play overlay
+  const playOverlay = document.createElement('div');
+  playOverlay.textContent = '▶ Tap to Play';
+  Object.assign(playOverlay.style, {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%,-50%)',
+    padding: '16px 28px',
+    borderRadius: '20px',
+    font: '900 18px/1 Inter,system-ui',
+    letterSpacing: '.01em',
+    color: '#eaf0f6',
+    background: 'linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.06))',
+    border: '1px solid rgba(255,255,255,.18)',
+    backdropFilter: 'blur(14px) saturate(140%)',
+    WebkitBackdropFilter: 'blur(14px) saturate(140%)',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,.22), 0 6px 16px rgba(0,0,0,.55)',
+    cursor: 'pointer',
+    zIndex: 3,
+    userSelect: 'none',
+    transition: 'opacity .3s ease'
   });
+  wrap.appendChild(playOverlay);
+
+  // Tap overlay to start video (muted)
+  playOverlay.addEventListener('click', async e => {
+    e.stopPropagation();
+    playOverlay.style.opacity = '0';
+    setTimeout(()=>playOverlay.remove(), 300);
+    try { await v.play(); } catch {}
+    showMuteToast(v.muted);
+  });
+
+  // Tap video to toggle mute/unmute
+  v.addEventListener('click', async e => {
+    e.stopPropagation();
+    v.muted = !v.muted;
+    if (!v.muted) {
+      try { await v.play(); } catch {}
+    }
+    showMuteToast(v.muted);
+  });
+
+  v.addEventListener('error', () => v.closest('.card')?.remove());
+
+  // Minimal fullscreen button
+  const fsBtn = document.createElement('button');
+  fsBtn.textContent = '⛶';
+  fsBtn.title = 'Fullscreen';
+  Object.assign(fsBtn.style, {
+    position: 'absolute',
+    bottom: '12px',
+    right: '12px',
+    fontSize: '22px',
+    padding: '4px 10px',
+    border: 'none',
+    borderRadius: '12px',
+    background: 'rgba(0,0,0,0.55)',
+    color: '#fff',
+    cursor: 'pointer',
+    zIndex: '2',
+    opacity: '0',
+    transition: 'opacity .25s ease'
+  });
+  wrap.addEventListener('mouseenter', () => fsBtn.style.opacity = '0.85');
+  wrap.addEventListener('mouseleave', () => fsBtn.style.opacity = '0');
+
+  fsBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    _fsPrevScroll = getScrollY();
+    document.body.style.overflow = 'hidden';
+    if (v.requestFullscreen) v.requestFullscreen();
+    else if (v.webkitRequestFullscreen) v.webkitRequestFullscreen();
+  });
+
+  wrap.appendChild(v);
+  wrap.appendChild(fsBtn);
+  io.observe(v);
+  return wrap;
+}
 
   v.addEventListener('stalled', () => safePlay(v));
   v.addEventListener('waiting', () => safePlay(v));
