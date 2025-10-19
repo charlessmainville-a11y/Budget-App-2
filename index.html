@@ -303,8 +303,20 @@ const ui = {
 };
 
 /* =========================================================
-   CelebWall – video playback stability patch
+   VIDEO ENGINE (gesture-first; Safari + Meta Quest)
    ========================================================= */
+
+/* --- simple debugger --- */
+const DEBUG = true;
+const dbg = (...args)=>{
+  if(!DEBUG) return;
+  console.log('[CELEBWALL DEBUG]', ...args);
+  const el=document.getElementById('log');
+  if(el){
+    el.textContent += '[DBG] ' + args.join(' ') + '\n';
+    el.scrollTop = el.scrollHeight;
+  }
+};
 
 /* --- IntersectionObserver declared first --- */
 const io = new IntersectionObserver((entries)=>{
@@ -329,6 +341,7 @@ function getScrollY(){ return window.scrollY || document.documentElement.scrollT
 
 /* Safe play helper */
 async function safePlay(v){
+  dbg('safePlay', v.src, 'muted=', v.muted, 'readyState=', v.readyState);
   try{
     if(v.readyState < 2)
       await new Promise(r=>v.addEventListener('loadeddata', r, {once:true}));
@@ -336,7 +349,10 @@ async function safePlay(v){
   try{
     const p=v.play();
     if(p && typeof p.then==='function') await p;
-  }catch{}
+    dbg('play() success', v.src);
+  }catch(err){
+    dbg('play() error', err.message);
+  }
 }
 
 /* Toast feedback */
@@ -369,6 +385,7 @@ document.addEventListener('fullscreenchange',()=>{
 
 /* --- Build video element --- */
 function makeVideo(src, thumb, loop=false){
+  dbg('makeVideo', src);
   const wrap=document.createElement('div');
   wrap.style.position='relative';
   wrap.style.width='100%';
@@ -408,10 +425,11 @@ function makeVideo(src, thumb, loop=false){
     });
     o.addEventListener('click',async e=>{
       e.stopPropagation();
+      dbg('overlay clicked, attempting play');
       v.dataset.userStarted='1';
       o.style.opacity='0';
       setTimeout(()=>o.remove(),300);
-      try{await v.play();}catch{}
+      try{await v.play();dbg('overlay play success');}catch(err){dbg('overlay play fail',err.message);}
       showMuteToast(v.muted);
     });
     wrap.appendChild(o);
@@ -424,11 +442,11 @@ function makeVideo(src, thumb, loop=false){
   /* Tap behavior */
   v.addEventListener('click',async e=>{
     e.stopPropagation();
-    console.log('Video click:',{muted:v.muted,started:v.dataset.userStarted});
+    dbg('video clicked', v.src, 'userStarted=', v.dataset.userStarted, 'muted=', v.muted);
     if(v.dataset.userStarted!=='1'){
       v.dataset.userStarted='1';
       v.muted=true;
-      try{await v.play();}catch{}
+      try{await v.play();dbg('first tap play ok');}catch(err){dbg('first tap play fail',err.message);}
       showMuteToast(v.muted);
       return;
     }
@@ -438,14 +456,16 @@ function makeVideo(src, thumb, loop=false){
       try{
         await v.play();
         v.currentTime=t;
+        dbg('unmute play ok');
       }catch(err){
-        console.warn('Retry muted playback',err);
+        dbg('unmute play error',err.message);
         v.muted=true;
         await v.play();
       }
     }else{
       v.muted=true;
       showMuteToast(v.muted);
+      dbg('muted again');
     }
   });
 
@@ -465,6 +485,7 @@ function makeVideo(src, thumb, loop=false){
   wrap.addEventListener('mouseleave',()=>fsBtn.style.opacity='0');
   fsBtn.addEventListener('click',e=>{
     e.stopPropagation();
+    dbg('fullscreen click');
     _fsPrevScroll=getScrollY();
     document.body.style.overflow='hidden';
     if(v.requestFullscreen)v.requestFullscreen();
@@ -483,6 +504,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   const unlock=()=>{
     if(unlocked) return;
     unlocked=true;
+    dbg('gesture unlock fired');
     document.querySelectorAll('video.media').forEach(v=>{
       if(v.dataset.userStarted==='1') safePlay(v);
     });
