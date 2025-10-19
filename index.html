@@ -335,6 +335,23 @@ let firstGestureDone=false;
   }, {once:true, passive:true});
 });
 
+// --- Safari/Quest autoplay sound unlock (global) ---
+window.addEventListener('DOMContentLoaded', ()=>{
+  // make sure we have at least one user gesture before trying sound playback
+  let unlocked = false;
+  const unlock = ()=>{
+    if(unlocked) return;
+    unlocked = true;
+    document.querySelectorAll('video.media').forEach(v=>{
+      // retry play once the gesture is registered
+      safePlay(v);
+    });
+  };
+  ['pointerdown','touchstart','click','keydown','scroll'].forEach(evt=>{
+    window.addEventListener(evt, unlock, {once:true, passive:true});
+  });
+});
+
 /* Utility: in viewport? */
 function inViewport(elm){
   const r = elm.getBoundingClientRect();
