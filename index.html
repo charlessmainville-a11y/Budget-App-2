@@ -303,10 +303,10 @@ const ui = {
 };
 
 /* =========================================================
-   VIDEO ENGINE (gesture-first; Safari + Meta Quest)
+   CelebWall – video playback stability patch
    ========================================================= */
 
-/* IO: only resume/pause *after* user has started a video */
+/* --- IntersectionObserver declared first --- */
 const io = new IntersectionObserver((entries)=>{
   entries.forEach(e=>{
     const v = e.target;
@@ -320,122 +320,98 @@ const io = new IntersectionObserver((entries)=>{
   });
 },{threshold:0.5});
 
-/* Page visibility: pause all when hidden, resume started ones when visible */
-document.addEventListener('visibilitychange', ()=>{
-  const vids = document.querySelectorAll('video.media');
-  if(document.hidden){
-    vids.forEach(v=>v.pause());
-  }else{
-    vids.forEach(v=>{ if(inViewport(v) && v.dataset.userStarted==='1') safePlay(v); });
-  }
-});
-
-/* Global gesture unlock (helps Safari/Quest) */
-window.addEventListener('DOMContentLoaded', ()=>{
-  let unlocked=false;
-  const unlock=()=>{
-    if(unlocked) return; unlocked=true;
-    document.querySelectorAll('video.media').forEach(v=>{
-      if(v.dataset.userStarted==='1') safePlay(v);
-    });
-  };
-  ['pointerdown','touchstart','click','keydown','scroll'].forEach(evt=>{
-    window.addEventListener(evt, unlock, {once:true, passive:true});
-  });
-});
-
-/* Utility: in viewport? */
+/* Utility helpers */
 function inViewport(elm){
   const r = elm.getBoundingClientRect();
   return r.top < innerHeight*0.9 && r.bottom > innerHeight*0.1;
 }
+function getScrollY(){ return window.scrollY || document.documentElement.scrollTop || 0; }
 
-/* Fullscreen scroll restore */
-let _fsPrevScroll = 0;
-document.addEventListener('fullscreenchange', ()=>{
-  if(!document.fullscreenElement){
-    document.body.style.overflow = '';
-    const y = _fsPrevScroll;
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      window.scrollTo({top:y, left:0, behavior:'instant' in window ? 'instant' : 'auto'});
-    }));
-  }
-});
+/* Safe play helper */
+async function safePlay(v){
+  try{
+    if(v.readyState < 2)
+      await new Promise(r=>v.addEventListener('loadeddata', r, {once:true}));
+  }catch{}
+  try{
+    const p=v.play();
+    if(p && typeof p.then==='function') await p;
+  }catch{}
+}
 
-/* Tiny toast for mute toggles */
+/* Toast feedback */
 function showMuteToast(isMuted){
-  const toast = document.createElement('div');
-  toast.textContent = isMuted ? '🔇 Muted' : '🔊 Unmuted';
-  Object.assign(toast.style, {
-    position:'fixed', bottom:'24px', left:'50%', transform:'translateX(-50%)',
-    background:'rgba(0,0,0,0.7)', color:'#fff', padding:'8px 16px', borderRadius:'12px',
-    font:'900 16px/1 Inter,system-ui', zIndex:9999, transition:'opacity .3s ease'
+  const toast=document.createElement('div');
+  toast.textContent=isMuted?'🔇 Muted':'🔊 Unmuted';
+  Object.assign(toast.style,{
+    position:'fixed',bottom:'24px',left:'50%',transform:'translateX(-50%)',
+    background:'rgba(0,0,0,0.7)',color:'#fff',padding:'8px 16px',borderRadius:'12px',
+    font:'900 16px/1 Inter,system-ui',zIndex:9999,transition:'opacity .3s ease'
   });
   document.body.appendChild(toast);
   setTimeout(()=>toast.style.opacity='0',1000);
   setTimeout(()=>toast.remove(),1300);
 }
 
-/* Safe play helper */
-async function safePlay(v){
-  try{
-    if(v.readyState < 2) await new Promise(r=>v.addEventListener('loadeddata', r, {once:true}));
-  }catch{}
-  try{
-    const p = v.play();
-    if(p && typeof p.then==='function') await p;
-  }catch{/* ignored */}
-}
+/* Fullscreen scroll restore */
+let _fsPrevScroll=0;
+document.addEventListener('fullscreenchange',()=>{
+  if(document.fullscreenElement){
+    document.body.style.overflow='hidden';
+  }else{
+    document.body.style.overflow='';
+    const y=_fsPrevScroll;
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      window.scrollTo({top:y,left:0,behavior:'auto'});
+    }));
+  }
+});
 
-/* Build video element (Tap to Play; then tap toggles mute) */
+/* --- Build video element --- */
 function makeVideo(src, thumb, loop=false){
-  const wrap = document.createElement('div');
-  wrap.style.position = 'relative';
-  wrap.style.width = '100%';
+  const wrap=document.createElement('div');
+  wrap.style.position='relative';
+  wrap.style.width='100%';
 
-  const v = document.createElement('video');
-  v.className = 'media';
-  v.src = src;
-  v.autoplay = false;
-  v.muted = true;
-  v.playsInline = true;
-  v.setAttribute('webkit-playsinline', '');
-  v.preload = 'metadata';
-  v.loop = !!loop;
-  v.disableRemotePlayback = true;
-  v.setAttribute('x-webkit-airplay', 'deny');
-  if (thumb) v.poster = thumb;
-  v.setAttribute('controlslist','nodownload noplaybackrate noremoteplayback');
+  const v=document.createElement('video');
+  v.className='media';
+  v.src=src;
+  v.autoplay=false;
+  v.muted=true;
+  v.playsInline=true;
+  v.setAttribute('webkit-playsinline','');
+  v.preload='metadata';
+  v.loop=!!loop;
+  v.disableRemotePlayback=true;
+  v.setAttribute('x-webkit-airplay','deny');
+  if(thumb) v.poster=thumb;
+  if('controlsList' in v)
+    v.setAttribute('controlslist','nodownload noplaybackrate noremoteplayback');
   v.setAttribute('disablepictureinpicture','');
 
-  // Overlay factory
+  /* Overlay */
   function buildOverlay(){
-    const existing = wrap.querySelector('.tap-overlay');
-    if(existing) return existing;
-
-    const o = document.createElement('div');
-    o.className = 'tap-overlay';
-    o.textContent = '▶ Tap to Play';
-    Object.assign(o.style, {
-      position: 'absolute',
-      top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
-      padding: '16px 28px', borderRadius: '20px',
-      font: '900 18px/1 Inter,system-ui', letterSpacing: '.01em',
-      color: '#eaf0f6',
-      background: 'linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.06))',
-      border: '1px solid rgba(255,255,255,.18)',
-      backdropFilter: 'blur(14px) saturate(140%)',
-      WebkitBackdropFilter: 'blur(14px) saturate(140%)',
-      boxShadow: 'inset 0 1px 0 rgba(255,255,255,.22), 0 6px 16px rgba(0,0,0,.55)',
-      cursor: 'pointer', zIndex: 3, userSelect: 'none', transition: 'opacity .3s ease'
+    if(wrap.querySelector('.tap-overlay')) return;
+    const o=document.createElement('div');
+    o.className='tap-overlay';
+    o.textContent='▶ Tap to Play';
+    Object.assign(o.style,{
+      position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',
+      padding:'16px 28px',borderRadius:'20px',
+      font:'900 18px/1 Inter,system-ui',letterSpacing:'.01em',color:'#eaf0f6',
+      background:'linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.06))',
+      border:'1px solid rgba(255,255,255,.18)',
+      backdropFilter:'blur(14px) saturate(140%)',
+      WebkitBackdropFilter:'blur(14px) saturate(140%)',
+      boxShadow:'inset 0 1px 0 rgba(255,255,255,.22), 0 6px 16px rgba(0,0,0,.55)',
+      cursor:'pointer',zIndex:3,userSelect:'none',transition:'opacity .3s ease'
     });
-
-    o.addEventListener('click', async e=>{
+    o.addEventListener('click',async e=>{
       e.stopPropagation();
       v.dataset.userStarted='1';
       o.style.opacity='0';
       setTimeout(()=>o.remove(),300);
-      try { await v.play(); } catch {}
+      try{await v.play();}catch{}
       showMuteToast(v.muted);
     });
     wrap.appendChild(o);
@@ -445,13 +421,14 @@ function makeVideo(src, thumb, loop=false){
   buildOverlay();
   v.addEventListener('loadeddata', buildOverlay);
 
-  // Tap video behavior
-  v.addEventListener('click', async e=>{
+  /* Tap behavior */
+  v.addEventListener('click',async e=>{
     e.stopPropagation();
+    console.log('Video click:',{muted:v.muted,started:v.dataset.userStarted});
     if(v.dataset.userStarted!=='1'){
       v.dataset.userStarted='1';
       v.muted=true;
-      try{ await v.play(); }catch{}
+      try{await v.play();}catch{}
       showMuteToast(v.muted);
       return;
     }
@@ -462,7 +439,7 @@ function makeVideo(src, thumb, loop=false){
         await v.play();
         v.currentTime=t;
       }catch(err){
-        console.warn('Retrying muted playback',err);
+        console.warn('Retry muted playback',err);
         v.muted=true;
         await v.play();
       }
@@ -472,11 +449,11 @@ function makeVideo(src, thumb, loop=false){
     }
   });
 
-  // --- fullscreen button (moved outside click handler) ---
-  const fsBtn = document.createElement('button');
-  fsBtn.textContent = '⛶';
-  fsBtn.title = 'Fullscreen';
-  Object.assign(fsBtn.style, {
+  /* Fullscreen button */
+  const fsBtn=document.createElement('button');
+  fsBtn.textContent='⛶';
+  fsBtn.title='Fullscreen';
+  Object.assign(fsBtn.style,{
     position:'absolute',bottom:'12px',right:'12px',
     fontSize:'22px',padding:'4px 10px',
     border:'none',borderRadius:'12px',
@@ -499,6 +476,20 @@ function makeVideo(src, thumb, loop=false){
   io.observe(v);
   return wrap;
 }
+
+/* --- Unlock gesture (broader events) --- */
+window.addEventListener('DOMContentLoaded',()=>{
+  let unlocked=false;
+  const unlock=()=>{
+    if(unlocked) return;
+    unlocked=true;
+    document.querySelectorAll('video.media').forEach(v=>{
+      if(v.dataset.userStarted==='1') safePlay(v);
+    });
+  };
+  ['pointerdown','touchstart','click','keydown','scroll','focus']
+    .forEach(evt=>window.addEventListener(evt,unlock,{once:true,passive:true}));
+});
 
 /* -------------------- Reddit fetchers -------------------- */
 const CORS = 'https://cors.isomorphic-git.org/';
