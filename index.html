@@ -584,6 +584,11 @@ async function pullSubreddit(sub){
   return out;
 }
 
+// Helper: unescape Reddit URLs (fixes &amp; and HTML entities)
+function fix(u) {
+  return u ? u.replace(/&amp;/g, '&') : u;
+}
+
 // Helper: choose best gallery image from media_metadata
 function bestMeta(meta) {
   if (!meta) return null;
