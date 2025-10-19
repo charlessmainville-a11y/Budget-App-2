@@ -758,7 +758,6 @@ document.getElementById('homeBtn').addEventListener('click', ()=>ui.showPage('ho
 document.getElementById('likesBtn').addEventListener('click', ()=>{ paintList('likes', likes); requestAnimationFrame(()=>ui.showPage('likes')); });
 document.getElementById('discardBtn').addEventListener('click', ()=>{ paintList('discard', discards); requestAnimationFrame(()=>ui.showPage('discard')); });
 document.getElementById('manageSubsBtn').addEventListener('click', ()=>{ buildSubsUI(); ui.showPage('subs'); el('#tabSubs').style.display=''; });
-document.getElementById('troubleBtn').addEventListener('click', ()=>{ dumpTroubleshoot(); el('#modal').classList.add('show'); });
 document.getElementById('closeModal').addEventListener('click', ()=> el('#modal').classList.remove('show'));
 document.getElementById('connectBtn').addEventListener('click', beginOAuth);
 document.getElementById('subsSelectAll').addEventListener('click', ()=>{ document.querySelectorAll('#subsGrid input[type="checkbox"]')?.forEach(c=>c.checked=true); });
