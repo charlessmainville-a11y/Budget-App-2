@@ -498,56 +498,6 @@ function makeVideo(src, thumb, loop=false){
   return wrap;
 }
 
-  v.addEventListener('stalled', () => safePlay(v));
-  v.addEventListener('waiting', () => safePlay(v));
-  v.addEventListener('error', () => v.closest('.card')?.remove());
-
-  // Tap to toggle mute/unmute
-  v.addEventListener('click', async e => {
-    e.stopPropagation();
-    v.muted = !v.muted;
-    if (!v.muted) {
-      try { await v.play(); } catch {}
-    }
-    showMuteToast(v.muted);
-  });
-
-  // Minimal fullscreen button
-  const fsBtn = document.createElement('button');
-  fsBtn.textContent = '⛶';
-  fsBtn.title = 'Fullscreen';
-  Object.assign(fsBtn.style, {
-    position: 'absolute',
-    bottom: '12px',
-    right: '12px',
-    fontSize: '22px',
-    padding: '4px 10px',
-    border: 'none',
-    borderRadius: '12px',
-    background: 'rgba(0,0,0,0.55)',
-    color: '#fff',
-    cursor: 'pointer',
-    zIndex: '2',
-    opacity: '0',
-    transition: 'opacity .25s ease'
-  });
-  wrap.addEventListener('mouseenter', () => fsBtn.style.opacity = '0.85');
-  wrap.addEventListener('mouseleave', () => fsBtn.style.opacity = '0');
-
-  fsBtn.addEventListener('click', e => {
-    e.stopPropagation();
-    _fsPrevScroll = getScrollY();
-    document.body.style.overflow = 'hidden';
-    if (v.requestFullscreen) v.requestFullscreen();
-    else if (v.webkitRequestFullscreen) v.webkitRequestFullscreen();
-  });
-
-  wrap.appendChild(v);
-  wrap.appendChild(fsBtn);
-  io.observe(v);
-  return wrap;
-}
-
 /* -------------------- fetchers (Reddit) -------------------- */
 const CORS = 'https://cors.isomorphic-git.org/';
 function baseUrl(sub, token){
