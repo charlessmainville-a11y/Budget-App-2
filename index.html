@@ -432,11 +432,24 @@ function makeVideo(src, thumb, loop=false){
     else if(v.webkitRequestFullscreen) v.webkitRequestFullscreen();
   });
 
-  wrap.appendChild(v); wrap.appendChild(fsBtn);
-  io.observe(v);
-  requestAnimationFrame(()=>safePlay(v));
-  return wrap;
+wrap.appendChild(v);
+wrap.appendChild(fsBtn);
+io.observe(v);
+
+// ✅ ensure one safePlay fires once in DOM
+requestAnimationFrame(()=>safePlay(v));
+
+// ✅ if browser blocks autoplay until user gesture, this ensures they start once tapped anywhere
+if (!window.__autoplayUnlockBound) {
+  window.__autoplayUnlockBound = true;
+  ['pointerdown','touchstart','click','keydown'].forEach(evt=>{
+    window.addEventListener(evt, ()=>{
+      document.querySelectorAll('video.media').forEach(v=>safePlay(v));
+    }, {once:true, passive:true});
+  });
 }
+
+return wrap;
 
 /* -------------------- fetchers (Reddit) -------------------- */
 const CORS = 'https://cors.isomorphic-git.org/';
