@@ -373,116 +373,89 @@ document.addEventListener('fullscreenchange',()=>{
   }
 });
 
-/* --- Safari-safe makeVideo --- */
-function makeVideo(src, thumb, loop=false){
-  dbg('makeVideo', src);
-  const wrap=document.createElement('div');
-  wrap.style.position='relative';
-  wrap.style.width='100%';
+/* =========================================================
+   VIDEO BUILDER (Reddit + RedGifs, Safari-safe)
+   ========================================================= */
+function makeVideo(url, thumb, provider) {
+  const v = document.createElement('video');
+  v.className = 'media';
+  v.src = url;
+  v.poster = thumb || '';
+  v.playsInline = true;
+  v.loop = true;
+  v.muted = true;
+  v.autoplay = true;
+  v.preload = 'metadata';
+  v.controls = false;
 
-  const v=document.createElement('video');
-  v.className='media';
-  v.src=src;
-  v.autoplay=false;
-  v.muted=true;
-  v.playsInline=true;
-  v.setAttribute('webkit-playsinline','');
-  v.preload='metadata';
-  v.loop=!!loop;
-  v.disableRemotePlayback=true;
-  v.setAttribute('x-webkit-airplay','deny');
-  if(thumb) v.poster=thumb;
-  if('controlsList' in v)
-    v.setAttribute('controlslist','nodownload noplaybackrate noremoteplayback');
-  v.setAttribute('disablepictureinpicture','');
+  // Safari requires gesture unlock before sound
+  const unlockAudio = () => {
+    v.muted = false;
+    v.play().catch(()=>{});
+  };
 
-  // --- overlay builder (robust for Safari) ---
-  function safeOverlay(){
-    try{
-      if(wrap.querySelector('.tap-overlay')) return;
-      const o=document.createElement('div');
-      o.className='tap-overlay';
-      o.textContent='▶ Tap to Play';
-      Object.assign(o.style,{
-        position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',
-        padding:'16px 28px',borderRadius:'20px',
-        font:'900 18px/1 Inter,system-ui',color:'#eaf0f6',
-        background:'rgba(0,0,0,0.45)',
-        border:'1px solid rgba(255,255,255,.18)',
-        backdropFilter:'blur(12px) saturate(140%)',
-        WebkitBackdropFilter:'blur(12px) saturate(140%)',
-        boxShadow:'0 6px 16px rgba(0,0,0,.55)',
-        cursor:'pointer',zIndex:'10',userSelect:'none',
-        transition:'opacity .3s ease'
-      });
-      o.addEventListener('click',async e=>{
-        e.stopPropagation();
-        dbg('overlay clicked');
-        v.dataset.userStarted='1';
-        o.style.opacity='0';
-        setTimeout(()=>o.remove(),300);
-        try{ await v.play(); dbg('overlay play success'); }
-        catch(err){ dbg('overlay play fail', err.message); }
-        showMuteToast(v.muted);
-      });
-      wrap.appendChild(o);
-      dbg('✅ overlay attached for', src);
-    }catch(err){ dbg('overlay error', err.message); }
+  // overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.innerHTML = `
+    <div class="overlay-inner">
+      <span class="play-btn">▶</span>
+      <span class="fs-btn">⛶</span>
+    </div>`;
+  overlay.style.position = 'absolute';
+  overlay.style.top = 0;
+  overlay.style.left = 0;
+  overlay.style.right = 0;
+  overlay.style.bottom = 0;
+  overlay.style.display = 'flex';
+  overlay.style.justifyContent = 'center';
+  overlay.style.alignItems = 'center';
+  overlay.style.backdropFilter = 'blur(8px)';
+  overlay.style.background = 'rgba(0,0,0,0.2)';
+  overlay.style.cursor = 'pointer';
+  overlay.style.transition = 'opacity 0.25s ease';
+  overlay.style.opacity = 0;
+  overlay.onmouseenter = ()=>overlay.style.opacity = 1;
+  overlay.onmouseleave = ()=>overlay.style.opacity = 0;
+
+  // interaction handlers
+  overlay.querySelector('.play-btn').addEventListener('click', e => {
+    e.stopPropagation();
+    if (v.paused) {
+      v.play().catch(()=>{});
+      overlay.querySelector('.play-btn').textContent = '🔇';
+    } else {
+      unlockAudio();
+      overlay.querySelector('.play-btn').textContent = '🔊';
+    }
+  });
+
+  overlay.querySelector('.fs-btn').addEventListener('click', e => {
+    e.stopPropagation();
+    if (v.requestFullscreen) v.requestFullscreen();
+    else if (v.webkitEnterFullscreen) v.webkitEnterFullscreen();
+  });
+
+  const wrap = document.createElement('div');
+  wrap.className = 'video-wrap';
+  wrap.style.position = 'relative';
+  wrap.style.overflow = 'hidden';
+  wrap.appendChild(v);
+  wrap.appendChild(overlay);
+
+  // diagnostics
+  v.addEventListener('loadstart', () => dbg('loadstart', url));
+  v.addEventListener('loadeddata', () => dbg('loadeddata', url));
+  v.addEventListener('error', e => dbg('❌ video error', url, e));
+
+  // RedGifs autoplay tweak
+  if (provider === 'redgifs') {
+    v.addEventListener('canplay', () => {
+      const p = v.play();
+      if (p && p.catch) p.catch(() => dbg('⚠️ RedGifs autoplay blocked', url));
+    });
   }
 
-  safeOverlay();
-  setTimeout(safeOverlay,200);
-  v.addEventListener('loadeddata', safeOverlay);
-
-  // --- tap behaviour ---
-  v.addEventListener('click',async e=>{
-    e.stopPropagation();
-    dbg('video clicked', v.src, 'muted=', v.muted);
-    if(v.dataset.userStarted!=='1'){
-      v.dataset.userStarted='1';
-      v.muted=true;
-      try{ await v.play(); dbg('first tap play ok'); }catch(err){ dbg('first tap play fail',err.message); }
-      showMuteToast(v.muted);
-      return;
-    }
-    if(v.muted){
-      const t=v.currentTime;
-      v.muted=false;
-      try{ await v.play(); v.currentTime=t; dbg('unmute ok'); }
-      catch(err){ v.muted=true; dbg('unmute fail', err.message); }
-    }else{
-      v.muted=true;
-      showMuteToast(v.muted);
-      dbg('muted again');
-    }
-  });
-
-  // --- fullscreen button ---
-  const fsBtn=document.createElement('button');
-  fsBtn.textContent='⛶';
-  fsBtn.title='Fullscreen';
-  Object.assign(fsBtn.style,{
-    position:'absolute',bottom:'12px',right:'12px',
-    fontSize:'22px',padding:'4px 10px',
-    border:'none',borderRadius:'12px',
-    background:'rgba(0,0,0,0.55)',color:'#fff',
-    cursor:'pointer',zIndex:'2',opacity:'0',
-    transition:'opacity .25s ease'
-  });
-  wrap.addEventListener('mouseenter',()=>fsBtn.style.opacity='0.85');
-  wrap.addEventListener('mouseleave',()=>fsBtn.style.opacity='0');
-  fsBtn.addEventListener('click',e=>{
-    e.stopPropagation();
-    dbg('fullscreen click');
-    _fsPrevScroll=getScrollY();
-    document.body.style.overflow='hidden';
-    if(v.requestFullscreen)v.requestFullscreen();
-    else if(v.webkitRequestFullscreen)v.webkitRequestFullscreen();
-  });
-
-  wrap.appendChild(v);
-  wrap.appendChild(fsBtn);
-  io.observe(v);
   return wrap;
 }
 
@@ -741,7 +714,7 @@ function card(item){
   const performer = inferPerformer(item);
 
   let media;
-  if(item.t==='video' || item.t==='gif'){ media = makeVideo(item.url, item.thumb || null, true); }
+  if(item.t==='video' || item.t==='gif'){ media = makeVideo(item.url, item.thumb || null, item.provider); }
   else{
     media = document.createElement('img'); media.className='media'; media.loading='lazy'; media.alt=item.title||''; media.src=item.url;
     media.addEventListener('error',()=>wrap.remove());
