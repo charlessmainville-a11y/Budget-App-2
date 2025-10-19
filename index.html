@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>CelebWall v2.4.1</title>
+<title>CelebWall v2.4.2</title>
 <style>
   :root{
     --bg:#0d0f12;--panel:#12151a;--glass:#171b21;--muted:#9aa3ad;--txt:#eaf0f6;
@@ -126,12 +126,9 @@
     <button class="btn tile small" id="discardBtn">Discard</button>
     <button class="btn tile grad small" id="newBatchBtn">New batch</button>
     <button class="btn tile small" id="shuffleBtn">Shuffle feed</button>
-    <button class="btn tile small" id="loadMoreBtn">Load more</button>
     <button class="btn tile small" id="manageSubsBtn">Subreddits</button>
     <button class="btn tile small" id="troubleBtn">Troubleshoot</button>
     <button class="btn tile small" id="connectBtn">Connect Reddit</button>
-    <button class="btn tile small" id="clearTokBtn">Clear token</button>
-    <span class="pill" id="tokenPill" style="align-self:stretch;display:flex;align-items:center;justify-content:center">Token: none</span>
     <button class="btn tile progressBtn glass" id="progressBtn">
       <div class="fill" id="bar"></div>
       <span class="label" id="phase">Ready</span>
@@ -179,11 +176,10 @@
 <script>
 /* =========================================================
    CelebWall – Stable Script (Safari + Meta Quest tuned)
-   - Muted autoplay that sticks
-   - Retry play on visibility / IO / network hiccups
-   - One-gesture “unlock” for stubborn browsers
-   - Fullscreen exit restores prior scroll position
-   - No double definitions, no empty frames
+   - Autoplay muted by default (policy-friendly)
+   - Tap video to toggle mute/unmute (with toast)
+   - IO + visibility retries (robust play)
+   - Fullscreen exit restores scroll
    ========================================================= */
 
 /* -------------------- OAuth config -------------------- */
@@ -303,7 +299,6 @@ const ui = {
     el('#tabSubs').style.display = (name==='subs' ? '' : (el('#tabSubs').style.display || ''));
     this.progressVisibility();
   },
-  tokenBadge(){ const t=getToken(); el('#tokenPill').textContent = 'Token: ' + (t ? 'stored' : 'none'); },
   progressVisibility(){ const visible = currentFeed==='home' && (pool.length>0 || !fetching); el('#progressBtn').style.display = visible ? '' : 'none'; }
 };
 
@@ -311,7 +306,7 @@ const ui = {
    VIDEO ENGINE (Safari + Meta Quest hardened)
    ========================================================= */
 
-/* IntersectionObserver: play/pause when visible */
+/* IO: play/pause with visibility */
 const io = new IntersectionObserver((entries)=>{
   entries.forEach(e=>{
     const v = e.target;
@@ -320,7 +315,7 @@ const io = new IntersectionObserver((entries)=>{
   });
 },{threshold:0.5});
 
-/* Page visibility: pause all when hidden, re-try when visible */
+/* Page visibility: pause all when hidden, retry when visible */
 document.addEventListener('visibilitychange', ()=>{
   const vids = document.querySelectorAll('video.media');
   if(document.hidden){
@@ -330,49 +325,27 @@ document.addEventListener('visibilitychange', ()=>{
   }
 });
 
-/* One-gesture unlock for stubborn autoplay */
-let gestureUnlocked = false;
-function gestureUnlock(){
-  if (gestureUnlocked) return;
-  gestureUnlocked = true;
-
-  // Unmute and restart all videos once user has interacted
-  document.querySelectorAll('video.media').forEach(v=>{
-    v.muted = false;
-    v.defaultMuted = false;
-    safePlay(v);
-  });
-
-  // Optional: toast feedback
-  const toast = document.createElement('div');
-  toast.textContent = '🔊 Sound enabled';
-  Object.assign(toast.style, {
-    position:'fixed',bottom:'24px',left:'50%',transform:'translateX(-50%)',
-    background:'rgba(0,0,0,0.7)',color:'#fff',padding:'8px 16px',
-    borderRadius:'12px',font:'900 16px/1 Inter,system-ui',zIndex:9999,
-    transition:'opacity .3s ease'
-  });
-  document.body.appendChild(toast);
-  setTimeout(()=>toast.style.opacity='0',1000);
-  setTimeout(()=>toast.remove(),1300);
-}
+/* First-gesture: nudge play (keeps muted) */
+let firstGestureDone=false;
 ['pointerdown','touchstart','click','keydown'].forEach(evt=>{
-  window.addEventListener(evt, gestureUnlock, {once:true, passive:true});
+  window.addEventListener(evt, ()=>{
+    if(firstGestureDone) return;
+    firstGestureDone=true;
+    document.querySelectorAll('video.media').forEach(v=>safePlay(v)); // don’t unmute here
+  }, {once:true, passive:true});
 });
 
-/* Utility: is element in viewport */
+/* Utility: in viewport? */
 function inViewport(elm){
   const r = elm.getBoundingClientRect();
   return r.top < innerHeight*0.9 && r.bottom > innerHeight*0.1;
 }
 
-/* Keep/restore scroll on fullscreen (prevents jump to top) */
+/* Fullscreen scroll restore */
 let _fsPrevScroll = 0;
 document.addEventListener('fullscreenchange', ()=>{
   if(!document.fullscreenElement){
-    // Exiting fullscreen
     document.body.style.overflow = '';
-    // Restore scroll smoothly after the layout settles
     const y = _fsPrevScroll;
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
       window.scrollTo({top:y, left:0, behavior:'instant' in window ? 'instant' : 'auto'});
@@ -380,7 +353,7 @@ document.addEventListener('fullscreenchange', ()=>{
   }
 });
 
-/* Show tiny toast for mute toggles */
+/* Tiny toast for mute toggles */
 function showMuteToast(isMuted){
   const toast = document.createElement('div');
   toast.textContent = isMuted ? '🔇 Muted' : '🔊 Unmuted';
@@ -394,7 +367,7 @@ function showMuteToast(isMuted){
   setTimeout(()=>toast.remove(),1300);
 }
 
-/* Play helper that won’t throw (Chrome/Safari/Quest) */
+/* Safe play helper */
 async function safePlay(v){
   try{
     if(v.readyState < 2) await new Promise(r=>v.addEventListener('loadeddata', r, {once:true}));
@@ -402,12 +375,10 @@ async function safePlay(v){
   try{
     const p = v.play();
     if(p && typeof p.then==='function') await p;
-  }catch{
-    // If autoplay failed, keep muted and wait for gesture/visibility/IO to retry
-  }
+  }catch{/* autoplay may fail until user interacts */}
 }
 
-/* Build + wire a video element with all the fixups */
+/* Build video element (autoplay muted; tap toggles) */
 function makeVideo(src, thumb, loop=false){
   const wrap=document.createElement('div');
   wrap.style.position='relative'; wrap.style.width='100%';
@@ -416,9 +387,9 @@ function makeVideo(src, thumb, loop=false){
   v.className='media';
   v.src=src;
   v.autoplay=true;
-  v.muted=true;                    // muted => autoplay allowed
+  v.muted=true;                    // DEFAULT: muted for policy
   v.playsInline=true;              // Safari/iOS inline
-  v.setAttribute('webkit-playsinline',''); // extra iOS hint
+  v.setAttribute('webkit-playsinline','');
   v.preload='metadata';
   v.loop=!!loop;
   v.disableRemotePlayback = true;  // Quest/TVs
@@ -427,22 +398,21 @@ function makeVideo(src, thumb, loop=false){
   v.setAttribute('controlslist','nodownload noplaybackrate noremoteplayback');
   v.setAttribute('disablepictureinpicture','');
 
-  // Drive playback as soon as possible
   v.addEventListener('loadedmetadata', ()=> safePlay(v));
   v.addEventListener('canplay',        ()=> safePlay(v), {once:true});
-  v.addEventListener('playing',        ()=> {/* ok */});
   v.addEventListener('stalled',        ()=> safePlay(v));
   v.addEventListener('waiting',        ()=> safePlay(v));
   v.addEventListener('error',          ()=> v.closest('.card')?.remove());
 
-  // Click toggles mute only (keeps autoplay rules intact)
+  // Tap to toggle mute
   v.addEventListener('click', e=>{
     e.stopPropagation();
     v.muted = !v.muted;
+    if(!v.muted) safePlay(v); // ensure playback continues after unmute
     showMuteToast(v.muted);
   });
 
-  // Minimal fullscreen button with scroll-restore
+  // Minimal fullscreen button
   const fsBtn=document.createElement('button');
   fsBtn.textContent='⛶';
   fsBtn.title='Fullscreen';
@@ -451,8 +421,8 @@ function makeVideo(src, thumb, loop=false){
     border:'none', borderRadius:'12px', background:'rgba(0,0,0,0.55)', color:'#fff',
     cursor:'pointer', zIndex:'2', opacity:'0', transition:'opacity .25s ease'
   });
-  wrap.addEventListener('mouseenter',()=>fsBtn.style.opacity='0.85');
-  wrap.addEventListener('mouseleave',()=>fsBtn.style.opacity='0');
+  wrap.addEventListener('mouseenter',()=>fsBtn.style.opacity='0.85'));
+  wrap.addEventListener('mouseleave',()=>fsBtn.style.opacity='0'));
 
   fsBtn.addEventListener('click', e=>{
     e.stopPropagation();
@@ -464,7 +434,6 @@ function makeVideo(src, thumb, loop=false){
 
   wrap.appendChild(v); wrap.appendChild(fsBtn);
   io.observe(v);
-  // Kick one more time next frame (helps WebKit)
   requestAnimationFrame(()=>safePlay(v));
   return wrap;
 }
@@ -714,8 +683,8 @@ function dumpTroubleshoot(){
 /* -------------------- events -------------------- */
 document.getElementById('newBatchBtn').addEventListener('click', newBatch);
 document.getElementById('shuffleBtn').addEventListener('click', shuffleVisibleAndPool);
-document.getElementById('loadMoreBtn').addEventListener('click', ()=>renderChunk('home'));
-document.getElementById('progressBtn').addEventListener('click', e=>{ if(e.currentTarget.hasAttribute('disabled')) return; renderChunk('home'); });
+// (Removed Load More button)
+// (Removed Clear Token + Token pill UI)
 document.getElementById('homeBtn').addEventListener('click', ()=>ui.showPage('home'));
 document.getElementById('likesBtn').addEventListener('click', ()=>{ paintList('likes', likes); requestAnimationFrame(()=>ui.showPage('likes')); });
 document.getElementById('discardBtn').addEventListener('click', ()=>{ paintList('discard', discards); requestAnimationFrame(()=>ui.showPage('discard')); });
@@ -723,7 +692,6 @@ document.getElementById('manageSubsBtn').addEventListener('click', ()=>{ buildSu
 document.getElementById('troubleBtn').addEventListener('click', ()=>{ dumpTroubleshoot(); el('#modal').classList.add('show'); });
 document.getElementById('closeModal').addEventListener('click', ()=> el('#modal').classList.remove('show'));
 document.getElementById('connectBtn').addEventListener('click', beginOAuth);
-document.getElementById('clearTokBtn').addEventListener('click', clearToken);
 document.getElementById('subsSelectAll').addEventListener('click', ()=>{ document.querySelectorAll('#subsGrid input[type="checkbox"]').forEach(c=>c.checked=true); });
 document.getElementById('subsClearAll').addEventListener('click', ()=>{ document.querySelectorAll('#subsGrid input[type="checkbox"]').forEach(c=>c.checked=false); });
 document.getElementById('subsBack').addEventListener('click', ()=> ui.showPage('home'));
@@ -764,10 +732,10 @@ function captureTokenFromHash(){
   const expiresIn=parseInt(h.get('expires_in')||'3600',10);
   const rec={ access_token: token, expires_at: Date.now() + (expiresIn*1000) };
   localStorage.setItem('reddit_token', JSON.stringify(rec));
-  ui.tokenBadge(); log('Token stored, expires in ' + Math.round(expiresIn/60) + 'm');
+  log('Token stored, expires in ' + Math.round(expiresIn/60) + 'm');
   history.replaceState({}, document.title, location.pathname + location.search);
 }
-function clearToken(){ localStorage.removeItem('reddit_token'); ui.tokenBadge(); log('Token cleared'); }
+function clearToken(){ localStorage.removeItem('reddit_token'); log('Token cleared'); }
 function getToken(){ try{ const t=JSON.parse(localStorage.getItem('reddit_token')||'null'); if(!t) return null; if(Date.now()>t.expires_at) return null; return t.access_token; }catch{ return null; } }
 
 /* -------------------- RedGifs integration -------------------- */
@@ -851,9 +819,10 @@ async function autoLoadRedGifs(){
 
 /* -------------------- boot -------------------- */
 captureTokenFromHash();
-ui.tokenBadge();
 ui.setProgressMode(false);
 ui.bar(100); ui.phase('Ready');
-log('Ready. Swipe right to Like, left to Dismiss. “Viewed” items are skipped.');
+log('Ready. Swipe right to Like, left to Dismiss. Tap video to toggle sound. “Viewed” items are skipped.');
 (async ()=>{ await newBatch(); setTimeout(autoLoadRedGifs, 3000); })();
 </script>
+</body>
+</html>
