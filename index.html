@@ -584,6 +584,14 @@ async function pullSubreddit(sub){
   return out;
 }
 
+// Helper: choose best gallery image from media_metadata
+function bestMeta(meta) {
+  if (!meta) return null;
+  const s = meta.s;
+  if (!s) return null;
+  return fix(s.u || s.gif || s.mp4 || null);
+}
+
 /* Normalize Reddit post → card item (video / gif / image) */
 function normalize(d) {
   // 1️⃣ Prefer Reddit-hosted true videos (v.redd.it)
