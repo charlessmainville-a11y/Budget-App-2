@@ -224,18 +224,15 @@ const AUTOLOAD=true, AUTOLOAD_THRESHOLD_PX=1400, AUTOLOAD_THROTTLE_MS=1400, MAX_
 let pool=[], likes=[], discards=[], currentFeed='home', fetching=false, lastErrors=[], loadLock=false, lastAutoTs=0;
 const logEl = document.getElementById('log');
 
-/* --- live debug logger --- */
-const DEBUG = true;
+/* --- unified debug logger --- */
 function dbg(...args) {
-  if (!DEBUG) return;
   const msg = '[DBG] ' + args.join(' ');
   console.log(msg);
-  const el = document.getElementById('log');
-  if (el) {
-    el.textContent += msg + '\n';
-    el.scrollTop = el.scrollHeight;
-    }
+  if (logEl) {
+    logEl.textContent += msg + '\n';
+    logEl.scrollTop = logEl.scrollHeight;
   }
+}
 
 /* -------------------- persistence -------------------- */
 function saveState(){ try{ localStorage.setItem('likes',JSON.stringify(likes)); localStorage.setItem('discards',JSON.stringify(discards)); }catch{} }
@@ -319,7 +316,7 @@ const ui = {
    VIDEO ENGINE (gesture-first; Safari + Meta Quest)
    ========================================================= */
 
-/* --- IntersectionObserver declared first --- */
+/* --- IntersectionObserver --- */
 const io = new IntersectionObserver((entries)=>{
   entries.forEach(e=>{
     const v = e.target;
@@ -333,14 +330,7 @@ const io = new IntersectionObserver((entries)=>{
   });
 },{threshold:0.5});
 
-/* Utility helpers */
-function inViewport(elm){
-  const r = elm.getBoundingClientRect();
-  return r.top < innerHeight*0.9 && r.bottom > innerHeight*0.1;
-}
-function getScrollY(){ return window.scrollY || document.documentElement.scrollTop || 0; }
-
-/* Safe play helper */
+/* --- helpers --- */
 async function safePlay(v){
   dbg('safePlay', v.src, 'muted=', v.muted, 'readyState=', v.readyState);
   try{
@@ -356,7 +346,6 @@ async function safePlay(v){
   }
 }
 
-/* Toast feedback */
 function showMuteToast(isMuted){
   const toast=document.createElement('div');
   toast.textContent=isMuted?'🔇 Muted':'🔊 Unmuted';
@@ -370,7 +359,7 @@ function showMuteToast(isMuted){
   setTimeout(()=>toast.remove(),1300);
 }
 
-/* Fullscreen scroll restore */
+/* --- fullscreen scroll restore --- */
 let _fsPrevScroll=0;
 document.addEventListener('fullscreenchange',()=>{
   if(document.fullscreenElement){
@@ -384,7 +373,7 @@ document.addEventListener('fullscreenchange',()=>{
   }
 });
 
-/* --- Build video element --- */
+/* --- Safari-safe makeVideo --- */
 function makeVideo(src, thumb, loop=false){
   dbg('makeVideo', src);
   const wrap=document.createElement('div');
@@ -407,62 +396,60 @@ function makeVideo(src, thumb, loop=false){
     v.setAttribute('controlslist','nodownload noplaybackrate noremoteplayback');
   v.setAttribute('disablepictureinpicture','');
 
-  /* Overlay */
-  function buildOverlay(){
-    if(wrap.querySelector('.tap-overlay')) return;
-    const o=document.createElement('div');
-    o.className='tap-overlay';
-    o.textContent='▶ Tap to Play';
-    Object.assign(o.style,{
-      position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',
-      padding:'16px 28px',borderRadius:'20px',
-      font:'900 18px/1 Inter,system-ui',letterSpacing:'.01em',color:'#eaf0f6',
-      background:'linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.06))',
-      border:'1px solid rgba(255,255,255,.18)',
-      backdropFilter:'blur(14px) saturate(140%)',
-      WebkitBackdropFilter:'blur(14px) saturate(140%)',
-      boxShadow:'inset 0 1px 0 rgba(255,255,255,.22), 0 6px 16px rgba(0,0,0,.55)',
-      cursor:'pointer',zIndex:3,userSelect:'none',transition:'opacity .3s ease'
-    });
-    o.addEventListener('click',async e=>{
-      e.stopPropagation();
-      dbg('overlay clicked, attempting play');
-      v.dataset.userStarted='1';
-      o.style.opacity='0';
-      setTimeout(()=>o.remove(),300);
-      try{await v.play();dbg('overlay play success');}catch(err){dbg('overlay play fail',err.message);}
-      showMuteToast(v.muted);
-    });
-    wrap.appendChild(o);
-    return o;
+  // --- overlay builder (robust for Safari) ---
+  function safeOverlay(){
+    try{
+      if(wrap.querySelector('.tap-overlay')) return;
+      const o=document.createElement('div');
+      o.className='tap-overlay';
+      o.textContent='▶ Tap to Play';
+      Object.assign(o.style,{
+        position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',
+        padding:'16px 28px',borderRadius:'20px',
+        font:'900 18px/1 Inter,system-ui',color:'#eaf0f6',
+        background:'rgba(0,0,0,0.45)',
+        border:'1px solid rgba(255,255,255,.18)',
+        backdropFilter:'blur(12px) saturate(140%)',
+        WebkitBackdropFilter:'blur(12px) saturate(140%)',
+        boxShadow:'0 6px 16px rgba(0,0,0,.55)',
+        cursor:'pointer',zIndex:'10',userSelect:'none',
+        transition:'opacity .3s ease'
+      });
+      o.addEventListener('click',async e=>{
+        e.stopPropagation();
+        dbg('overlay clicked');
+        v.dataset.userStarted='1';
+        o.style.opacity='0';
+        setTimeout(()=>o.remove(),300);
+        try{ await v.play(); dbg('overlay play success'); }
+        catch(err){ dbg('overlay play fail', err.message); }
+        showMuteToast(v.muted);
+      });
+      wrap.appendChild(o);
+      dbg('✅ overlay attached for', src);
+    }catch(err){ dbg('overlay error', err.message); }
   }
 
-  buildOverlay();
-  v.addEventListener('loadeddata', buildOverlay);
+  safeOverlay();
+  setTimeout(safeOverlay,200);
+  v.addEventListener('loadeddata', safeOverlay);
 
-  /* Tap behavior */
+  // --- tap behaviour ---
   v.addEventListener('click',async e=>{
     e.stopPropagation();
-    dbg('video clicked', v.src, 'userStarted=', v.dataset.userStarted, 'muted=', v.muted);
+    dbg('video clicked', v.src, 'muted=', v.muted);
     if(v.dataset.userStarted!=='1'){
       v.dataset.userStarted='1';
       v.muted=true;
-      try{await v.play();dbg('first tap play ok');}catch(err){dbg('first tap play fail',err.message);}
+      try{ await v.play(); dbg('first tap play ok'); }catch(err){ dbg('first tap play fail',err.message); }
       showMuteToast(v.muted);
       return;
     }
     if(v.muted){
       const t=v.currentTime;
       v.muted=false;
-      try{
-        await v.play();
-        v.currentTime=t;
-        dbg('unmute play ok');
-      }catch(err){
-        dbg('unmute play error',err.message);
-        v.muted=true;
-        await v.play();
-      }
+      try{ await v.play(); v.currentTime=t; dbg('unmute ok'); }
+      catch(err){ v.muted=true; dbg('unmute fail', err.message); }
     }else{
       v.muted=true;
       showMuteToast(v.muted);
@@ -470,7 +457,7 @@ function makeVideo(src, thumb, loop=false){
     }
   });
 
-  /* Fullscreen button */
+  // --- fullscreen button ---
   const fsBtn=document.createElement('button');
   fsBtn.textContent='⛶';
   fsBtn.title='Fullscreen';
@@ -499,7 +486,7 @@ function makeVideo(src, thumb, loop=false){
   return wrap;
 }
 
-/* --- Unlock gesture (broader events) --- */
+/* --- unlock gesture --- */
 window.addEventListener('DOMContentLoaded',()=>{
   let unlocked=false;
   const unlock=()=>{
@@ -512,6 +499,13 @@ window.addEventListener('DOMContentLoaded',()=>{
   };
   ['pointerdown','touchstart','click','keydown','scroll','focus']
     .forEach(evt=>window.addEventListener(evt,unlock,{once:true,passive:true}));
+});
+
+/* --- update Troubleshoot button to start live logging --- */
+document.getElementById('troubleBtn').addEventListener('click', ()=>{
+  dumpTroubleshoot();
+  el('#modal').classList.add('show');
+  dbg('--- Live debug logging started ---');
 });
 
 /* -------------------- Reddit fetchers -------------------- */
