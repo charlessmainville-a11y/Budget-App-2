@@ -222,7 +222,19 @@ const AUTOLOAD=true, AUTOLOAD_THRESHOLD_PX=1400, AUTOLOAD_THROTTLE_MS=1400, MAX_
 
 /* -------------------- state -------------------- */
 let pool=[], likes=[], discards=[], currentFeed='home', fetching=false, lastErrors=[], loadLock=false, lastAutoTs=0;
-const logEl=document.getElementById('log');
+const logEl = document.getElementById('log');
+
+/* --- live debug logger --- */
+const DEBUG = true;
+function dbg(...args) {
+  if (!DEBUG) return;
+  const msg = '[DBG] ' + args.join(' ');
+  console.log(msg);
+  const el = document.getElementById('log');
+  if (el) {
+    el.textContent += msg + '\n';
+    el.scrollTop = el.scrollHeight;
+  }
 
 /* -------------------- persistence -------------------- */
 function saveState(){ try{ localStorage.setItem('likes',JSON.stringify(likes)); localStorage.setItem('discards',JSON.stringify(discards)); }catch{} }
