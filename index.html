@@ -396,8 +396,8 @@ function makeVideo(src, thumb, loop=false){
   const v = document.createElement('video');
   v.className = 'media';
   v.src = src;
-  v.autoplay = false;                // do NOT autoplay
-  v.muted = true;                    // start muted
+  v.autoplay = false;
+  v.muted = true;
   v.playsInline = true;
   v.setAttribute('webkit-playsinline', '');
   v.preload = 'metadata';
@@ -405,12 +405,11 @@ function makeVideo(src, thumb, loop=false){
   v.disableRemotePlayback = true;
   v.setAttribute('x-webkit-airplay', 'deny');
   if (thumb) v.poster = thumb;
-  v.setAttribute('controlslist', 'nodownload noplaybackrate noremoteplayback');
-  v.setAttribute('disablepictureinpicture', '');
+  v.setAttribute('controlslist','nodownload noplaybackrate noremoteplayback');
+  v.setAttribute('disablepictureinpicture','');
 
   // Overlay factory
   function buildOverlay(){
-    // prevent duplicates
     const existing = wrap.querySelector('.tap-overlay');
     if(existing) return existing;
 
@@ -420,90 +419,79 @@ function makeVideo(src, thumb, loop=false){
     Object.assign(o.style, {
       position: 'absolute',
       top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
-      padding: '16px 28px',
-      borderRadius: '20px',
-      font: '900 18px/1 Inter,system-ui',
-      letterSpacing: '.01em',
+      padding: '16px 28px', borderRadius: '20px',
+      font: '900 18px/1 Inter,system-ui', letterSpacing: '.01em',
       color: '#eaf0f6',
       background: 'linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.06))',
       border: '1px solid rgba(255,255,255,.18)',
       backdropFilter: 'blur(14px) saturate(140%)',
       WebkitBackdropFilter: 'blur(14px) saturate(140%)',
       boxShadow: 'inset 0 1px 0 rgba(255,255,255,.22), 0 6px 16px rgba(0,0,0,.55)',
-      cursor: 'pointer',
-      zIndex: 3,
-      userSelect: 'none',
-      transition: 'opacity .3s ease'
+      cursor: 'pointer', zIndex: 3, userSelect: 'none', transition: 'opacity .3s ease'
     });
 
-    o.addEventListener('click', async (e)=>{
+    o.addEventListener('click', async e=>{
       e.stopPropagation();
       v.dataset.userStarted='1';
       o.style.opacity='0';
-      setTimeout(()=>o.remove(), 300);
+      setTimeout(()=>o.remove(),300);
       try { await v.play(); } catch {}
       showMuteToast(v.muted);
     });
-
     wrap.appendChild(o);
     return o;
   }
 
-  // Create overlay ASAP; also re-assert after metadata if it was late
   buildOverlay();
   v.addEventListener('loadeddata', buildOverlay);
 
   // Tap video behavior
-  v.addEventListener('click', async e => {
-  e.stopPropagation();
-  if (v.dataset.userStarted !== '1') {
-    // First ever tap → start muted
-    v.dataset.userStarted = '1';
-    v.muted = true;
-    try { await v.play(); } catch {}
-    showMuteToast(v.muted);
-    return;
-  }
-  // Second tap → unmute and restart in same gesture
-  if (v.muted) {
-    const t = v.currentTime;
-    v.muted = false;
-    try {
-      await v.play();                 // Safari/Quest accepts this gesture
-      v.currentTime = t;              // jump back where we left off
-    } catch (err) {
-      console.warn('Retrying muted playback', err);
-      v.muted = true;
-      await v.play();
+  v.addEventListener('click', async e=>{
+    e.stopPropagation();
+    if(v.dataset.userStarted!=='1'){
+      v.dataset.userStarted='1';
+      v.muted=true;
+      try{ await v.play(); }catch{}
+      showMuteToast(v.muted);
+      return;
     }
-  } else {
-    v.muted = true;
-    showMuteToast(v.muted);
-  }
+    if(v.muted){
+      const t=v.currentTime;
+      v.muted=false;
+      try{
+        await v.play();
+        v.currentTime=t;
+      }catch(err){
+        console.warn('Retrying muted playback',err);
+        v.muted=true;
+        await v.play();
+      }
+    }else{
+      v.muted=true;
+      showMuteToast(v.muted);
+    }
+  });
 
-  // Minimal fullscreen button
+  // --- fullscreen button (moved outside click handler) ---
   const fsBtn = document.createElement('button');
   fsBtn.textContent = '⛶';
   fsBtn.title = 'Fullscreen';
   Object.assign(fsBtn.style, {
-    position: 'absolute',
-    bottom: '12px', right: '12px',
-    fontSize: '22px',
-    padding: '4px 10px',
-    border: 'none', borderRadius: '12px',
-    background: 'rgba(0,0,0,0.55)', color: '#fff',
-    cursor: 'pointer', zIndex: '2', opacity: '0',
-    transition: 'opacity .25s ease'
+    position:'absolute',bottom:'12px',right:'12px',
+    fontSize:'22px',padding:'4px 10px',
+    border:'none',borderRadius:'12px',
+    background:'rgba(0,0,0,0.55)',color:'#fff',
+    cursor:'pointer',zIndex:'2',opacity:'0',
+    transition:'opacity .25s ease'
   });
-  wrap.addEventListener('mouseenter', () => fsBtn.style.opacity = '0.85');
-  wrap.addEventListener('mouseleave', () => fsBtn.style.opacity = '0');
-
-  fsBtn.addEventListener('click', e => {
+  wrap.addEventListener('mouseenter',()=>fsBtn.style.opacity='0.85');
+  wrap.addEventListener('mouseleave',()=>fsBtn.style.opacity='0');
+  fsBtn.addEventListener('click',e=>{
     e.stopPropagation();
-    _fsPrevScroll = getScrollY();
-    document.body.style.overflow = 'hidden';
-    if (v.requestFullscreen) v.requestFullscreen();
-    else if (v.webkitRequestFullscreen) v.webkitRequestFullscreen();
+    _fsPrevScroll=getScrollY();
+    document.body.style.overflow='hidden';
+    if(v.requestFullscreen)v.requestFullscreen();
+    else if(v.webkitRequestFullscreen)v.webkitRequestFullscreen();
   });
 
   wrap.appendChild(v);
