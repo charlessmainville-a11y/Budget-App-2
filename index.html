@@ -584,43 +584,98 @@ async function pullSubreddit(sub){
   return out;
 }
 
-/* Normalize Reddit post -> card item */
-function normalize(d){
+/* Normalize Reddit post → card item (video / gif / image) */
+function normalize(d) {
+  // 1️⃣ Prefer Reddit-hosted true videos (v.redd.it)
   const rv = d.secure_media?.reddit_video || d.media?.reddit_video;
-  if(rv?.fallback_url){
-    return { t:'video', url:rv.fallback_url, thumb:pickThumb(d), title:d.title, author:d.author, sub:d.subreddit, link:`https://reddit.com${d.permalink}` };
+  if (rv?.fallback_url && rv.fallback_url.includes('v.redd.it')) {
+    return {
+      t: 'video',
+      url: rv.fallback_url,
+      thumb: pickThumb(d),
+      title: d.title,
+      author: d.author,
+      sub: d.subreddit,
+      link: `https://reddit.com${d.permalink}`
+    };
   }
+
+  // 2️⃣ Handle Reddit previews that are NOT from preview.redd.it (some are rehosted mp4s)
   const preview = d.preview?.images?.[0];
   const variants = preview?.variants;
 
-  if(variants?.mp4?.source?.url){
-    return { t:'video', url:fix(variants.mp4.source.url), thumb:fix(preview?.source?.url),
-      title:d.title, author:d.author, sub:d.subreddit, link:`https://reddit.com${d.permalink}` };
+  if (variants?.mp4?.source?.url && !variants.mp4.source.url.includes('preview.redd.it')) {
+    return {
+      t: 'video',
+      url: fix(variants.mp4.source.url),
+      thumb: fix(preview?.source?.url),
+      title: d.title,
+      author: d.author,
+      sub: d.subreddit,
+      link: `https://reddit.com${d.permalink}`
+    };
   }
-  if(variants?.gif?.source?.url){
-    return { t:'gif', url:fix(variants.gif.source.url), thumb:fix(preview?.source?.url),
-      title:d.title, author:d.author, sub:d.subreddit, link:`https://reddit.com${d.permalink}` };
+
+  if (variants?.gif?.source?.url && !variants.gif.source.url.includes('preview.redd.it')) {
+    return {
+      t: 'gif',
+      url: fix(variants.gif.source.url),
+      thumb: fix(preview?.source?.url),
+      title: d.title,
+      author: d.author,
+      sub: d.subreddit,
+      link: `https://reddit.com${d.permalink}`
+    };
   }
-  if(d.is_gallery && d.gallery_data?.items){
+
+  // 3️⃣ Galleries
+  if (d.is_gallery && d.gallery_data?.items) {
     const firstId = d.gallery_data.items[0]?.media_id;
     const meta = d.media_metadata?.[firstId];
     const src = bestMeta(meta);
-    if(src){ return { t:'image', url:src, thumb:src, title:d.title, author:d.author, sub:d.subreddit, link:`https://reddit.com${d.permalink}` }; }
+    if (src) {
+      return {
+        t: 'image',
+        url: src,
+        thumb: src,
+        title: d.title,
+        author: d.author,
+        sub: d.subreddit,
+        link: `https://reddit.com${d.permalink}`
+      };
+    }
   }
+
+  // 4️⃣ Fallback to still images
   const img = d.url_overridden_by_dest || d.url;
-  if(img && /\.(jpg|jpeg|png|webp)$/i.test(img)){
-    return { t:'image', url:img, thumb:img, title:d.title, author:d.author, sub:d.subreddit, link:`https://reddit.com${d.permalink}` };
+  if (img && /\.(jpg|jpeg|png|webp)$/i.test(img)) {
+    return {
+      t: 'image',
+      url: img,
+      thumb: img,
+      title: d.title,
+      author: d.author,
+      sub: d.subreddit,
+      link: `https://reddit.com${d.permalink}`
+    };
   }
-  if(preview?.source?.url){
+
+  if (preview?.source?.url && !preview.source.url.includes('preview.redd.it')) {
     const src = fix(preview.source.url);
-    return { t:'image', url:src, thumb:src, title:d.title, author:d.author, sub:d.subreddit, link:`https://reddit.com${d.permalink}` };
+    return {
+      t: 'image',
+      url: src,
+      thumb: src,
+      title: d.title,
+      author: d.author,
+      sub: d.subreddit,
+      link: `https://reddit.com${d.permalink}`
+    };
   }
+
+  // 5️⃣ Nothing usable
   return null;
 }
-function pickThumb(d){ const t=d.thumbnail; if(t && t.startsWith('http')) return t; const p=d.preview?.images?.[0]?.source?.url; return p ? fix(p) : null; }
-function bestMeta(meta){ if(!meta) return null; const s=meta.s; if(!s) return null; return fix(s.u||s.gif||s.mp4||null); }
-function fix(u){ return u ? u.replace(/&amp;/g,'&') : u; }
-
 /* -------------------- render pipeline -------------------- */
 function interleaveBuckets(buckets){
   const keys = Object.keys(buckets); const out=[]; let added=true;
