@@ -177,6 +177,15 @@
 </div>
 
 <script>
+/* =========================================================
+   CelebWall – Stable Script (Safari + Meta Quest tuned)
+   - Muted autoplay that sticks
+   - Retry play on visibility / IO / network hiccups
+   - One-gesture “unlock” for stubborn browsers
+   - Fullscreen exit restores prior scroll position
+   - No double definitions, no empty frames
+   ========================================================= */
+
 /* -------------------- OAuth config -------------------- */
 const DEFAULT_CLIENT_ID   = localStorage.getItem('reddit_client_id')    || '';
 const DEFAULT_REDIRECT_URI= localStorage.getItem('reddit_redirect_uri') || (location.origin + location.pathname);
@@ -298,14 +307,61 @@ const ui = {
   progressVisibility(){ const visible = currentFeed==='home' && (pool.length>0 || !fetching); el('#progressBtn').style.display = visible ? '' : 'none'; }
 };
 
-/* -------------------- autoplay helpers -------------------- */
+/* =========================================================
+   VIDEO ENGINE (Safari + Meta Quest hardened)
+   ========================================================= */
+
+/* IntersectionObserver: play/pause when visible */
 const io = new IntersectionObserver((entries)=>{
   entries.forEach(e=>{
     const v = e.target;
-    if(e.isIntersecting){ v.play().catch(()=>{}); } else { v.pause(); }
+    if(!(v instanceof HTMLVideoElement)) return;
+    if(e.isIntersecting){ safePlay(v); } else { v.pause(); }
   });
 },{threshold:0.5});
 
+/* Page visibility: pause all when hidden, re-try when visible */
+document.addEventListener('visibilitychange', ()=>{
+  const vids = document.querySelectorAll('video.media');
+  if(document.hidden){
+    vids.forEach(v=>v.pause());
+  }else{
+    vids.forEach(v=>{ if(inViewport(v)) safePlay(v); });
+  }
+});
+
+/* One-gesture unlock for stubborn autoplay */
+let gestureUnlocked = false;
+function gestureUnlock(){
+  if(gestureUnlocked) return;
+  gestureUnlocked = true;
+  document.querySelectorAll('video.media').forEach(v=>safePlay(v));
+}
+['pointerdown','touchstart','click','keydown'].forEach(evt=>{
+  window.addEventListener(evt, gestureUnlock, {once:true, passive:true});
+});
+
+/* Utility: is element in viewport */
+function inViewport(elm){
+  const r = elm.getBoundingClientRect();
+  return r.top < innerHeight*0.9 && r.bottom > innerHeight*0.1;
+}
+
+/* Keep/restore scroll on fullscreen (prevents jump to top) */
+let _fsPrevScroll = 0;
+document.addEventListener('fullscreenchange', ()=>{
+  if(!document.fullscreenElement){
+    // Exiting fullscreen
+    document.body.style.overflow = '';
+    // Restore scroll smoothly after the layout settles
+    const y = _fsPrevScroll;
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      window.scrollTo({top:y, left:0, behavior:'instant' in window ? 'instant' : 'auto'});
+    }));
+  }
+});
+
+/* Show tiny toast for mute toggles */
 function showMuteToast(isMuted){
   const toast = document.createElement('div');
   toast.textContent = isMuted ? '🔇 Muted' : '🔊 Unmuted';
@@ -319,22 +375,58 @@ function showMuteToast(isMuted){
   setTimeout(()=>toast.remove(),1300);
 }
 
+/* Play helper that won’t throw (Chrome/Safari/Quest) */
+async function safePlay(v){
+  try{
+    if(v.readyState < 2) await new Promise(r=>v.addEventListener('loadeddata', r, {once:true}));
+  }catch{}
+  try{
+    const p = v.play();
+    if(p && typeof p.then==='function') await p;
+  }catch{
+    // If autoplay failed, keep muted and wait for gesture/visibility/IO to retry
+  }
+}
+
+/* Build + wire a video element with all the fixups */
 function makeVideo(src, thumb, loop=false){
   const wrap=document.createElement('div');
   wrap.style.position='relative'; wrap.style.width='100%';
 
   const v=document.createElement('video');
-  v.className='media'; v.src=src; v.autoplay=true; v.muted=true; v.playsInline=true; v.preload='metadata'; v.loop=!!loop;
+  v.className='media';
+  v.src=src;
+  v.autoplay=true;
+  v.muted=true;                    // muted => autoplay allowed
+  v.playsInline=true;              // Safari/iOS inline
+  v.setAttribute('webkit-playsinline',''); // extra iOS hint
+  v.preload='metadata';
+  v.loop=!!loop;
+  v.disableRemotePlayback = true;  // Quest/TVs
+  v.setAttribute('x-webkit-airplay','deny');
   if(thumb) v.poster=thumb;
   v.setAttribute('controlslist','nodownload noplaybackrate noremoteplayback');
   v.setAttribute('disablepictureinpicture','');
-  v.addEventListener('canplay',()=>v.play().catch(()=>{}),{once:true});
-  v.addEventListener('ended',()=>{ if(!v.loop){ v.currentTime=0; v.play().catch(()=>{}); }});
-  v.addEventListener('error',()=>v.closest('.card')?.remove());
-  v.addEventListener('click',e=>{ e.stopPropagation(); v.muted=!v.muted; showMuteToast(v.muted); });
 
+  // Drive playback as soon as possible
+  v.addEventListener('loadedmetadata', ()=> safePlay(v));
+  v.addEventListener('canplay',        ()=> safePlay(v), {once:true});
+  v.addEventListener('playing',        ()=> {/* ok */});
+  v.addEventListener('stalled',        ()=> safePlay(v));
+  v.addEventListener('waiting',        ()=> safePlay(v));
+  v.addEventListener('error',          ()=> v.closest('.card')?.remove());
+
+  // Click toggles mute only (keeps autoplay rules intact)
+  v.addEventListener('click', e=>{
+    e.stopPropagation();
+    v.muted = !v.muted;
+    showMuteToast(v.muted);
+  });
+
+  // Minimal fullscreen button with scroll-restore
   const fsBtn=document.createElement('button');
-  fsBtn.textContent='⛶'; fsBtn.title='Fullscreen';
+  fsBtn.textContent='⛶';
+  fsBtn.title='Fullscreen';
   Object.assign(fsBtn.style,{
     position:'absolute', bottom:'12px', right:'12px', fontSize:'22px', padding:'4px 10px',
     border:'none', borderRadius:'12px', background:'rgba(0,0,0,0.55)', color:'#fff',
@@ -342,15 +434,19 @@ function makeVideo(src, thumb, loop=false){
   });
   wrap.addEventListener('mouseenter',()=>fsBtn.style.opacity='0.85');
   wrap.addEventListener('mouseleave',()=>fsBtn.style.opacity='0');
-  fsBtn.addEventListener('click',e=>{
+
+  fsBtn.addEventListener('click', e=>{
     e.stopPropagation();
+    _fsPrevScroll = getScrollY();
+    document.body.style.overflow = 'hidden';
     if(v.requestFullscreen) v.requestFullscreen();
     else if(v.webkitRequestFullscreen) v.webkitRequestFullscreen();
   });
 
   wrap.appendChild(v); wrap.appendChild(fsBtn);
   io.observe(v);
-  requestAnimationFrame(()=>v.play().catch(()=>{}));
+  // Kick one more time next frame (helps WebKit)
+  requestAnimationFrame(()=>safePlay(v));
   return wrap;
 }
 
@@ -742,5 +838,3 @@ ui.bar(100); ui.phase('Ready');
 log('Ready. Swipe right to Like, left to Dismiss. “Viewed” items are skipped.');
 (async ()=>{ await newBatch(); setTimeout(autoLoadRedGifs, 3000); })();
 </script>
-</body>
-</html>
