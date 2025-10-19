@@ -421,8 +421,8 @@ function makeVideo(src, thumb, loop=false){
     border:'none', borderRadius:'12px', background:'rgba(0,0,0,0.55)', color:'#fff',
     cursor:'pointer', zIndex:'2', opacity:'0', transition:'opacity .25s ease'
   });
-  wrap.addEventListener('mouseenter',()=>fsBtn.style.opacity='0.85'));
-  wrap.addEventListener('mouseleave',()=>fsBtn.style.opacity='0'));
+  wrap.addEventListener('mouseenter',()=>fsBtn.style.opacity='0.85');
+  wrap.addEventListener('mouseleave',()=>fsBtn.style.opacity='0');
 
   fsBtn.addEventListener('click', e=>{
     e.stopPropagation();
