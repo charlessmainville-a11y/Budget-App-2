@@ -460,27 +460,6 @@ ensureOverlay();
 // And call it again when delayed videos finish loading
 v.addEventListener('loadeddata', ensureOverlay);
 
-  // Tap overlay to start video (muted)
-  playOverlay.addEventListener('click', async e => {
-    e.stopPropagation();
-    playOverlay.style.opacity = '0';
-    setTimeout(()=>playOverlay.remove(), 300);
-    try { await v.play(); } catch {}
-    showMuteToast(v.muted);
-  });
-
-  // Tap video to toggle mute/unmute
-  v.addEventListener('click', async e => {
-    e.stopPropagation();
-    v.muted = !v.muted;
-    if (!v.muted) {
-      try { await v.play(); } catch {}
-    }
-    showMuteToast(v.muted);
-  });
-
-  v.addEventListener('error', () => v.closest('.card')?.remove());
-
   // Minimal fullscreen button
   const fsBtn = document.createElement('button');
   fsBtn.textContent = '⛶';
