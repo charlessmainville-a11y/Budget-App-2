@@ -416,8 +416,12 @@ function makeVideo(src, thumb, loop=false){
   v.setAttribute('controlslist', 'nodownload noplaybackrate noremoteplayback');
   v.setAttribute('disablepictureinpicture', '');
 
-  // Frosted-glass play overlay
+  // --- Frosted-glass play overlay (guaranteed render) ---
+function ensureOverlay() {
+  if (wrap.querySelector('.tap-overlay')) return; // already exists
+
   const playOverlay = document.createElement('div');
+  playOverlay.className = 'tap-overlay';
   playOverlay.textContent = '▶ Tap to Play';
   Object.assign(playOverlay.style, {
     position: 'absolute',
@@ -439,7 +443,22 @@ function makeVideo(src, thumb, loop=false){
     userSelect: 'none',
     transition: 'opacity .3s ease'
   });
+
+  playOverlay.addEventListener('click', async e => {
+    e.stopPropagation();
+    playOverlay.style.opacity = '0';
+    setTimeout(()=>playOverlay.remove(), 300);
+    try { await v.play(); } catch {}
+    showMuteToast(v.muted);
+  });
+
   wrap.appendChild(playOverlay);
+}
+
+// Call it immediately for normal videos
+ensureOverlay();
+// And call it again when delayed videos finish loading
+v.addEventListener('loadeddata', ensureOverlay);
 
   // Tap overlay to start video (muted)
   playOverlay.addEventListener('click', async e => {
