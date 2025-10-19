@@ -319,18 +319,6 @@ const ui = {
    VIDEO ENGINE (gesture-first; Safari + Meta Quest)
    ========================================================= */
 
-/* --- simple debugger --- */
-const DEBUG = true;
-const dbg = (...args)=>{
-  if(!DEBUG) return;
-  console.log('[CELEBWALL DEBUG]', ...args);
-  const el=document.getElementById('log');
-  if(el){
-    el.textContent += '[DBG] ' + args.join(' ') + '\n';
-    el.scrollTop = el.scrollHeight;
-  }
-};
-
 /* --- IntersectionObserver declared first --- */
 const io = new IntersectionObserver((entries)=>{
   entries.forEach(e=>{
