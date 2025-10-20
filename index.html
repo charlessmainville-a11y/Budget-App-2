@@ -587,17 +587,23 @@ function bestMeta(meta) {
 }
 
 /* =========================================================
-   🧩 REDGIFS VIDEO RESOLVER + CACHE LAYER
+   🧩 REDGIFS VIDEO RESOLVER + CORS FIX (Safari-safe)
    ========================================================= */
 
+/** Optional RedGifs personal API key.
+ *  You can set it in console:
+ *  localStorage.setItem('redgifs_api_key', 'YOUR_TOKEN');
+ */
+function getRedgifsKey() {
+  return localStorage.getItem('redgifs_api_key') || '';
+}
 
-/** in-memory cache of resolved URLs */
+/** in-memory cache for resolved playable URLs */
 const redgifsCache = new Map();
 
 /**
- * Queries the RedGifs API for the full playable clip.
- * Always resolves to a *real* .mp4 (HD or SD).
- * Guaranteed safe for Safari playback.
+ * Fetches full playable .mp4 for a RedGifs ID,
+ * using a public CORS relay for browser safety.
  */
 async function fetchRedgifsPlayable(id) {
   if (redgifsCache.has(id)) return redgifsCache.get(id);
@@ -606,15 +612,15 @@ async function fetchRedgifsPlayable(id) {
   const key = getRedgifsKey();
   if (key) headers['Authorization'] = `Bearer ${key}`;
 
+  // ✅ use same trusted CORS relay as Reddit fetcher
+  const api = `https://cors.isomorphic-git.org/https://api.redgifs.com/v2/gifs/${id}`;
+
   try {
-    // 1️⃣ Request the full gif metadata
-    const res = await fetch(`https://api.redgifs.com/v2/gifs/${id}`, { headers });
+    const res = await fetch(api, { headers });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
     const data = await res.json();
-    const urls = data.gif?.urls || {};
 
-    // 2️⃣ Prefer full CDN URLs
+    const urls = data.gif?.urls || {};
     const playable =
       urls.hd ||
       urls.sd ||
@@ -632,7 +638,7 @@ async function fetchRedgifsPlayable(id) {
     throw new Error('No playable URL');
   } catch (err) {
     dbg('⚠️ RedGifs fallback', id, err.message);
-    // fallback only if API failed
+    // fallback if API or CORS fails
     const fallback = `https://thumbs2.redgifs.com/${id}.mp4`;
     redgifsCache.set(id, fallback);
     return fallback;
@@ -640,11 +646,13 @@ async function fetchRedgifsPlayable(id) {
 }
 
 /**
- * Parses any RedGifs link and ensures we return a
- * confirmed playable .mp4 URL.
+ * Extracts RedGifs ID from any Reddit oembed/html/link
+ * and resolves it into a playable MP4.
  */
 async function resolveRedgifsURL(possibleUrlOrHtml) {
-  const match = String(possibleUrlOrHtml).match(/redgifs\.com\/(?:ifr|watch|thumbs2)\/([a-zA-Z0-9_-]+)/);
+  const match = String(possibleUrlOrHtml).match(
+    /redgifs\.com\/(?:ifr|watch|thumbs2)\/([a-zA-Z0-9_-]+)/
+  );
   if (!match) return null;
   const id = match[1];
   return await fetchRedgifsPlayable(id);
