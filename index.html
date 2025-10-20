@@ -607,21 +607,32 @@ async function fetchRedgifsPlayable(id) {
   if (key) headers['Authorization'] = `Bearer ${key}`;
 
   try {
-    const api = `https://api.redgifs.com/v2/gifs/${id}`;
-    const res = await fetch(api, { headers });
+    // 1️⃣ Request the full gif metadata
+    const res = await fetch(`https://api.redgifs.com/v2/gifs/${id}`, { headers });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    const playable =
-      data.gif?.urls?.hd ||
-      data.gif?.urls?.sd ||
-      data.gif?.urls?.vthumbnail ||
-      `https://thumbs2.redgifs.com/${id}.mp4`;
 
-    redgifsCache.set(id, playable);
-    dbg('🎞️ Resolved RedGifs', id, '→', playable);
-    return playable;
+    const data = await res.json();
+    const urls = data.gif?.urls || {};
+
+    // 2️⃣ Prefer full CDN URLs
+    const playable =
+      urls.hd ||
+      urls.sd ||
+      urls.mobile ||
+      urls.vthumbnail ||
+      urls.poster ||
+      null;
+
+    if (playable) {
+      redgifsCache.set(id, playable);
+      dbg('🎞️ Resolved via API', id, '→', playable);
+      return playable;
+    }
+
+    throw new Error('No playable URL');
   } catch (err) {
-    dbg('⚠️ RedGifs resolver error', id, err.message);
+    dbg('⚠️ RedGifs fallback', id, err.message);
+    // fallback only if API failed
     const fallback = `https://thumbs2.redgifs.com/${id}.mp4`;
     redgifsCache.set(id, fallback);
     return fallback;
