@@ -590,14 +590,6 @@ function bestMeta(meta) {
    🧩 REDGIFS VIDEO RESOLVER + CACHE LAYER
    ========================================================= */
 
-/**
- * Optional personal API key. You can skip it for now,
- * but if you hit rate limits later:
- *   localStorage.setItem('redgifs_api_key', 'YOUR_TOKEN')
- */
-function getRedgifsKey() {
-  return localStorage.getItem('redgifs_api_key') || '';
-}
 
 /** in-memory cache of resolved URLs */
 const redgifsCache = new Map();
@@ -698,7 +690,7 @@ async function upgradeRedgifs(url) {
 /* =========================================================
    normalize() — handles Reddit + RedGifs media
    ========================================================= */
-function normalize(d) {
+async function normalize(d) {
   // 1️⃣ Reddit-hosted video (v.redd.it)
   const rv = d.secure_media?.reddit_video || d.media?.reddit_video;
   if (rv?.fallback_url && rv.fallback_url.includes('v.redd.it')) {
