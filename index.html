@@ -374,7 +374,7 @@ document.addEventListener('fullscreenchange',()=>{
 });
 
 /* =========================================================
-   🎬 makeVideo() — Safe Autoplay + Manual Unmute Button
+   🎬 makeVideo() — Manual Start Only (Safari-Proof)
    ========================================================= */
 function makeVideo(url, thumb, provider) {
   const v = document.createElement('video');
@@ -383,8 +383,8 @@ function makeVideo(url, thumb, provider) {
   v.poster = thumb || '';
   v.playsInline = true;
   v.loop = true;
-  v.muted = true;       // always start muted
-  v.autoplay = true;    // allowed because muted
+  v.muted = true;      // start muted
+  v.autoplay = false;  // never auto-play
   v.preload = 'metadata';
   v.controls = false;
 
@@ -392,68 +392,76 @@ function makeVideo(url, thumb, provider) {
   wrap.className = 'video-wrap';
   wrap.style.position = 'relative';
   wrap.style.overflow = 'hidden';
+  wrap.appendChild(v);
 
-  // --- Overlay setup ---
+  // --- Overlay buttons ---
   const overlay = document.createElement('div');
   overlay.className = 'overlay';
-  overlay.style.position = 'absolute';
-  overlay.style.top = 0;
-  overlay.style.left = 0;
-  overlay.style.right = 0;
-  overlay.style.bottom = 0;
-  overlay.style.display = 'flex';
-  overlay.style.justifyContent = 'flex-end';
-  overlay.style.alignItems = 'flex-start';
-  overlay.style.padding = '10px';
-  overlay.style.pointerEvents = 'none'; // let video still get pointer events
-  wrap.appendChild(v);
+  Object.assign(overlay.style, {
+    position: 'absolute',
+    inset: 0,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    background: 'rgba(0,0,0,0.35)',
+    backdropFilter: 'blur(6px)',
+    transition: 'opacity 0.25s ease'
+  });
+
+  const playBtn = document.createElement('button');
+  playBtn.textContent = '▶️';
+  Object.assign(playBtn.style, {
+    fontSize: '48px',
+    border: 'none',
+    background: 'none',
+    color: '#fff',
+    cursor: 'pointer'
+  });
+
+  const muteBtn = document.createElement('button');
+  muteBtn.textContent = '🔊';
+  Object.assign(muteBtn.style, {
+    position: 'absolute',
+    top: '10px',
+    right: '10px',
+    fontSize: '22px',
+    border: 'none',
+    background: 'rgba(0,0,0,0.5)',
+    color: '#fff',
+    borderRadius: '50%',
+    width: '40px',
+    height: '40px',
+    cursor: 'pointer',
+    display: 'none' // hidden until video starts
+  });
+
+  overlay.appendChild(playBtn);
   wrap.appendChild(overlay);
+  wrap.appendChild(muteBtn);
 
-  // --- Audio toggle button ---
-  const btn = document.createElement('button');
-  btn.textContent = '🔇';
-  btn.style.pointerEvents = 'auto';
-  btn.style.background = 'rgba(0,0,0,0.5)';
-  btn.style.color = '#fff';
-  btn.style.border = 'none';
-  btn.style.borderRadius = '50%';
-  btn.style.width = '44px';
-  btn.style.height = '44px';
-  btn.style.fontSize = '20px';
-  btn.style.cursor = 'pointer';
-  btn.style.backdropFilter = 'blur(6px)';
-  btn.style.transition = 'opacity 0.25s ease';
-  btn.title = 'Toggle sound';
-
-  btn.addEventListener('click', e => {
+  // --- Play handler ---
+  playBtn.addEventListener('click', async e => {
     e.stopPropagation();
-    if (v.muted) {
-      v.muted = false;
-      btn.textContent = '🔊';
-      try { v.play().catch(()=>{}); } catch {}
-    } else {
-      v.muted = true;
-      btn.textContent = '🔇';
+    overlay.style.opacity = 0;
+    setTimeout(()=>overlay.remove(),250);
+    try {
+      await v.play();
+      dbg('▶ manual play', url);
+      muteBtn.style.display = 'block';
+    } catch (err) {
+      dbg('⚠️ play failed', err.message);
     }
   });
 
-  overlay.appendChild(btn);
-
-  // --- Diagnostics ---
-  v.addEventListener('error', e => dbg('❌ video error', url, e));
-  v.addEventListener('canplay', () => dbg('✅ canplay', url));
-
-  // --- Start playback muted (Safari safe) ---
-  v.addEventListener('canplay', () => {
-    v.play().catch(err => dbg('⚠️ autoplay blocked?', err.message));
+  // --- Mute toggle ---
+  muteBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    v.muted = !v.muted;
+    muteBtn.textContent = v.muted ? '🔇' : '🔊';
   });
 
-  // RedGifs tweak: if HD upgrade replaces the src, replay muted
-  if (provider === 'redgifs') {
-    v.addEventListener('loadeddata', () => {
-      if (v.paused) v.play().catch(()=>{});
-    });
-  }
+  // --- Log errors for troubleshoot ---
+  v.addEventListener('error', e => dbg('❌ video error', url, e));
 
   return wrap;
 }
