@@ -687,11 +687,12 @@ async function upgradeRedgifs(url) {
   return url;
 }
 
-/* =========================================================
-   normalize() — handles Reddit + RedGifs media
-   ========================================================= */
+// =========================================================
+// normalize() — unified Reddit + RedGifs media resolver
+// =========================================================
 async function normalize(d) {
-  // 1️⃣ Reddit-hosted video (v.redd.it)
+
+  // 1️⃣ Reddit-hosted videos (v.redd.it)
   const rv = d.secure_media?.reddit_video || d.media?.reddit_video;
   if (rv?.fallback_url && rv.fallback_url.includes('v.redd.it')) {
     return {
@@ -706,26 +707,30 @@ async function normalize(d) {
     };
   }
 
-  // 2️⃣ RedGifs embeds (from oembed, resolved pre-load)
-const oembed = d.secure_media?.oembed || d.media?.oembed;
-if (oembed?.provider_name?.toLowerCase() === 'redgifs') {
-  const source = oembed.thumbnail_url || oembed.html || d.url_overridden_by_dest || '';
-  const playable = await resolveRedgifsURL(source);
-  if (playable) {
-    return {
-      t: 'video',
-      url: playable,
-      thumb: oembed.thumbnail_url || '',
-      title: d.title,
-      author: d.author,
-      sub: d.subreddit,
-      link: `https://www.redgifs.com/watch/${(playable.match(/\/([a-zA-Z0-9_-]+)\.mp4/)||[])[1] || ''}`,
-      provider: 'redgifs'
-    };
-  }
-}
+  // 2️⃣ RedGifs embeds (aggressive detection)
+  const oembed = d.secure_media?.oembed || d.media?.oembed || d.secure_media_embed || {};
+  const redgifsUrl =
+    (d.url_overridden_by_dest && d.url_overridden_by_dest.includes('redgifs.com'))
+      ? d.url_overridden_by_dest
+      : (oembed.thumbnail_url || oembed.html || oembed.content || '');
 
-  // 3️⃣ Reddit preview videos (rare rehosted mp4s)
+  if (/redgifs\.com/i.test(redgifsUrl)) {
+    const playable = await resolveRedgifsURL(redgifsUrl);
+    if (playable) {
+      return {
+        t: 'video',
+        url: playable,
+        thumb: oembed.thumbnail_url || pickThumb(d),
+        title: d.title,
+        author: d.author,
+        sub: d.subreddit,
+        link: `https://www.redgifs.com/watch/${(playable.match(/\/([a-zA-Z0-9_-]+)\.mp4/) || [])[1] || ''}`,
+        provider: 'redgifs'
+      };
+    }
+  }
+
+  // 3️⃣ Reddit preview videos (rare mp4 rehosts)
   const preview = d.preview?.images?.[0];
   const variants = preview?.variants;
   if (variants?.mp4?.source?.url) {
@@ -741,7 +746,7 @@ if (oembed?.provider_name?.toLowerCase() === 'redgifs') {
     };
   }
 
-  // 4️⃣ GIFs
+  // 4️⃣ GIF variants
   if (variants?.gif?.source?.url) {
     return {
       t: 'gif',
@@ -789,7 +794,7 @@ if (oembed?.provider_name?.toLowerCase() === 'redgifs') {
     };
   }
 
-  // 7️⃣ Fallback preview images
+  // 7️⃣ Fallback preview
   if (preview?.source?.url) {
     const src = fix(preview.source.url);
     return {
@@ -807,7 +812,6 @@ if (oembed?.provider_name?.toLowerCase() === 'redgifs') {
   // 8️⃣ Nothing usable
   return null;
 }
-
 /* -------------------- render pipeline -------------------- */
 function interleaveBuckets(buckets){
   const keys = Object.keys(buckets); const out=[]; let added=true;
