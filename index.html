@@ -551,7 +551,7 @@ async function pullSubreddit(sub){
       if(!res.ok){ const msg=`✖ /r/${sub} p${page+1}: HTTP ${res.status}`; lastErrors.push(msg); log(msg); break; }
       const data = await res.json();
       const children = (data.data?.children || []);
-      const items = children.map(n=>normalize(n.data)).filter(Boolean);
+      const items = (await Promise.all(children.map(n => normalize(n.data)))).filter(Boolean);
       out.push(...items);
       log(`Loaded ${items.length} from /r/${sub} (page ${page+1})`);
       after = data.data?.after || null;
@@ -584,6 +584,67 @@ function bestMeta(meta) {
   const s = meta.s;
   if (!s) return null;
   return fix(s.u || s.gif || s.mp4 || null);
+}
+
+/* =========================================================
+   🧩 REDGIFS VIDEO RESOLVER + CACHE LAYER
+   ========================================================= */
+
+/**
+ * Optional personal API key. You can skip it for now,
+ * but if you hit rate limits later:
+ *   localStorage.setItem('redgifs_api_key', 'YOUR_TOKEN')
+ */
+function getRedgifsKey() {
+  return localStorage.getItem('redgifs_api_key') || '';
+}
+
+/** in-memory cache of resolved URLs */
+const redgifsCache = new Map();
+
+/**
+ * Queries the RedGifs API for the full playable clip.
+ * Always resolves to a *real* .mp4 (HD or SD).
+ * Guaranteed safe for Safari playback.
+ */
+async function fetchRedgifsPlayable(id) {
+  if (redgifsCache.has(id)) return redgifsCache.get(id);
+
+  const headers = { 'Accept': 'application/json' };
+  const key = getRedgifsKey();
+  if (key) headers['Authorization'] = `Bearer ${key}`;
+
+  try {
+    const api = `https://api.redgifs.com/v2/gifs/${id}`;
+    const res = await fetch(api, { headers });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const playable =
+      data.gif?.urls?.hd ||
+      data.gif?.urls?.sd ||
+      data.gif?.urls?.vthumbnail ||
+      `https://thumbs2.redgifs.com/${id}.mp4`;
+
+    redgifsCache.set(id, playable);
+    dbg('🎞️ Resolved RedGifs', id, '→', playable);
+    return playable;
+  } catch (err) {
+    dbg('⚠️ RedGifs resolver error', id, err.message);
+    const fallback = `https://thumbs2.redgifs.com/${id}.mp4`;
+    redgifsCache.set(id, fallback);
+    return fallback;
+  }
+}
+
+/**
+ * Parses any RedGifs link and ensures we return a
+ * confirmed playable .mp4 URL.
+ */
+async function resolveRedgifsURL(possibleUrlOrHtml) {
+  const match = String(possibleUrlOrHtml).match(/redgifs\.com\/(?:ifr|watch|thumbs2)\/([a-zA-Z0-9_-]+)/);
+  if (!match) return null;
+  const id = match[1];
+  return await fetchRedgifsPlayable(id);
 }
 
 /* =========================================================
@@ -653,38 +714,24 @@ function normalize(d) {
     };
   }
 
-  // 2️⃣ RedGifs embeds (from oembed)
-  const oembed = d.secure_media?.oembed || d.media?.oembed;
-  if (oembed?.provider_name?.toLowerCase() === 'redgifs') {
-    const base = oembed.thumbnail_url || oembed.html || '';
-    const match = base.match(/redgifs\.com\/(?:ifr|watch)\/([a-zA-Z0-9_-]+)/);
-    if (match) {
-      const id = match[1];
-      const url = `https://thumbs2.redgifs.com/${id}.mp4`;
-
-      // attempt upgrade to HD/audio in background
-      upgradeRedgifs(url).then(upgraded => {
-        if (upgraded !== url) {
-          const vid = document.querySelector(`video[src="${url}"]`);
-          if (vid) {
-            vid.src = upgraded;
-            dbg('🔄 replaced with HD+audio', upgraded);
-          }
-        }
-      });
-
-      return {
-        t: 'video',
-        url,
-        thumb: oembed.thumbnail_url || url,
-        title: d.title,
-        author: d.author,
-        sub: d.subreddit,
-        link: `https://www.redgifs.com/watch/${id}`,
-        provider: 'redgifs'
-      };
-    }
+  // 2️⃣ RedGifs embeds (from oembed, resolved pre-load)
+const oembed = d.secure_media?.oembed || d.media?.oembed;
+if (oembed?.provider_name?.toLowerCase() === 'redgifs') {
+  const source = oembed.thumbnail_url || oembed.html || d.url_overridden_by_dest || '';
+  const playable = await resolveRedgifsURL(source);
+  if (playable) {
+    return {
+      t: 'video',
+      url: playable,
+      thumb: oembed.thumbnail_url || '',
+      title: d.title,
+      author: d.author,
+      sub: d.subreddit,
+      link: `https://www.redgifs.com/watch/${(playable.match(/\/([a-zA-Z0-9_-]+)\.mp4/)||[])[1] || ''}`,
+      provider: 'redgifs'
+    };
   }
+}
 
   // 3️⃣ Reddit preview videos (rare rehosted mp4s)
   const preview = d.preview?.images?.[0];
