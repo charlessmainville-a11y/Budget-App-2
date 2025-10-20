@@ -612,8 +612,9 @@ async function fetchRedgifsPlayable(id) {
   const key = getRedgifsKey();
   if (key) headers['Authorization'] = `Bearer ${key}`;
 
-  // ✅ use same trusted CORS relay as Reddit fetcher
-  const api = `https://cors.isomorphic-git.org/https://api.redgifs.com/v2/gifs/${id}`;
+  // 🚀 Use a more reliable proxy (supports JSON + video CORS)
+  const proxy = 'https://api.allorigins.win/raw?url=';
+  const api = `${proxy}${encodeURIComponent(`https://api.redgifs.com/v2/gifs/${id}`)}`;
 
   try {
     const res = await fetch(api, { headers });
@@ -638,7 +639,7 @@ async function fetchRedgifsPlayable(id) {
     throw new Error('No playable URL');
   } catch (err) {
     dbg('⚠️ RedGifs fallback', id, err.message);
-    // fallback if API or CORS fails
+    // fallback to static thumbnail MP4 if API blocked
     const fallback = `https://thumbs2.redgifs.com/${id}.mp4`;
     redgifsCache.set(id, fallback);
     return fallback;
