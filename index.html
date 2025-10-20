@@ -374,7 +374,7 @@ document.addEventListener('fullscreenchange',()=>{
 });
 
 /* =========================================================
-   VIDEO BUILDER (Reddit + RedGifs, Safari-safe)
+   🎬 makeVideo() — Safe Autoplay + Manual Unmute Button
    ========================================================= */
 function makeVideo(url, thumb, provider) {
   const v = document.createElement('video');
@@ -383,76 +383,75 @@ function makeVideo(url, thumb, provider) {
   v.poster = thumb || '';
   v.playsInline = true;
   v.loop = true;
-  v.muted = true;
-  v.autoplay = true;
+  v.muted = true;       // always start muted
+  v.autoplay = true;    // allowed because muted
   v.preload = 'metadata';
   v.controls = false;
 
-  // Safari requires gesture unlock before sound
-  const unlockAudio = () => {
-    v.muted = false;
-    v.play().catch(()=>{});
-  };
+  const wrap = document.createElement('div');
+  wrap.className = 'video-wrap';
+  wrap.style.position = 'relative';
+  wrap.style.overflow = 'hidden';
 
-  // overlay
+  // --- Overlay setup ---
   const overlay = document.createElement('div');
   overlay.className = 'overlay';
-  overlay.innerHTML = `
-    <div class="overlay-inner">
-      <span class="play-btn">▶</span>
-      <span class="fs-btn">⛶</span>
-    </div>`;
   overlay.style.position = 'absolute';
   overlay.style.top = 0;
   overlay.style.left = 0;
   overlay.style.right = 0;
   overlay.style.bottom = 0;
   overlay.style.display = 'flex';
-  overlay.style.justifyContent = 'center';
-  overlay.style.alignItems = 'center';
-  overlay.style.backdropFilter = 'blur(8px)';
-  overlay.style.background = 'rgba(0,0,0,0.2)';
-  overlay.style.cursor = 'pointer';
-  overlay.style.transition = 'opacity 0.25s ease';
-  overlay.style.opacity = 0;
-  overlay.onmouseenter = ()=>overlay.style.opacity = 1;
-  overlay.onmouseleave = ()=>overlay.style.opacity = 0;
-
-  // interaction handlers
-  overlay.querySelector('.play-btn').addEventListener('click', e => {
-    e.stopPropagation();
-    if (v.paused) {
-      v.play().catch(()=>{});
-      overlay.querySelector('.play-btn').textContent = '🔇';
-    } else {
-      unlockAudio();
-      overlay.querySelector('.play-btn').textContent = '🔊';
-    }
-  });
-
-  overlay.querySelector('.fs-btn').addEventListener('click', e => {
-    e.stopPropagation();
-    if (v.requestFullscreen) v.requestFullscreen();
-    else if (v.webkitEnterFullscreen) v.webkitEnterFullscreen();
-  });
-
-  const wrap = document.createElement('div');
-  wrap.className = 'video-wrap';
-  wrap.style.position = 'relative';
-  wrap.style.overflow = 'hidden';
+  overlay.style.justifyContent = 'flex-end';
+  overlay.style.alignItems = 'flex-start';
+  overlay.style.padding = '10px';
+  overlay.style.pointerEvents = 'none'; // let video still get pointer events
   wrap.appendChild(v);
   wrap.appendChild(overlay);
 
-  // diagnostics
-  v.addEventListener('loadstart', () => dbg('loadstart', url));
-  v.addEventListener('loadeddata', () => dbg('loadeddata', url));
-  v.addEventListener('error', e => dbg('❌ video error', url, e));
+  // --- Audio toggle button ---
+  const btn = document.createElement('button');
+  btn.textContent = '🔇';
+  btn.style.pointerEvents = 'auto';
+  btn.style.background = 'rgba(0,0,0,0.5)';
+  btn.style.color = '#fff';
+  btn.style.border = 'none';
+  btn.style.borderRadius = '50%';
+  btn.style.width = '44px';
+  btn.style.height = '44px';
+  btn.style.fontSize = '20px';
+  btn.style.cursor = 'pointer';
+  btn.style.backdropFilter = 'blur(6px)';
+  btn.style.transition = 'opacity 0.25s ease';
+  btn.title = 'Toggle sound';
 
-  // RedGifs autoplay tweak
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    if (v.muted) {
+      v.muted = false;
+      btn.textContent = '🔊';
+      try { v.play().catch(()=>{}); } catch {}
+    } else {
+      v.muted = true;
+      btn.textContent = '🔇';
+    }
+  });
+
+  overlay.appendChild(btn);
+
+  // --- Diagnostics ---
+  v.addEventListener('error', e => dbg('❌ video error', url, e));
+  v.addEventListener('canplay', () => dbg('✅ canplay', url));
+
+  // --- Start playback muted (Safari safe) ---
+  v.addEventListener('canplay', () => {
+    v.play().catch(err => dbg('⚠️ autoplay blocked?', err.message));
+  });
+
+  // RedGifs tweak: if HD upgrade replaces the src, replay muted
   if (provider === 'redgifs') {
-    v.addEventListener('canplay', () => {
-      const p = v.play();
-      if (p && p.catch) p.catch(() => dbg('⚠️ RedGifs autoplay blocked', url));
+    v.addEventListener('loadeddata', () => {
+      if (v.paused) v.play().catch(()=>{});
     });
   }
 
