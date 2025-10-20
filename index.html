@@ -562,6 +562,23 @@ function fix(u) {
   return u ? u.replace(/&amp;/g, '&') : u;
 }
 
+// Helper: choose thumbnail
+function pickThumb(d) {
+  if (d.preview?.images?.[0]?.source?.url)
+    return fix(d.preview.images[0].source.url);
+  if (d.thumbnail && d.thumbnail.startsWith('http'))
+    return d.thumbnail;
+  return '';
+}
+
+// Helper: choose best gallery image from media_metadata
+function bestMeta(meta) {
+  if (!meta) return null;
+  const s = meta.s;
+  if (!s) return null;
+  return fix(s.u || s.gif || s.mp4 || null);
+}
+
 /* =========================================================
    🔊 REDGIFS SUPPORT + AUDIO UPGRADE
    ========================================================= */
@@ -601,6 +618,8 @@ async function upgradeRedgifs(url) {
     if (hd) {
       dbg('🔊 Upgraded RedGifs clip', id);
       return hd;
+    } else {
+      dbg('⚠️ No HD URL found in API response for', id);
     }
   } catch (err) {
     dbg('❌ RedGifs upgrade error', err.message);
@@ -609,7 +628,7 @@ async function upgradeRedgifs(url) {
 }
 
 /* =========================================================
-   normalize() — adds RedGifs + fallback media handling
+   normalize() — handles Reddit + RedGifs media
    ========================================================= */
 function normalize(d) {
   // 1️⃣ Reddit-hosted video (v.redd.it)
@@ -627,7 +646,7 @@ function normalize(d) {
     };
   }
 
-  // 2️⃣ RedGifs embeds
+  // 2️⃣ RedGifs embeds (from oembed)
   const oembed = d.secure_media?.oembed || d.media?.oembed;
   if (oembed?.provider_name?.toLowerCase() === 'redgifs') {
     const base = oembed.thumbnail_url || oembed.html || '';
@@ -636,7 +655,7 @@ function normalize(d) {
       const id = match[1];
       const url = `https://thumbs2.redgifs.com/${id}.mp4`;
 
-      // defer HD/audio upgrade
+      // attempt upgrade to HD/audio in background
       upgradeRedgifs(url).then(upgraded => {
         if (upgraded !== url) {
           const vid = document.querySelector(`video[src="${url}"]`);
@@ -660,7 +679,7 @@ function normalize(d) {
     }
   }
 
-  // 3️⃣ Reddit preview videos
+  // 3️⃣ Reddit preview videos (rare rehosted mp4s)
   const preview = d.preview?.images?.[0];
   const variants = preview?.variants;
   if (variants?.mp4?.source?.url) {
@@ -724,6 +743,7 @@ function normalize(d) {
     };
   }
 
+  // 7️⃣ Fallback preview images
   if (preview?.source?.url) {
     const src = fix(preview.source.url);
     return {
@@ -738,110 +758,10 @@ function normalize(d) {
     };
   }
 
-  // 7️⃣ Nothing usable
+  // 8️⃣ Nothing usable
   return null;
 }
 
-// Helper: choose best gallery image from media_metadata
-function bestMeta(meta) {
-  if (!meta) return null;
-  const s = meta.s;
-  if (!s) return null;
-  return fix(s.u || s.gif || s.mp4 || null);
-}
-
-/* Normalize Reddit post → card item (video / gif / image) */
-function normalize(d) {
-  // 1️⃣ Prefer Reddit-hosted true videos (v.redd.it)
-  const rv = d.secure_media?.reddit_video || d.media?.reddit_video;
-  if (rv?.fallback_url && rv.fallback_url.includes('v.redd.it')) {
-    return {
-      t: 'video',
-      url: rv.fallback_url,
-      thumb: pickThumb(d),
-      title: d.title,
-      author: d.author,
-      sub: d.subreddit,
-      link: `https://reddit.com${d.permalink}`
-    };
-  }
-
-  // 2️⃣ Handle Reddit previews that are NOT from preview.redd.it (some are rehosted mp4s)
-  const preview = d.preview?.images?.[0];
-  const variants = preview?.variants;
-
-  if (variants?.mp4?.source?.url && !variants.mp4.source.url.includes('preview.redd.it')) {
-    return {
-      t: 'video',
-      url: fix(variants.mp4.source.url),
-      thumb: fix(preview?.source?.url),
-      title: d.title,
-      author: d.author,
-      sub: d.subreddit,
-      link: `https://reddit.com${d.permalink}`
-    };
-  }
-
-  if (variants?.gif?.source?.url && !variants.gif.source.url.includes('preview.redd.it')) {
-    return {
-      t: 'gif',
-      url: fix(variants.gif.source.url),
-      thumb: fix(preview?.source?.url),
-      title: d.title,
-      author: d.author,
-      sub: d.subreddit,
-      link: `https://reddit.com${d.permalink}`
-    };
-  }
-
-  // 3️⃣ Galleries
-  if (d.is_gallery && d.gallery_data?.items) {
-    const firstId = d.gallery_data.items[0]?.media_id;
-    const meta = d.media_metadata?.[firstId];
-    const src = bestMeta(meta);
-    if (src) {
-      return {
-        t: 'image',
-        url: src,
-        thumb: src,
-        title: d.title,
-        author: d.author,
-        sub: d.subreddit,
-        link: `https://reddit.com${d.permalink}`
-      };
-    }
-  }
-
-  // 4️⃣ Fallback to still images
-  const img = d.url_overridden_by_dest || d.url;
-  if (img && /\.(jpg|jpeg|png|webp)$/i.test(img)) {
-    return {
-      t: 'image',
-      url: img,
-      thumb: img,
-      title: d.title,
-      author: d.author,
-      sub: d.subreddit,
-      link: `https://reddit.com${d.permalink}`
-    };
-  }
-
-  if (preview?.source?.url && !preview.source.url.includes('preview.redd.it')) {
-    const src = fix(preview.source.url);
-    return {
-      t: 'image',
-      url: src,
-      thumb: src,
-      title: d.title,
-      author: d.author,
-      sub: d.subreddit,
-      link: `https://reddit.com${d.permalink}`
-    };
-  }
-
-  // 5️⃣ Nothing usable
-  return null;
-}
 /* -------------------- render pipeline -------------------- */
 function interleaveBuckets(buckets){
   const keys = Object.keys(buckets); const out=[]; let added=true;
