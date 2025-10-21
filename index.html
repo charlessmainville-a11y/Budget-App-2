@@ -587,124 +587,36 @@ function bestMeta(meta) {
 }
 
 /* =========================================================
-   🧩 REDGIFS VIDEO RESOLVER + CORS FIX (Safari-safe)
+   🧩 REDGIFS VIDEO RESOLVER — Simplified, always HD/audio
    ========================================================= */
 
-/** Optional RedGifs personal API key.
- *  You can set it in console:
- *  localStorage.setItem('redgifs_api_key', 'YOUR_TOKEN');
- */
+// Always return your RedGifs token
 function getRedgifsKey() {
-  return localStorage.getItem('redgifs_api_key') || '';
+  return "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJhdXRoLXNlcnZpY2UiLCJpYXQiOjE3NjEwODM5ODgsImF1ZCI6Imh0dHBzOi8vYXBpLnJlZGdpZnMuY29tIiwiYXpwIjoiMTgyM2MzMWY3ZDMtNzQ1YS02NTg5LTAwMDUtZDhlOGZlMGE0NGMyIiwiZXhwIjoxNzYxMTcwMzg4LCJzdWIiOiJjbGllbnQvMTgyM2MzMWY3ZDMtNzQ1YS02NTg5LTAwMDUtZDhlOGZlMGE0NGMyIiwic2NvcGVzIjoicmVhZCIsInZhbGlkX2FkZHIiOiI0Ny41NC4yNDQuMTIiLCJ2YWxpZF9hZ2VudCI6Ik1vemlsbGEvNS4wIChpUGhvbmU7IENQVSBpUGhvbmUgT1MgMThfNyBsaWtlIE1hYyBPUyBYKSBBcHBsZVdlYktpdC82MDUuMS4xNSAoS0hUTUwsIGxpa2UgR2Vja28pIFZlcnNpb24vMjYuMC4xIE1vYmlsZS8xNUUxNDggU2FmYXJpLzYwNC4xIiwicmF0ZSI6LTEsImh0dHBzOi8vcmVkZ2lmcy5jb20vc2Vzc2lvbi1pZCI6IjMzNzM4MTI1Nzg2NjUxNDc1MyJ9.j22Jb6QCrwLfbS9EsQQAqkpvUqJ0hru3pfKrJq2chm9BejTWmaGLT1hbsTqCAH3X1uMc1OdoT54nPQyrHYciS2QeuYgi-p9NMfZTc62afUL_s3At78PJVloevco3FtRPTFcTwFcWChJBBP80hR6r7dHZBixILoC_4k9ya430D8xv7XE9jRDlW4KDcYSfcObwnBD3NhG6fWYtSLvsK_GZhSlYxefELz5u2TAK5-sx1_00cEy0Zhjb9d4ImNC6oYAHwGb4o6YE5qc-LLsWGzqorhVPoZaW2fyFtFrqucAHach91R0oUcRjJiFdomBPnP1fGKmcFed3581b5JvpI831Vg"; 
+  // 👆 replace this with your FULL token from api.redgifs.com/v2/auth/temporary
 }
 
-/** in-memory cache for resolved playable URLs */
-const redgifsCache = new Map();
-
-/**
- * Fetches full playable .mp4 for a RedGifs ID,
- * using a public CORS relay for browser safety.
- */
-async function fetchRedgifsPlayable(id) {
-  if (redgifsCache.has(id)) return redgifsCache.get(id);
-
-  const headers = { 'Accept': 'application/json' };
-  const key = getRedgifsKey();
-  if (key) headers['Authorization'] = `Bearer ${key}`;
-
-  // 🚀 Use a more reliable proxy (supports JSON + video CORS)
-  const proxy = 'https://api.allorigins.win/raw?url=';
-  const api = `${proxy}${encodeURIComponent(`https://api.redgifs.com/v2/gifs/${id}`)}`;
-
-  try {
-    const res = await fetch(api, { headers });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-
-    const urls = data.gif?.urls || {};
-    const playable =
-      urls.hd ||
-      urls.sd ||
-      urls.mobile ||
-      urls.vthumbnail ||
-      urls.poster ||
-      null;
-
-    if (playable) {
-      redgifsCache.set(id, playable);
-      dbg('🎞️ Resolved via API', id, '→', playable);
-      return playable;
-    }
-
-    throw new Error('No playable URL');
-  } catch (err) {
-    dbg('⚠️ RedGifs fallback', id, err.message);
-    // fallback to static thumbnail MP4 if API blocked
-    const fallback = `https://thumbs2.redgifs.com/${id}.mp4`;
-    redgifsCache.set(id, fallback);
-    return fallback;
-  }
-}
-
-/**
- * Extracts RedGifs ID from any Reddit oembed/html/link
- * and resolves it into a playable MP4.
- */
-async function resolveRedgifsURL(possibleUrlOrHtml) {
-  const match = String(possibleUrlOrHtml).match(
-    /redgifs\.com\/(?:ifr|watch|thumbs2)\/([a-zA-Z0-9_-]+)/
-  );
+// Resolve any RedGifs embed/link into a playable HD/audio MP4
+async function resolveRedgifs(urlOrHtml) {
+  const match = String(urlOrHtml).match(/redgifs\.com\/(?:ifr|watch|thumbs2)\/([a-zA-Z0-9_-]+)/);
   if (!match) return null;
   const id = match[1];
-  return await fetchRedgifsPlayable(id);
-}
-
-/* =========================================================
-   🔊 REDGIFS SUPPORT + AUDIO UPGRADE
-   ========================================================= */
-
-/**
- * Optional RedGifs API key (to prevent rate limits)
- * 👉  If you have one, set it in localStorage:
- *     localStorage.setItem('redgifs_api_key', 'YOUR_TOKEN');
- */
-function getRedgifsKey() {
-  return localStorage.getItem('redgifs_api_key') || '';
-}
-
-/**
- * Fetches the full HD/audio clip from RedGifs API.
- * Falls back to the original silent MP4 on any error.
- */
-async function upgradeRedgifs(url) {
   try {
-    const match = url.match(/redgifs\.com\/(?:ifr|watch|thumbs2)\/([a-zA-Z0-9_-]+)/);
-    if (!match) return url;
-    const id = match[1];
     const apiUrl = `https://api.redgifs.com/v2/gifs/${id}`;
-
-    const headers = {};
-    const key = getRedgifsKey();
-    if (key) headers['Authorization'] = `Bearer ${key}`;
-
+    const headers = { "Authorization": `Bearer ${getRedgifsKey()}` };
     const res = await fetch(apiUrl, { headers });
-    if (!res.ok) {
-      dbg('⚠️ RedGifs API failed', res.status, apiUrl);
-      return url;
-    }
-
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    const hd = data.gif?.urls?.hd || data.gif?.urls?.sd;
-    if (hd) {
-      dbg('🔊 Upgraded RedGifs clip', id);
-      return hd;
-    } else {
-      dbg('⚠️ No HD URL found in API response for', id);
+    const urls = data.gif?.urls || {};
+    const playable = urls.hd || urls.sd || null;
+    if (playable) {
+      dbg("🎞️ RedGifs resolved", id, "→", playable);
+      return playable;
     }
   } catch (err) {
-    dbg('❌ RedGifs upgrade error', err.message);
+    dbg("❌ RedGifs API error", err.message);
   }
-  return url;
+  return null;
 }
 
 // =========================================================
@@ -727,24 +639,23 @@ async function normalize(d) {
     };
   }
 
-  // 2️⃣ RedGifs embeds (aggressive detection)
+  // 2️⃣ RedGifs embeds
   const oembed = d.secure_media?.oembed || d.media?.oembed || d.secure_media_embed || {};
   const redgifsUrl =
     (d.url_overridden_by_dest && d.url_overridden_by_dest.includes('redgifs.com'))
       ? d.url_overridden_by_dest
       : (oembed.thumbnail_url || oembed.html || oembed.content || '');
-
   if (/redgifs\.com/i.test(redgifsUrl)) {
-    const playable = await resolveRedgifsURL(redgifsUrl);
+    const playable = await resolveRedgifs(redgifsUrl);
     if (playable) {
       return {
         t: 'video',
-        url: playable,
+        url: playable, // ✅ always HD/audio
         thumb: oembed.thumbnail_url || pickThumb(d),
         title: d.title,
         author: d.author,
         sub: d.subreddit,
-        link: `https://www.redgifs.com/watch/${(playable.match(/\/([a-zA-Z0-9_-]+)\.mp4/) || [])[1] || ''}`,
+        link: `https://www.redgifs.com/watch/${(redgifsUrl.match(/([a-zA-Z0-9_-]+)$/) || [])[1]}`,
         provider: 'redgifs'
       };
     }
@@ -831,7 +742,8 @@ async function normalize(d) {
 
   // 8️⃣ Nothing usable
   return null;
-}
+  }
+  
 /* -------------------- render pipeline -------------------- */
 function interleaveBuckets(buckets){
   const keys = Object.keys(buckets); const out=[]; let added=true;
