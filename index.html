@@ -248,14 +248,37 @@ const FALLBACK_SOURCE_INPUT = "1jiMLN5dM0KLGj_uDw41kvCrTt-Qbbzpp";
 
 function resolveFallbackUrl(input) {
   if (!input) return "";
+  const originalInput = input;
+  const originalLen = originalInput.length;
+  input = input.trim();
+  dbg("🎬 Trimmed input", "originalLen=", originalLen, "trimmedLen=", input.length);
+  if (!input) return "";
+
+  const driveShareMatch = input.match(/^https?:\/\/drive\.google\.com\/file\/d\/([^/]+)\/view(?:\?.*)?(?:#.*)?$/i);
+  if (driveShareMatch) {
+    const id = driveShareMatch[1];
+    const driveUrl = `https://drive.google.com/uc?export=download&id=${id}`;
+    dbg("🎬 Fallback source detected as Google Drive ID:", id, "→", driveUrl);
+    dbg("🎬 Drive share link conversion", "input=", originalInput, "id=", id, "downloadUrl=", driveUrl);
+    return driveUrl;
+  }
+
   // If it's clearly a URL already (http/https)
   if (/^https?:\/\//i.test(input)) {
     dbg("🎬 Fallback source detected as direct URL:", input);
-    return input.trim();
+    try {
+      const parsed = new URL(input);
+      const scheme = parsed.protocol.replace(/:$/, "");
+      dbg("🎬 Direct URL details", "scheme=", scheme, "host=", parsed.hostname);
+    } catch (err) {
+      dbg("🎬 Direct URL details", "scheme=", "unknown", "host=", "unknown");
+    }
+    return input;
   }
   // Otherwise treat as Google Drive file ID
   const driveUrl = `https://drive.google.com/uc?export=download&id=${input}`;
   dbg("🎬 Fallback source detected as Google Drive ID:", input, "→", driveUrl);
+  dbg("🎬 Raw Drive ID conversion", "id=", input, "downloadUrl=", driveUrl);
   return driveUrl;
 }
 
