@@ -327,7 +327,7 @@ const ui = {
 };
 
 /* -------------------- Redgifs Proxy Resolver -------------------- */
-function extractRedgifsMeta(input) {
+/*function extractRedgifsMeta(input) {
   if (!input) return null;
   const str = String(input).trim();
 
@@ -367,6 +367,7 @@ function extractRedgifsId(input) {
   return extractRedgifsMeta(input)?.id || null;
 }
 
+*/
 function cleanRedgifsId(raw) {
   if (!raw) return null;
   return raw
@@ -375,7 +376,7 @@ function cleanRedgifsId(raw) {
     .replace(/_(?:mobile)$/i, '');
 }
 
-async function resolveViaProxy(redgifsUrl) {
+/*async function resolveViaProxy(redgifsUrl) {
   dbg('🔍 Proxy resolving', redgifsUrl);
   const meta = extractRedgifsMeta(redgifsUrl);
   const id = meta?.id;
@@ -440,6 +441,7 @@ async function resolveViaProxy(redgifsUrl) {
   return data.url;
 }
 
+*/
 /* =========================================================
    VIDEO ENGINE (gesture-first; Safari + Meta Quest)
    ========================================================= */
@@ -817,31 +819,86 @@ function bestMeta(meta) {
    🧩 REDGIFS VIDEO RESOLVER — Simplified, always HD/audio
    ========================================================= */
 
+const redgifsTokenCache = {
+  token: null,
+  expiresAt: 0
+};
+
+function clearRedgifsToken() {
+  redgifsTokenCache.token = null;
+  redgifsTokenCache.expiresAt = 0;
+}
+
 // Always return your RedGifs token
-function getRedgifsKey() {
-  return "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJhdXRoLXNlcnZpY2UiLCJpYXQiOjE3NjEwODM5ODgsImF1ZCI6Imh0dHBzOi8vYXBpLnJlZGdpZnMuY29tIiwiYXpwIjoiMTgyM2MzMWY3ZDMtNzQ1YS02NTg5LTAwMDUtZDhlOGZlMGE0NGMyIiwiZXhwIjoxNzYxMTcwMzg4LCJzdWIiOiJjbGllbnQvMTgyM2MzMWY3ZDMtNzQ1YS02NTg5LTAwMDUtZDhlOGZlMGE0NGMyIiwic2NvcGVzIjoicmVhZCIsInZhbGlkX2FkZHIiOiI0Ny41NC4yNDQuMTIiLCJ2YWxpZF9hZ2VudCI6Ik1vemlsbGEvNS4wIChpUGhvbmU7IENQVSBpUGhvbmUgT1MgMThfNyBsaWtlIE1hYyBPUyBYKSBBcHBsZVdlYktpdC82MDUuMS4xNSAoS0hUTUwsIGxpa2UgR2Vja28pIFZlcnNpb24vMjYuMC4xIE1vYmlsZS8xNUUxNDggU2FmYXJpLzYwNC4xIiwicmF0ZSI6LTEsImh0dHBzOi8vcmVkZ2lmcy5jb20vc2Vzc2lvbi1pZCI6IjMzNzM4MTI1Nzg2NjUxNDc1MyJ9.j22Jb6QCrwLfbS9EsQQAqkpvUqJ0hru3pfKrJq2chm9BejTWmaGLT1hbsTqCAH3X1uMc1OdoT54nPQyrHYciS2QeuYgi-p9NMfZTc62afUL_s3At78PJVloevco3FtRPTFcTwFcWChJBBP80hR6r7dHZBixILoC_4k9ya430D8xv7XE9jRDlW4KDcYSfcObwnBD3NhG6fWYtSLvsK_GZhSlYxefELz5u2TAK5-sx1_00cEy0Zhjb9d4ImNC6oYAHwGb4o6YE5qc-LLsWGzqorhVPoZaW2fyFtFrqucAHach91R0oUcRjJiFdomBPnP1fGKmcFed3581b5JvpI831Vg"; 
-  // 👆 replace this with your FULL token from api.redgifs.com/v2/auth/temporary
+async function getRedgifsKey(forceRefresh = false) {
+  const now = Date.now();
+  if (!forceRefresh && redgifsTokenCache.token && now < redgifsTokenCache.expiresAt - 5000) {
+    return redgifsTokenCache.token;
+  }
+
+  if (forceRefresh) clearRedgifsToken();
+
+  try {
+    const res = await fetch('https://api.redgifs.com/v2/auth/temporary', {
+      method: 'POST'
+    });
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    const token = data.access_token || data.token || data.key || null;
+    const expiresIn = Number(data.expires_in || data.expires || 0);
+    if (!token) {
+      throw new Error('Missing token in response');
+    }
+    redgifsTokenCache.token = token;
+    redgifsTokenCache.expiresAt = expiresIn > 0 ? now + expiresIn * 1000 : now + 55 * 60 * 1000;
+    dbg('🔑 RedGifs token fetched', `expires in ${Math.round((redgifsTokenCache.expiresAt - now) / 1000)}s`);
+    return token;
+  } catch (err) {
+    dbg('❌ RedGifs token error', err.message || err);
+    throw err;
+  }
 }
 
 // Resolve any RedGifs embed/link into a playable HD/audio MP4
 async function resolveRedgifs(urlOrHtml) {
-  const match = String(urlOrHtml).match(/redgifs\.com\/(?:ifr|watch|thumbs2)\/([a-zA-Z0-9_-]+)/);
+  const match = String(urlOrHtml).match(/redgifs\.com\/(?:ifr|watch|thumbs2)\/([a-zA-Z0-9_.-]+)/);
   if (!match) return null;
-  const id = match[1];
-  try {
-    const apiUrl = `https://api.redgifs.com/v2/gifs/${id}`;
-    const headers = { "Authorization": `Bearer ${getRedgifsKey()}` };
-    const res = await fetch(apiUrl, { headers });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    const urls = data.gif?.urls || {};
-    const playable = urls.hd || urls.sd || null;
-    if (playable) {
-      dbg("🎞️ RedGifs resolved", id, "→", playable);
-      return playable;
+  const rawId = match[1];
+  const id = cleanRedgifsId(rawId);
+  if (!id) return null;
+  if (rawId !== id) {
+    dbg('🧼 Sanitized RedGifs id', `${rawId} → ${id}`);
+  }
+  const apiUrl = `https://api.redgifs.com/v2/gifs/${id}`;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const token = await getRedgifsKey(attempt === 1);
+      const headers = { "Authorization": `Bearer ${token}` };
+      const res = await fetch(apiUrl, { headers });
+      if (res.status === 401 || res.status === 403) {
+        dbg('🔁 RedGifs token refresh', `status ${res.status}`);
+        clearRedgifsToken();
+        if (attempt === 0) continue;
+      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const urls = data.gif?.urls || {};
+      const playable = urls.hd || urls.sd || null;
+      if (playable) {
+        dbg('🎞️ RedGifs resolved', id, '→', playable);
+        return playable;
+      }
+      break;
+    } catch (err) {
+      if (attempt === 0 && /401|403/.test(String(err.message))) {
+        clearRedgifsToken();
+        continue;
+      }
+      dbg('❌ RedGifs API error', err.message || err);
+      break;
     }
-  } catch (err) {
-    dbg("❌ RedGifs API error", err.message);
   }
   return null;
 }
@@ -866,7 +923,7 @@ async function normalize(d) {
     };
   }
 
-  // 2️⃣ RedGifs embeds (via your proxy)
+  // 2️⃣ RedGifs embeds (direct API resolver)
   const oembed = d.secure_media?.oembed || d.media?.oembed || d.secure_media_embed || {};
   const redgifsUrl =
     (d.url_overridden_by_dest && d.url_overridden_by_dest.includes('redgifs.com'))
@@ -874,12 +931,13 @@ async function normalize(d) {
       : (oembed.thumbnail_url || oembed.html || oembed.content || '');
 
   if (/redgifs\.com/i.test(redgifsUrl)) {
-    const playable = await resolveViaProxy(redgifsUrl);
-    const redgifsId = extractRedgifsId(redgifsUrl);
+    const playable = await resolveRedgifs(redgifsUrl);
+    const idMatch = String(redgifsUrl).match(/redgifs\.com\/(?:watch|ifr|detail|thumbs2)\/([a-zA-Z0-9_.-]+)/i);
+    const redgifsId = idMatch ? cleanRedgifsId(idMatch[1]) : null;
     if (playable) {
       return {
         t: 'video',
-        url: playable, // ✅ direct MP4 from proxy
+        url: playable, // ✅ direct MP4 from RedGifs
         thumb: oembed.thumbnail_url || pickThumb(d),
         title: d.title,
         author: d.author,
