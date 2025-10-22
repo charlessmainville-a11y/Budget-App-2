@@ -234,6 +234,12 @@ function dbg(...args) {
   }
 }
 
+const truncateLog = (value, max = 400) => {
+  if (value == null) return '';
+  const str = String(value);
+  return str.length > max ? str.slice(0, max) + '…' : str;
+};
+
 /* -------------------- persistence -------------------- */
 function saveState(){ try{ localStorage.setItem('likes',JSON.stringify(likes)); localStorage.setItem('discards',JSON.stringify(discards)); }catch{} }
 function loadState(){ try{ likes=JSON.parse(localStorage.getItem('likes')||'[]'); discards=JSON.parse(localStorage.getItem('discards')||'[]'); }catch{ likes=[]; discards=[]; } }
@@ -313,9 +319,14 @@ const ui = {
 };
 
 /* -------------------- Redgifs Proxy Resolver -------------------- */
-function extractRedgifsId(input) {
+function extractRedgifsMeta(input) {
   if (!input) return null;
   const str = String(input).trim();
+
+  const buildMeta = (raw, source) => {
+    const cleaned = cleanRedgifsId(raw);
+    return cleaned ? { id: cleaned, raw: raw || '', source } : null;
+  };
 
   // If an entire iframe HTML snippet was passed, pull out the src attribute first
   const iframeSrc = str.includes('<iframe')
@@ -325,7 +336,7 @@ function extractRedgifsId(input) {
 
   // Direct embeds such as https://redgifs.com/watch/{id}
   const directMatch = candidate.match(/redgifs\.com\/(?:watch|ifr|detail)\/([a-zA-Z0-9_-]+)/i);
-  if (directMatch) return cleanRedgifsId(directMatch[1]);
+  if (directMatch) return buildMeta(directMatch[1], 'direct');
 
   // Thumbnails/CDN assets live on subdomains like thumbs2.redgifs.com or i.redgifs.com
   try {
@@ -333,15 +344,19 @@ function extractRedgifsId(input) {
     if (/redgifs\.com$/i.test(url.hostname) || /\.redgifs\.com$/i.test(url.hostname)) {
       const parts = url.pathname.split('/').filter(Boolean);
       const raw = parts.pop();
-      const cleaned = cleanRedgifsId(raw);
-      if (cleaned) return cleaned;
+      const meta = buildMeta(raw, 'asset');
+      if (meta) return meta;
     }
   } catch (_) {
     // Non-URL strings will be handled by the fallback below
   }
 
   const raw = candidate.split('?')[0].split('/').filter(Boolean).pop();
-  return cleanRedgifsId(raw);
+  return buildMeta(raw, 'fallback');
+}
+
+function extractRedgifsId(input) {
+  return extractRedgifsMeta(input)?.id || null;
 }
 
 function cleanRedgifsId(raw) {
@@ -353,25 +368,68 @@ function cleanRedgifsId(raw) {
 }
 
 async function resolveViaProxy(redgifsUrl) {
-  const id = extractRedgifsId(redgifsUrl);
+  dbg('🔍 Proxy resolving', redgifsUrl);
+  const meta = extractRedgifsMeta(redgifsUrl);
+  const id = meta?.id;
   if (!id) {
     dbg('❌ Proxy error', 'Unable to parse Redgifs id from', redgifsUrl);
     return null;
   }
 
+  if (meta?.raw && meta.raw !== id) {
+    dbg('🧼 Sanitized Redgifs id', `${meta.raw} → ${id}`);
+  } else {
+    dbg('🆔 Redgifs id', id);
+  }
+  if (meta?.source) {
+    dbg('📌 Redgifs id source', meta.source);
+  }
+
+  // ✅ Use your deployed Vercel proxy (full URL)
+  const apiUrl = `https://budget-app-2-phi.vercel.app/api/redgifs?id=${encodeURIComponent(id)}`;
+  dbg('🌐 Proxy request', apiUrl);
+
+  let res;
   try {
-    // ✅ Use your deployed Vercel proxy (full URL)
-    const apiUrl = `https://budget-app-2-phi.vercel.app/api/redgifs?id=${id}`;
-    const res = await fetch(apiUrl);
-
-    if (!res.ok) throw new Error("Proxy fetch failed: " + res.status);
-    const data = await res.json();
-
-    return data.url || null;
-  } catch (err) {
-    dbg("❌ Proxy error", err.message);
+    res = await fetch(apiUrl);
+  } catch (networkErr) {
+    dbg('❌ Proxy network error', networkErr?.message || networkErr);
+    if (networkErr?.stack) dbg('📚 Proxy error stack', truncateLog(networkErr.stack));
     return null;
   }
+
+  const statusLabel = `${res.status}${res.statusText ? ' ' + res.statusText : ''}`.trim();
+  dbg('📡 Proxy status', statusLabel || res.status);
+
+  const bodyText = await res.text();
+
+  if (!res.ok) {
+    dbg('❌ Proxy HTTP error body', bodyText ? truncateLog(bodyText) : '(empty response)');
+    return null;
+  }
+
+  let data = {};
+  if (bodyText) {
+    try {
+      data = JSON.parse(bodyText);
+    } catch (parseErr) {
+      dbg('❌ Proxy JSON parse error', parseErr?.message || parseErr);
+      dbg('📝 Proxy raw body snippet', truncateLog(bodyText));
+      return null;
+    }
+  }
+
+  if (data.error) {
+    dbg('⚠️ Proxy payload error', truncateLog(JSON.stringify(data)));
+  }
+
+  if (!data.url) {
+    dbg('❌ Proxy missing url', truncateLog(JSON.stringify(data)) || '(no body)');
+    return null;
+  }
+
+  dbg('✅ Proxy resolved URL', data.url);
+  return data.url;
 }
 
 /* =========================================================
