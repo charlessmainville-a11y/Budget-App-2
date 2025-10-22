@@ -565,12 +565,11 @@ function baseUrl(sub, token) {
       mode: "oauth"
     };
   }
-  // Fallback (should be rare)
+    // Fallback (no token) → use proxy
   return {
-    url: `https://www.reddit.com/r/${sub}/hot.json?limit=${LIMIT}&raw_json=1`,
-    mode: "fallback"
+    url: `https://corsproxy.io/?https://www.reddit.com/r/${sub}/hot.json?limit=${LIMIT}&raw_json=1`,
+    mode: "proxy"
   };
-}
 
 async function pullSubreddit(sub) {
   const token = getToken();
