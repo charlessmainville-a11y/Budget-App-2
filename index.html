@@ -502,11 +502,17 @@ function makeVideo(url, thumb, provider) {
   v.src = url;
   v.poster = thumb || '';
   v.playsInline = true;
+  v.setAttribute('playsinline', '');
+  v.setAttribute('webkit-playsinline', '');
   v.loop = true;
   v.muted = true;      // start muted
+  v.defaultMuted = true;
+  v.setAttribute('muted', '');
   v.autoplay = false;  // never auto-play
   v.preload = 'metadata';
   v.controls = false;
+  v.dataset.userStarted = '0';
+  if (provider) v.dataset.provider = provider;
 
   const wrap = document.createElement('div');
   wrap.className = 'video-wrap';
@@ -566,6 +572,7 @@ function makeVideo(url, thumb, provider) {
     setTimeout(()=>overlay.remove(),250);
     try {
       await v.play();
+      v.dataset.userStarted = '1';
       dbg('▶ manual play', url);
       muteBtn.style.display = 'block';
     } catch (err) {
@@ -582,6 +589,12 @@ function makeVideo(url, thumb, provider) {
 
   // --- Log errors for troubleshoot ---
   v.addEventListener('error', e => dbg('❌ video error', url, e));
+
+  // mark as user-started when playback resumes from other gestures (e.g. fullscreen)
+  v.addEventListener('play', ()=>{ v.dataset.userStarted = '1'; }, {once:true});
+
+  // ensure intersection observer tracks the actual video element once attached
+  requestAnimationFrame(()=>{ try{ io.observe(v); }catch{} });
 
   return wrap;
 }
@@ -808,7 +821,26 @@ async function normalize(d) {
     }
   }
 
-  // 3️⃣ Reddit preview videos (rare mp4 rehosts)
+  // 3️⃣ Direct MP4 hosts (often include audio)
+  const directUrlRaw = fix(d.url_overridden_by_dest || d.url || '');
+  if (directUrlRaw) {
+    let playable = directUrlRaw.trim();
+    if (/\.gifv(\?.*)?$/i.test(playable)) playable = playable.replace(/\.gifv(\?.*)?$/i, '.mp4$1');
+    if (/\.(mp4|m4v|mov)(\?.*)?$/i.test(playable)) {
+      return {
+        t: 'video',
+        url: playable,
+        thumb: pickThumb(d) || '',
+        title: d.title,
+        author: d.author,
+        sub: d.subreddit,
+        link: `https://reddit.com${d.permalink}`,
+        provider: 'direct'
+      };
+    }
+  }
+
+  // 4️⃣ Reddit preview videos (rare mp4 rehosts)
   const preview = d.preview?.images?.[0];
   const variants = preview?.variants;
   if (variants?.mp4?.source?.url) {
@@ -824,7 +856,7 @@ async function normalize(d) {
     };
   }
 
-  // 4️⃣ GIF variants
+  // 5️⃣ GIF variants
   if (variants?.gif?.source?.url) {
     return {
       t: 'gif',
@@ -838,7 +870,7 @@ async function normalize(d) {
     };
   }
 
-  // 5️⃣ Galleries
+  // 6️⃣ Galleries
   if (d.is_gallery && d.gallery_data?.items) {
     const firstId = d.gallery_data.items[0]?.media_id;
     const meta = d.media_metadata?.[firstId];
@@ -857,7 +889,7 @@ async function normalize(d) {
     }
   }
 
-  // 6️⃣ Still images
+  // 7️⃣ Still images
   const img = d.url_overridden_by_dest || d.url;
   if (img && /\.(jpg|jpeg|png|webp)$/i.test(img)) {
     return {
@@ -872,7 +904,7 @@ async function normalize(d) {
     };
   }
 
-  // 7️⃣ Fallback preview
+  // 8️⃣ Fallback preview
   if (preview?.source?.url) {
     const src = fix(preview.source.url);
     return {
@@ -887,7 +919,7 @@ async function normalize(d) {
     };
   }
 
-  // 8️⃣ Nothing usable
+  // 9️⃣ Nothing usable
   return null;
 }
   
