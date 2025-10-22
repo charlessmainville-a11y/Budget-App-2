@@ -241,15 +241,29 @@ const truncateLog = (value, max = 400) => {
 };
 
 /* -------------------- fallback video -------------------- */
-// Just replace the fileId below with any Google Drive video ID
-const DRIVE_FILE_ID = "1jiMLN5dM0KLGj_uDw41kvCrTt-Qbbzpp";
+// You can paste either a Google Drive file ID (short string) OR a direct MP4 URL.
+const FALLBACK_SOURCE_INPUT = "1jiMLN5dM0KLGj_uDw41kvCrTt-Qbbzpp"; 
+// Example: "1jiMLN5dM0KLGj_uDw41kvCrTt-Qbbzpp" (Drive ID)
+// Example: "https://example.com/myvideo.mp4" (direct MP4 link)
+
+function resolveFallbackUrl(input) {
+  if (!input) return "";
+  // If it's clearly a URL already (http/https)
+  if (/^https?:\/\//i.test(input)) {
+    dbg("🎬 Fallback source detected as direct URL:", input);
+    return input.trim();
+  }
+  // Otherwise treat as Google Drive file ID
+  const driveUrl = `https://drive.google.com/uc?export=download&id=${input}`;
+  dbg("🎬 Fallback source detected as Google Drive ID:", input, "→", driveUrl);
+  return driveUrl;
+}
 
 const FALLBACK_VIDEO_SOURCE = {
-  title: 'Sample Google Drive Video',
-  // Construct a proper direct streamable link
-  url: `https://drive.google.com/uc?export=download&id=${DRIVE_FILE_ID}`,
+  title: 'Sample Fallback Video',
+  url: resolveFallbackUrl(FALLBACK_SOURCE_INPUT),
   poster: '',
-  controls: true // set true if you want visible controls
+  controls: true
 };
 
 /* -------------------- persistence -------------------- */
