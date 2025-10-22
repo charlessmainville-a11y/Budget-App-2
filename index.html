@@ -313,11 +313,26 @@ const ui = {
 };
 
 /* -------------------- Redgifs Proxy Resolver -------------------- */
+function extractRedgifsId(input) {
+  if (!input) return null;
+  const str = String(input);
+
+  // Handles iframe HTML snippets such as <iframe src="https://redgifs.com/ifr/ID">
+  const iframeMatch = str.match(/redgifs\.com\/(?:watch|ifr|detail)\/([a-zA-Z0-9_-]+)/i);
+  const raw = iframeMatch?.[1] || str.split('?')[0].split('/').filter(Boolean).pop();
+  if (!raw) return null;
+
+  return raw
+    .replace(/\.(?:mp4|gif|webm)$/i, '')
+    .replace(/-size_restricted$/i, '');
+}
+
 async function resolveViaProxy(redgifsUrl) {
-  // Extract ID from any Redgifs URL
-  const match = String(redgifsUrl).match(/([a-zA-Z0-9_-]+)$/);
-  if (!match) return null;
-  const id = match[1];
+  const id = extractRedgifsId(redgifsUrl);
+  if (!id) {
+    dbg('❌ Proxy error', 'Unable to parse Redgifs id from', redgifsUrl);
+    return null;
+  }
 
   try {
     // ✅ Use your deployed Vercel proxy (full URL)
