@@ -570,7 +570,7 @@ function baseUrl(sub, token) {
     url: `https://corsproxy.io/?https://www.reddit.com/r/${sub}/hot.json?limit=${LIMIT}&raw_json=1`,
     mode: "proxy"
   };
-
+}
 async function pullSubreddit(sub) {
   const token = getToken();
   let after = null;
