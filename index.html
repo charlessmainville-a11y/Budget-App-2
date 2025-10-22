@@ -335,48 +335,6 @@ async function resolveViaProxy(redgifsUrl) {
 }
 
 /* =========================================================
-   normalize() — unified Reddit + Redgifs media resolver
-   ========================================================= */
-async function normalize(d) {
-  // 1️⃣ Reddit-hosted videos (v.redd.it)
-  const rv = d.secure_media?.reddit_video || d.media?.reddit_video;
-  if (rv?.fallback_url && rv.fallback_url.includes('v.redd.it')) {
-    return {
-      t: 'video',
-      url: rv.fallback_url,
-      thumb: pickThumb(d),
-      title: d.title,
-      author: d.author,
-      sub: d.subreddit,
-      link: `https://reddit.com${d.permalink}`,
-      provider: 'reddit'
-    };
-  }
-
-  // 2️⃣ Redgifs embeds (resolved via proxy)
-  const oembed = d.secure_media?.oembed || d.media?.oembed || d.secure_media_embed || {};
-  const redgifsUrl =
-    (d.url_overridden_by_dest && d.url_overridden_by_dest.includes('redgifs.com'))
-      ? d.url_overridden_by_dest
-      : (oembed.thumbnail_url || oembed.html || oembed.content || '');
-
-  if (/redgifs\.com/i.test(redgifsUrl)) {
-    const playable = await resolveViaProxy(redgifsUrl);
-    if (playable) {
-      return {
-        t: 'video',
-        url: playable, // ✅ direct MP4
-        thumb: oembed.thumbnail_url || pickThumb(d),
-        title: d.title,
-        author: d.author,
-        sub: d.subreddit,
-        link: `https://www.redgifs.com/watch/${(redgifsUrl.match(/([a-zA-Z0-9_-]+)$/) || [])[1]}`,
-        provider: 'redgifs'
-      };
-    }
-}
-
-/* =========================================================
    VIDEO ENGINE (gesture-first; Safari + Meta Quest)
    ========================================================= */
 
@@ -708,9 +666,9 @@ async function resolveRedgifs(urlOrHtml) {
   return null;
 }
 
-// =========================================================
-// normalize() — unified Reddit + RedGifs media resolver
-// =========================================================
+/* =========================================================
+   normalize() — unified Reddit + RedGifs media resolver
+   ========================================================= */
 async function normalize(d) {
 
   // 1️⃣ Reddit-hosted videos (v.redd.it)
@@ -728,28 +686,28 @@ async function normalize(d) {
     };
   }
 
-  // 2️⃣ RedGifs embeds (via proxy)
-const oembed = d.secure_media?.oembed || d.media?.oembed || d.secure_media_embed || {};
-const redgifsUrl =
-  (d.url_overridden_by_dest && d.url_overridden_by_dest.includes('redgifs.com'))
-    ? d.url_overridden_by_dest
-    : (oembed.thumbnail_url || oembed.html || oembed.content || '');
+  // 2️⃣ RedGifs embeds (via your proxy)
+  const oembed = d.secure_media?.oembed || d.media?.oembed || d.secure_media_embed || {};
+  const redgifsUrl =
+    (d.url_overridden_by_dest && d.url_overridden_by_dest.includes('redgifs.com'))
+      ? d.url_overridden_by_dest
+      : (oembed.thumbnail_url || oembed.html || oembed.content || '');
 
-if (/redgifs\.com/i.test(redgifsUrl)) {
-  const playable = await resolveViaProxy(redgifsUrl);
-  if (playable) {
-    return {
-      t: 'video',
-      url: playable, // ✅ direct MP4 link
-      thumb: oembed.thumbnail_url || pickThumb(d),
-      title: d.title,
-      author: d.author,
-      sub: d.subreddit,
-      link: `https://www.redgifs.com/watch/${(redgifsUrl.match(/([a-zA-Z0-9_-]+)$/) || [])[1]}`,
-      provider: 'redgifs'
-    };
+  if (/redgifs\.com/i.test(redgifsUrl)) {
+    const playable = await resolveViaProxy(redgifsUrl);
+    if (playable) {
+      return {
+        t: 'video',
+        url: playable, // ✅ direct MP4 from proxy
+        thumb: oembed.thumbnail_url || pickThumb(d),
+        title: d.title,
+        author: d.author,
+        sub: d.subreddit,
+        link: `https://www.redgifs.com/watch/${(redgifsUrl.match(/([a-zA-Z0-9_-]+)$/) || [])[1]}`,
+        provider: 'redgifs'
+      };
+    }
   }
-}
 
   // 3️⃣ Reddit preview videos (rare mp4 rehosts)
   const preview = d.preview?.images?.[0];
@@ -832,7 +790,7 @@ if (/redgifs\.com/i.test(redgifsUrl)) {
 
   // 8️⃣ Nothing usable
   return null;
-  }
+}
   
 /* -------------------- render pipeline -------------------- */
 function interleaveBuckets(buckets){
