@@ -555,14 +555,21 @@ document.addEventListener('videosBuilt', attachVideoDiagnostics);
 
 /* -------------------- Reddit fetchers -------------------- */
 
-// Always build URLs the clean way
+/* -------------------- Reddit fetchers -------------------- */
+
 function baseUrl(sub, token) {
   if (token) {
-    // Use OAuth endpoint when we have a token
-    return `https://oauth.reddit.com/r/${sub}/hot?limit=${LIMIT}&raw_json=1`;
+    // OAuth endpoint
+    return {
+      url: `https://oauth.reddit.com/r/${sub}/hot?limit=${LIMIT}&raw_json=1`,
+      mode: "oauth"
+    };
   }
-  // Fallback only if there is no token at all
-  return `https://www.reddit.com/r/${sub}/hot.json?limit=${LIMIT}&raw_json=1`;
+  // Fallback (should be rare)
+  return {
+    url: `https://www.reddit.com/r/${sub}/hot.json?limit=${LIMIT}&raw_json=1`,
+    mode: "fallback"
+  };
 }
 
 async function pullSubreddit(sub) {
@@ -571,25 +578,31 @@ async function pullSubreddit(sub) {
   const out = [];
 
   for (let page = 0; page < PAGES; page++) {
-    const url = baseUrl(sub, token) + (after ? `&after=${after}` : '');
+    const { url, mode } = baseUrl(sub, token);
     try {
-      const res = await fetch(url, token ? { headers: { 'Authorization': `Bearer ${token}` } } : {});
+      const res = await fetch(url + (after ? `&after=${after}` : ''), 
+        token && mode === "oauth" ? { headers: { 'Authorization': `Bearer ${token}` } } : {}
+      );
+
       if (!res.ok) {
-        const msg = `✖ /r/${sub} p${page + 1}: HTTP ${res.status}`;
+        const msg = `✖ /r/${sub} p${page + 1}: HTTP ${res.status} [${mode}]`;
         lastErrors.push(msg);
         log(msg);
         break;
       }
+
       const data = await res.json();
       const children = (data.data?.children || []);
       const items = (await Promise.all(children.map(n => normalize(n.data)))).filter(Boolean);
       out.push(...items);
-      log(`Loaded ${items.length} from /r/${sub} (page ${page + 1})`);
+
+      log(`✓ /r/${sub} p${page + 1} [${mode}] Loaded ${items.length}`);
       after = data.data?.after || null;
       if (!after) break;
       await new Promise(r => setTimeout(r, 20));
+
     } catch (e) {
-      const msg = `✖ /r/${sub} p${page + 1}: ${e}`;
+      const msg = `✖ /r/${sub} p${page + 1}: ${e} [${mode}]`;
       lastErrors.push(msg);
       log(msg);
       break;
