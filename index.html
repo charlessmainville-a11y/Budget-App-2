@@ -555,10 +555,10 @@ document.addEventListener('videosBuilt', attachVideoDiagnostics);
 
 /* -------------------- Reddit fetchers -------------------- */
 const CORS = 'https://cors.isomorphic-git.org/';
-function baseUrl(sub, token){
+function baseUrl(sub, token) {
   return token
-    ? `https://oauth.reddit.com/r/${sub}/hot?limit=${LIMIT}`
-    : CORS + `https://www.reddit.com/r/${sub}/hot.json?limit=${LIMIT}&raw_json=1`;
+    ? `https://oauth.reddit.com/r/${sub}/hot?limit=${LIMIT}&raw_json=1`
+    : `https://www.reddit.com/r/${sub}/hot.json?limit=${LIMIT}&raw_json=1`;
 }
 
 async function pullSubreddit(sub){
