@@ -320,8 +320,8 @@ async function resolveViaProxy(redgifsUrl) {
   const id = match[1];
 
   try {
-    // ✅ Use your own deployed proxy (relative path)
-    const apiUrl = `/api/redgifs?id=${id}`;
+    // ✅ Use your deployed Vercel proxy (full URL)
+    const apiUrl = `https://budget-app-2-phi.vercel.app/api/redgifs?id=${id}`;
     const res = await fetch(apiUrl);
 
     if (!res.ok) throw new Error("Proxy fetch failed: " + res.status);
