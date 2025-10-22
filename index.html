@@ -312,6 +312,27 @@ const ui = {
   progressVisibility(){ const visible = currentFeed==='home' && (pool.length>0 || !fetching); el('#progressBtn').style.display = visible ? '' : 'none'; }
 };
 
+/* -------------------- Redgifs Proxy Resolver -------------------- */
+async function resolveViaProxy(redgifsUrl) {
+  // Extract ID from any Redgifs URL
+  const match = String(redgifsUrl).match(/([a-zA-Z0-9_-]+)$/);
+  if (!match) return null;
+  const id = match[1];
+
+  try {
+    const apiUrl = `https://redgifs-api-three.vercel.app/api/redgifs?id=${id}`; 
+    const res = await fetch(apiUrl);
+    if (!res.ok) throw new Error("Proxy fetch failed: " + res.status);
+    const data = await res.json();
+
+    // Defensive: some responses nest differently
+    return data.gif?.urls?.hd || data.gif?.urls?.sd || data.url || null;
+  } catch (err) {
+    dbg("❌ Proxy error", err.message);
+    return null;
+  }
+}
+
 /* =========================================================
    VIDEO ENGINE (gesture-first; Safari + Meta Quest)
    ========================================================= */
@@ -639,27 +660,28 @@ async function normalize(d) {
     };
   }
 
-  // 2️⃣ RedGifs embeds
-  const oembed = d.secure_media?.oembed || d.media?.oembed || d.secure_media_embed || {};
-  const redgifsUrl =
-    (d.url_overridden_by_dest && d.url_overridden_by_dest.includes('redgifs.com'))
-      ? d.url_overridden_by_dest
-      : (oembed.thumbnail_url || oembed.html || oembed.content || '');
-  if (/redgifs\.com/i.test(redgifsUrl)) {
-    const playable = await resolveRedgifs(redgifsUrl);
-    if (playable) {
-      return {
-        t: 'video',
-        url: playable, // ✅ always HD/audio
-        thumb: oembed.thumbnail_url || pickThumb(d),
-        title: d.title,
-        author: d.author,
-        sub: d.subreddit,
-        link: `https://www.redgifs.com/watch/${(redgifsUrl.match(/([a-zA-Z0-9_-]+)$/) || [])[1]}`,
-        provider: 'redgifs'
-      };
-    }
+  // 2️⃣ RedGifs embeds (via proxy)
+const oembed = d.secure_media?.oembed || d.media?.oembed || d.secure_media_embed || {};
+const redgifsUrl =
+  (d.url_overridden_by_dest && d.url_overridden_by_dest.includes('redgifs.com'))
+    ? d.url_overridden_by_dest
+    : (oembed.thumbnail_url || oembed.html || oembed.content || '');
+
+if (/redgifs\.com/i.test(redgifsUrl)) {
+  const playable = await resolveViaProxy(redgifsUrl);
+  if (playable) {
+    return {
+      t: 'video',
+      url: playable, // ✅ direct MP4 link
+      thumb: oembed.thumbnail_url || pickThumb(d),
+      title: d.title,
+      author: d.author,
+      sub: d.subreddit,
+      link: `https://www.redgifs.com/watch/${(redgifsUrl.match(/([a-zA-Z0-9_-]+)$/) || [])[1]}`,
+      provider: 'redgifs'
+    };
   }
+}
 
   // 3️⃣ Reddit preview videos (rare mp4 rehosts)
   const preview = d.preview?.images?.[0];
