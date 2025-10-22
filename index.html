@@ -320,17 +320,60 @@ async function resolveViaProxy(redgifsUrl) {
   const id = match[1];
 
   try {
-    const apiUrl = `https://redgifs-api-three.vercel.app/api/redgifs?id=${id}`; 
+    // ✅ Use your own deployed proxy (relative path)
+    const apiUrl = `/api/redgifs?id=${id}`;
     const res = await fetch(apiUrl);
+
     if (!res.ok) throw new Error("Proxy fetch failed: " + res.status);
     const data = await res.json();
 
-    // Defensive: some responses nest differently
-    return data.gif?.urls?.hd || data.gif?.urls?.sd || data.url || null;
+    return data.url || null;
   } catch (err) {
     dbg("❌ Proxy error", err.message);
     return null;
   }
+}
+
+/* =========================================================
+   normalize() — unified Reddit + Redgifs media resolver
+   ========================================================= */
+async function normalize(d) {
+  // 1️⃣ Reddit-hosted videos (v.redd.it)
+  const rv = d.secure_media?.reddit_video || d.media?.reddit_video;
+  if (rv?.fallback_url && rv.fallback_url.includes('v.redd.it')) {
+    return {
+      t: 'video',
+      url: rv.fallback_url,
+      thumb: pickThumb(d),
+      title: d.title,
+      author: d.author,
+      sub: d.subreddit,
+      link: `https://reddit.com${d.permalink}`,
+      provider: 'reddit'
+    };
+  }
+
+  // 2️⃣ Redgifs embeds (resolved via proxy)
+  const oembed = d.secure_media?.oembed || d.media?.oembed || d.secure_media_embed || {};
+  const redgifsUrl =
+    (d.url_overridden_by_dest && d.url_overridden_by_dest.includes('redgifs.com'))
+      ? d.url_overridden_by_dest
+      : (oembed.thumbnail_url || oembed.html || oembed.content || '');
+
+  if (/redgifs\.com/i.test(redgifsUrl)) {
+    const playable = await resolveViaProxy(redgifsUrl);
+    if (playable) {
+      return {
+        t: 'video',
+        url: playable, // ✅ direct MP4
+        thumb: oembed.thumbnail_url || pickThumb(d),
+        title: d.title,
+        author: d.author,
+        sub: d.subreddit,
+        link: `https://www.redgifs.com/watch/${(redgifsUrl.match(/([a-zA-Z0-9_-]+)$/) || [])[1]}`,
+        provider: 'redgifs'
+      };
+    }
 }
 
 /* =========================================================
