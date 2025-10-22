@@ -240,6 +240,14 @@ const truncateLog = (value, max = 400) => {
   return str.length > max ? str.slice(0, max) + '…' : str;
 };
 
+/* -------------------- fallback video -------------------- */
+const FALLBACK_VIDEO_SOURCE = {
+  title: 'Sample Dropbox Video',
+  url: 'VIDEO_URL_HERE',
+  poster: '',
+  controls: false
+};
+
 /* -------------------- persistence -------------------- */
 function saveState(){ try{ localStorage.setItem('likes',JSON.stringify(likes)); localStorage.setItem('discards',JSON.stringify(discards)); }catch{} }
 function loadState(){ try{ likes=JSON.parse(localStorage.getItem('likes')||'[]'); discards=JSON.parse(localStorage.getItem('discards')||'[]'); }catch{ likes=[]; discards=[]; } }
@@ -597,6 +605,67 @@ function makeVideo(url, thumb, provider) {
   requestAnimationFrame(()=>{ try{ io.observe(v); }catch{} });
 
   return wrap;
+}
+
+/* =========================================================
+   📼 VideoContainer — Autoplay fallback
+   ========================================================= */
+function VideoContainer({ title, url, poster = '', controls = false } = {}) {
+  const container = document.createElement('article');
+  container.className = 'card';
+  container.dataset.component = 'video-container';
+
+  const video = document.createElement('video');
+  video.className = 'media';
+  video.src = url;
+  if (poster) video.poster = poster;
+  video.loop = true;
+  video.autoplay = true;
+  video.muted = true;
+  video.defaultMuted = true;
+  video.playsInline = true;
+  video.setAttribute('playsinline', '');
+  video.setAttribute('webkit-playsinline', '');
+  video.setAttribute('autoplay', '');
+  video.setAttribute('muted', '');
+  video.setAttribute('loop', '');
+  if (controls) {
+    video.controls = true;
+    video.setAttribute('controls', '');
+  } else {
+    video.controls = false;
+    video.removeAttribute('controls');
+  }
+  video.dataset.userStarted = '1';
+
+  container.appendChild(video);
+
+  if (title) {
+    const caption = document.createElement('div');
+    caption.className = 'caption';
+    caption.textContent = title;
+    container.appendChild(caption);
+  }
+
+  requestAnimationFrame(()=>{ try{ io.observe(video); safePlay(video); }catch{} });
+
+  return container;
+}
+
+function insertFallbackVideo(where = 'home') {
+  const feed = document.getElementById(where);
+  if (!feed) return;
+  if (!FALLBACK_VIDEO_SOURCE?.url) return;
+  if (feed.querySelector('[data-kind="fallback-video"]')) return;
+
+  const fallbackCard = VideoContainer({
+    title: FALLBACK_VIDEO_SOURCE.title,
+    url: FALLBACK_VIDEO_SOURCE.url,
+    poster: FALLBACK_VIDEO_SOURCE.poster || '',
+    controls: !!FALLBACK_VIDEO_SOURCE.controls
+  });
+  fallbackCard.dataset.kind = 'fallback-video';
+  feed.prepend(fallbackCard);
 }
 
 /* --- unlock gesture --- */
@@ -1020,7 +1089,10 @@ async function renderChunk(where, n=CHUNK){
 async function newBatch(){
   if(fetching) return;
   fetching=true; ui.phase('Fetching…'); ui.bar(10); ui.setProgressMode(true);
-  pool.length=0; document.getElementById('home').innerHTML='';
+  pool.length=0;
+  const homeFeed=document.getElementById('home');
+  if(homeFeed) homeFeed.innerHTML='';
+  insertFallbackVideo('home');
 
   const subs=[...STARTER_SUBS, ...OPTIONAL_NSFW];
   const all=[]; let done=0; lastErrors=[];
@@ -1062,6 +1134,7 @@ function shuffleVisibleAndPool(){
   const combined=[...visibleItems, ...pool];
   shuffleArray(combined);
   const keep=visibleItems.length; feed.innerHTML='';
+  insertFallbackVideo('home');
   for(let i=0;i<Math.min(keep,combined.length);i++) feed.appendChild(card(combined[i]));
   pool=combined.slice(keep);
   ui.progressVisibility();
