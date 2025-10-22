@@ -315,16 +315,41 @@ const ui = {
 /* -------------------- Redgifs Proxy Resolver -------------------- */
 function extractRedgifsId(input) {
   if (!input) return null;
-  const str = String(input);
+  const str = String(input).trim();
 
-  // Handles iframe HTML snippets such as <iframe src="https://redgifs.com/ifr/ID">
-  const iframeMatch = str.match(/redgifs\.com\/(?:watch|ifr|detail)\/([a-zA-Z0-9_-]+)/i);
-  const raw = iframeMatch?.[1] || str.split('?')[0].split('/').filter(Boolean).pop();
+  // If an entire iframe HTML snippet was passed, pull out the src attribute first
+  const iframeSrc = str.includes('<iframe')
+    ? (str.match(/src=["']([^"']+redgifs[^"']*)["']/i)?.[1] || '')
+    : '';
+  const candidate = iframeSrc || str;
+
+  // Direct embeds such as https://redgifs.com/watch/{id}
+  const directMatch = candidate.match(/redgifs\.com\/(?:watch|ifr|detail)\/([a-zA-Z0-9_-]+)/i);
+  if (directMatch) return cleanRedgifsId(directMatch[1]);
+
+  // Thumbnails/CDN assets live on subdomains like thumbs2.redgifs.com or i.redgifs.com
+  try {
+    const url = new URL(candidate);
+    if (/redgifs\.com$/i.test(url.hostname) || /\.redgifs\.com$/i.test(url.hostname)) {
+      const parts = url.pathname.split('/').filter(Boolean);
+      const raw = parts.pop();
+      const cleaned = cleanRedgifsId(raw);
+      if (cleaned) return cleaned;
+    }
+  } catch (_) {
+    // Non-URL strings will be handled by the fallback below
+  }
+
+  const raw = candidate.split('?')[0].split('/').filter(Boolean).pop();
+  return cleanRedgifsId(raw);
+}
+
+function cleanRedgifsId(raw) {
   if (!raw) return null;
-
   return raw
-    .replace(/\.(?:mp4|gif|webm)$/i, '')
-    .replace(/-size_restricted$/i, '');
+    .replace(/\.(?:mp4|gif|webm|jpe?g|png|webp)$/i, '')
+    .replace(/-(?:size_restricted|mobile|poster)$/i, '')
+    .replace(/_(?:mobile)$/i, '');
 }
 
 async function resolveViaProxy(redgifsUrl) {
@@ -710,6 +735,7 @@ async function normalize(d) {
 
   if (/redgifs\.com/i.test(redgifsUrl)) {
     const playable = await resolveViaProxy(redgifsUrl);
+    const redgifsId = extractRedgifsId(redgifsUrl);
     if (playable) {
       return {
         t: 'video',
@@ -718,7 +744,7 @@ async function normalize(d) {
         title: d.title,
         author: d.author,
         sub: d.subreddit,
-        link: `https://www.redgifs.com/watch/${(redgifsUrl.match(/([a-zA-Z0-9_-]+)$/) || [])[1]}`,
+        link: redgifsId ? `https://www.redgifs.com/watch/${redgifsId}` : d.url,
         provider: 'redgifs'
       };
     }
