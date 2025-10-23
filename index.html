@@ -398,7 +398,7 @@ const ui = {
     if(name==='home') el('#home').classList.remove('hidden');
     if(name==='likes') el('#likes').classList.remove('hidden');
     if(name==='discard') el('#discard').classList.remove('hidden');
-    if(name==='subs') el('#subsPage').classList.remove('hidden');
+    if(name==='subs') document.getElementById('subsPage').classList.remove('hidden');
     el('#pageTabs').classList.remove('hidden');
     el('#tabSubs').style.display = (name==='subs' ? '' : (el('#tabSubs').style.display || ''));
     this.progressVisibility();
@@ -406,7 +406,7 @@ const ui = {
   progressVisibility(){ const visible = currentFeed==='home' && (pool.length>0 || !fetching); el('#progressBtn').style.display = visible ? '' : 'none'; }
 };
 
-  /* =========================================================
+/* =========================================================
    VIDEO ENGINE (gesture-first; Safari + Meta Quest)
    ========================================================= */
 
@@ -784,95 +784,7 @@ function bestMeta(meta) {
 }
 
 /* =========================================================
-   🧩 REDGIFS VIDEO RESOLVER — Simplified, always HD/audio
-   ========================================================= */
-
-const redgifsTokenCache = {
-  token: null,
-  expiresAt: 0
-};
-
-function clearRedgifsToken() {
-  redgifsTokenCache.token = null;
-  redgifsTokenCache.expiresAt = 0;
-}
-
-// Always return your RedGifs token
-async function getRedgifsKey(forceRefresh = false) {
-  const now = Date.now();
-  if (!forceRefresh && redgifsTokenCache.token && now < redgifsTokenCache.expiresAt - 5000) {
-    return redgifsTokenCache.token;
-  }
-
-  if (forceRefresh) clearRedgifsToken();
-
-  try {
-    const res = await fetch('https://api.redgifs.com/v2/auth/temporary', {
-      method: 'POST'
-    });
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
-    }
-    const data = await res.json();
-    const token = data.access_token || data.token || data.key || null;
-    const expiresIn = Number(data.expires_in || data.expires || 0);
-    if (!token) {
-      throw new Error('Missing token in response');
-    }
-    redgifsTokenCache.token = token;
-    redgifsTokenCache.expiresAt = expiresIn > 0 ? now + expiresIn * 1000 : now + 55 * 60 * 1000;
-    dbg('🔑 RedGifs token fetched', `expires in ${Math.round((redgifsTokenCache.expiresAt - now) / 1000)}s`);
-    return token;
-  } catch (err) {
-    dbg('❌ RedGifs token error', err.message || err);
-    throw err;
-  }
-}
-
-// Resolve any RedGifs embed/link into a playable HD/audio MP4
-async function resolveRedgifs(urlOrHtml) {
-  const match = String(urlOrHtml).match(/redgifs\.com\/(?:ifr|watch|thumbs2)\/([a-zA-Z0-9_.-]+)/);
-  if (!match) return null;
-  const rawId = match[1];
-  const id = cleanRedgifsId(rawId);
-  if (!id) return null;
-  if (rawId !== id) {
-    dbg('🧼 Sanitized RedGifs id', `${rawId} → ${id}`);
-  }
-  const apiUrl = `https://api.redgifs.com/v2/gifs/${id}`;
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      const token = await getRedgifsKey(attempt === 1);
-      const headers = { "Authorization": `Bearer ${token}` };
-      const res = await fetch(apiUrl, { headers });
-      if (res.status === 401 || res.status === 403) {
-        dbg('🔁 RedGifs token refresh', `status ${res.status}`);
-        clearRedgifsToken();
-        if (attempt === 0) continue;
-      }
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      const urls = data.gif?.urls || {};
-      const playable = urls.hd || urls.sd || null;
-      if (playable) {
-        dbg('🎞️ RedGifs resolved', id, '→', playable);
-        return playable;
-      }
-      break;
-    } catch (err) {
-      if (attempt === 0 && /401|403/.test(String(err.message))) {
-        clearRedgifsToken();
-        continue;
-      }
-      dbg('❌ RedGifs API error', err.message || err);
-      break;
-    }
-  }
-  return null;
-}
-
-/* =========================================================
-   normalize() — unified Reddit + RedGifs media resolver
+   normalize() — unified Reddit media resolver
    ========================================================= */
 async function normalize(d) {
 
@@ -891,32 +803,7 @@ async function normalize(d) {
     };
   }
 
-  // 2️⃣ RedGifs embeds (direct API resolver)
-  const oembed = d.secure_media?.oembed || d.media?.oembed || d.secure_media_embed || {};
-  const redgifsUrl =
-    (d.url_overridden_by_dest && d.url_overridden_by_dest.includes('redgifs.com'))
-      ? d.url_overridden_by_dest
-      : (oembed.thumbnail_url || oembed.html || oembed.content || '');
-
-  if (/redgifs\.com/i.test(redgifsUrl)) {
-    const playable = await resolveRedgifs(redgifsUrl);
-    const idMatch = String(redgifsUrl).match(/redgifs\.com\/(?:watch|ifr|detail|thumbs2)\/([a-zA-Z0-9_.-]+)/i);
-    const redgifsId = idMatch ? cleanRedgifsId(idMatch[1]) : null;
-    if (playable) {
-      return {
-        t: 'video',
-        url: playable, // ✅ direct MP4 from RedGifs
-        thumb: oembed.thumbnail_url || pickThumb(d),
-        title: d.title,
-        author: d.author,
-        sub: d.subreddit,
-        link: redgifsId ? `https://www.redgifs.com/watch/${redgifsId}` : d.url,
-        provider: 'redgifs'
-      };
-    }
-  }
-
-  // 3️⃣ Direct MP4 hosts (often include audio)
+  // 2️⃣ Direct MP4 hosts (often include audio)
   const directUrlRaw = fix(d.url_overridden_by_dest || d.url || '');
   if (directUrlRaw) {
     let playable = directUrlRaw.trim();
@@ -1255,6 +1142,7 @@ function getToken(){ try{ const t=JSON.parse(localStorage.getItem('reddit_token'
 
 /* -------------------- boot -------------------- */
 captureTokenFromHash();
+insertFallbackVideo('home');
 ui.setProgressMode(false);
 ui.bar(100); ui.phase('Ready');
 log('Ready. Swipe right to Like, left to Dismiss. Tap a video to start, then tap again to mute/unmute. “Viewed” items are skipped.');
