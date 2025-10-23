@@ -240,6 +240,7 @@ let localVideoData = null;
 let localVideoReady = false;
 let localVideoReadyPromise = null;
 let resolveLocalVideoReady = null;
+let localVideoReadyTimeout = null;
 
 /* --- unified debug logger --- */
 function dbg(...args) {
@@ -287,6 +288,14 @@ function waitForLocalVideoReady(){
       resolveLocalVideoReady = res;
     });
   }
+  if (!localVideoReadyTimeout) {
+    localVideoReadyTimeout = setTimeout(()=>{
+      if (!localVideoReady) {
+        log('⚠️ local video not ready, continuing without pin');
+        setLocalVideoReady(true);
+      }
+    }, 2000);
+  }
   return localVideoReadyPromise;
 }
 
@@ -300,7 +309,15 @@ function setLocalVideoReady(value){
       resolveLocalVideoReady = null;
       localVideoReadyPromise = Promise.resolve();
     }
+    if (localVideoReadyTimeout) {
+      clearTimeout(localVideoReadyTimeout);
+      localVideoReadyTimeout = null;
+    }
     return;
+  }
+  if (localVideoReadyTimeout) {
+    clearTimeout(localVideoReadyTimeout);
+    localVideoReadyTimeout = null;
   }
   localVideoReady = false;
   localVideoReadyPromise = new Promise(res => {
@@ -977,6 +994,10 @@ async function pullSubreddit(sub) {
         token && mode === "oauth" ? { headers: { 'Authorization': `Bearer ${token}` } } : {}
       );
 
+      if (res.status !== 200) {
+        log(`⚠️ /r/${sub} p${page + 1}: HTTP ${res.status} [${mode}]`);
+      }
+
       if (!res.ok) {
         const msg = `✖ /r/${sub} p${page + 1}: HTTP ${res.status} [${mode}]`;
         lastErrors.push(msg);
@@ -990,12 +1011,23 @@ async function pullSubreddit(sub) {
       out.push(...items);
 
       log(`✓ /r/${sub} p${page + 1} [${mode}] Loaded ${items.length}`);
+      if (items.length === 0) {
+        log(`⚠️ no normalized posts for /r/${sub} p${page + 1}`);
+      }
       after = data.data?.after || null;
       if (!after) break;
       await new Promise(r => setTimeout(r, 20));
 
     } catch (e) {
-      const msg = `✖ /r/${sub} p${page + 1}: ${e} [${mode}]`;
+      const status = typeof e?.status === 'number'
+        ? e.status
+        : (typeof e?.response?.status === 'number' ? e.response.status : null);
+      if (status && status !== 200) {
+        log(`⚠️ /r/${sub} p${page + 1}: HTTP ${status} [${mode}]`);
+      }
+      const errMsg = (e && e.message) ? e.message : String(e);
+      const statusMsg = status && status !== 200 ? `HTTP ${status} ` : '';
+      const msg = `✖ /r/${sub} p${page + 1}: ${statusMsg}${errMsg} [${mode}]`;
       lastErrors.push(msg);
       log(msg);
       break;
@@ -1159,6 +1191,23 @@ async function normalize(d) {
       t: 'image',
       url: src,
       thumb: src,
+      title: d.title,
+      author: d.author,
+      sub: d.subreddit,
+      link: `https://reddit.com${d.permalink}`,
+      provider: 'preview-image'
+    };
+  }
+
+  const fallbackThumb = pickThumb(d);
+  if (fallbackThumb) {
+    const safeThumb = truncateLog(fallbackThumb, 200);
+    log(`⚠️ fallback to preview-only ${fallbackThumb}`);
+    dbg('source=preview-image', safeThumb);
+    return {
+      t: 'image',
+      url: fallbackThumb,
+      thumb: fallbackThumb,
       title: d.title,
       author: d.author,
       sub: d.subreddit,
@@ -1342,11 +1391,24 @@ async function newBatch(){
 
   pool=[...interleaveBuckets(bucketsTop), ...interleaveBuckets(bucketsRest)];
 
+  if (pool.length === 0) {
+    log('⚠️ pool empty, showing local only.');
+    ui.setProgressMode(false);
+    if (homeFeed) {
+      homeFeed.innerHTML='';
+      ensureLocalCardAtTop(homeFeed);
+    }
+    fetching=false;
+    ui.progressVisibility();
+    document.dispatchEvent(new Event('videosBuilt'));
+    return;
+  }
+
   ui.bar(100); ui.phase('Ready'); ui.setProgressMode(false);
   await renderChunk('home', Math.min(CHUNK, pool.length));
   if (homeFeed) ensureLocalCardAtTop(homeFeed);
   fetching=false;
-  
+
   document.dispatchEvent(new Event('videosBuilt'));
 }
 
