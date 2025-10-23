@@ -247,60 +247,76 @@ const FALLBACK_SOURCE_INPUT = "1jiMLN5dM0KLGj_uDw41kvCrTt-Qbbzpp";
 // Example: "https://example.com/myvideo.mp4" (direct MP4 link)
 
 function resolveFallbackUrl(input) {
-  if (!input) {
-    dbg("🎬 Final resolved fallback URL =", "");
-    return "";
-  }
+  if (input == null) return "";
 
-  const originalInput = input;
+  const originalInput = String(input);
   const originalLen = originalInput.length;
-  input = input.trim();
+  input = originalInput.trim();
   const trimmedLen = input.length;
   const whitespaceRemoved = originalLen !== trimmedLen;
-  dbg("🎬 Trimmed input", "original=", originalInput, "len=", originalLen, "→ trimmedLen=", trimmedLen, "whitespaceRemoved=", whitespaceRemoved);
+  dbg(
+    "🎬 Input received:",
+    originalInput,
+    "len=",
+    originalLen,
+    "→ trimmedLen=",
+    trimmedLen,
+    "whitespaceRemoved=",
+    whitespaceRemoved
+  );
+
   if (!input) {
     dbg("🎬 Final resolved fallback URL =", "");
     return "";
   }
 
-  // Detect Google Drive share links
-  const driveShareMatch = input.match(/^https?:\/\/drive\.google\.com\/file\/d\/([^/]+)\/view/i);
+  let resolvedUrl = "";
+  const driveShareMatch = input.match(/^https?:\/\/drive\.google\.com\/file\/d\/([^/]+)\/view(?:\?.*)?(?:#.*)?$/i);
   if (driveShareMatch) {
     const id = driveShareMatch[1];
-    const driveUrl = `https://drive.google.com/uc?export=download&id=${id}`;
-    dbg("🎬 Drive share link conversion", "originalUrl=", originalInput, "extractedId=", id, "downloadUrl=", driveUrl);
-    if (driveUrl.includes("/view")) {
-      dbg("⚠️ WARNING: Resolved URL still contains '/view' — may not be playable");
-    } else {
-      dbg("✅ URL looks playable (Google Drive)");
-    }
-    dbg("🎬 Final resolved fallback URL =", driveUrl);
-    return driveUrl;
-  }
-
-  // If it's already a full URL
-  if (/^https?:\/\//i.test(input)) {
+    resolvedUrl = `https://drive.google.com/uc?export=download&id=${id}`;
+    dbg("🎬 Fallback source detected as Google Drive ID:", input, "→", resolvedUrl);
+    dbg(
+      "🎬 Drive share link conversion",
+      "originalUrl=",
+      originalInput,
+      "extractedId=",
+      id,
+      "downloadUrl=",
+      resolvedUrl,
+      "note=",
+      "normalized from /file/d/.../view"
+    );
+  } else if (/^https?:\/\//i.test(input)) {
+    dbg("🎬 Fallback source detected as direct URL:", input);
+    let host = "unknown";
+    let protocol = "unknown";
     try {
-      const u = new URL(input);
-      dbg("🎬 Direct URL detected:", input, "host=", u.hostname, "protocol=", u.protocol);
-    } catch {
-      dbg("🎬 Direct URL detected (could not parse):", input);
+      const parsed = new URL(input);
+      protocol = parsed.protocol.replace(/:$/, "");
+      host = parsed.hostname;
+    } catch (err) {
+      // ignore parse failures; we'll log placeholder values below
     }
-    if (input.includes("/view")) {
-      dbg("⚠️ WARNING: URL contains '/view' — Google Drive share links need converting");
-    } else if (/\.(mp4|m4v|mov)(\?.*)?$/i.test(input)) {
-      dbg("✅ URL looks playable (.mp4 or movie file)");
-    }
-    dbg("🎬 Final resolved fallback URL =", input);
-    return input;
+    dbg("🎬 Direct URL details", "protocol=", protocol, "host=", host);
+    dbg("🎬 Direct URL detected:", input, "host=", host, "protocol=", protocol);
+    resolvedUrl = input;
+  } else {
+    resolvedUrl = `https://drive.google.com/uc?export=download&id=${input}`;
+    dbg("🎬 Fallback source detected as Google Drive ID:", input, "→", resolvedUrl);
+    dbg(
+      "🎬 Raw Drive ID conversion",
+      "id=",
+      input,
+      "downloadUrl=",
+      resolvedUrl,
+      "note=",
+      "interpreted as bare ID"
+    );
   }
 
-  // Otherwise treat as a raw Drive ID
-  const driveUrl = `https://drive.google.com/uc?export=download&id=${input}`;
-  dbg("🎬 Raw Google Drive ID detected:", input, "→", driveUrl);
-  dbg("✅ URL looks playable (converted from ID)");
-  dbg("🎬 Final resolved fallback URL =", driveUrl);
-  return driveUrl;
+  dbg("🎬 Final resolved fallback URL =", resolvedUrl);
+  return resolvedUrl;
 }
 
 const FALLBACK_VIDEO_SOURCE = {
@@ -687,17 +703,22 @@ document.addEventListener('videosBuilt', attachVideoDiagnostics);
 
 /* -------------------- Reddit fetchers -------------------- */
 
-function baseUrl(sub, token) {
+function baseUrl(sub, token, after) {
+  const params = new URLSearchParams({ limit: LIMIT, raw_json: 1 });
+  if (after) params.set('after', after);
+
   if (token) {
     // OAuth endpoint
     return {
-      url: `https://oauth.reddit.com/r/${sub}/hot?limit=${LIMIT}&raw_json=1`,
+      url: `https://oauth.reddit.com/r/${sub}/hot?${params.toString()}`,
       mode: "oauth"
     };
   }
-    // Fallback (no token) → use proxy
+
+  // Fallback (no token) → use proxy
+  const target = `https://www.reddit.com/r/${sub}/hot.json?${params.toString()}`;
   return {
-    url: `https://corsproxy.io/?https://www.reddit.com/r/${sub}/hot.json?limit=${LIMIT}&raw_json=1`,
+    url: `https://corsproxy.io/?${encodeURIComponent(target)}`,
     mode: "proxy"
   };
 }
@@ -707,9 +728,9 @@ async function pullSubreddit(sub) {
   const out = [];
 
   for (let page = 0; page < PAGES; page++) {
-    const { url, mode } = baseUrl(sub, token);
+    const { url, mode } = baseUrl(sub, token, after);
     try {
-      const res = await fetch(url + (after ? `&after=${after}` : ''), 
+      const res = await fetch(url,
         token && mode === "oauth" ? { headers: { 'Authorization': `Bearer ${token}` } } : {}
       );
 
