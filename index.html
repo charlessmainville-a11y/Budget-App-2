@@ -245,37 +245,60 @@ const truncateLog = (value, max = 400) => {
 const FALLBACK_SOURCE_INPUT = "1jiMLN5dM0KLGj_uDw41kvCrTt-Qbbzpp"; 
 // Example: "1jiMLN5dM0KLGj_uDw41kvCrTt-Qbbzpp" (Drive ID)
 // Example: "https://example.com/myvideo.mp4" (direct MP4 link)
-
 function resolveFallbackUrl(input) {
-  if (!input) return "";
+  if (!input) {
+    dbg("🎬 Final resolved fallback URL =", "");
+    return "";
+  }
+
+  const originalInput = input;
+  const originalLen = originalInput.length;
   input = input.trim();
-  if (!input) return "";
+  const trimmedLen = input.length;
+  const whitespaceRemoved = originalLen !== trimmedLen;
+  dbg("🎬 Trimmed input", "original=", originalInput, "len=", originalLen, "→ trimmedLen=", trimmedLen, "whitespaceRemoved=", whitespaceRemoved);
+  if (!input) {
+    dbg("🎬 Final resolved fallback URL =", "");
+    return "";
+  }
 
   const driveShareMatch = input.match(/^https?:\/\/drive\.google\.com\/file\/d\/([^/]+)\/view(?:\?.*)?(?:#.*)?$/i);
   if (driveShareMatch) {
     const id = driveShareMatch[1];
     const driveUrl = `https://drive.google.com/uc?export=download&id=${id}`;
-    dbg("🎬 Fallback source detected as Google Drive ID:", id, "→", driveUrl);
+    dbg("🎬 Drive share link conversion", "originalUrl=", originalInput, "extractedId=", id, "downloadUrl=", driveUrl, "note=", "normalized from /file/d/.../view");
+    if (driveUrl.includes("/view")) {
+      dbg("⚠️ WARNING: Resolved URL still contains '/view' — may not be playable");
+    }
+    dbg("🎬 Final resolved fallback URL =", driveUrl);
     return driveUrl;
   }
 
   // If it's clearly a URL already (http/https)
   if (/^https?:\/\//i.test(input)) {
-    dbg("🎬 Fallback source detected as direct URL:", input);
+    try {
+      const u = new URL(input);
+      dbg("🎬 Direct URL detected:", input, "host=", u.hostname, "protocol=", u.protocol);
+    } catch {
+      dbg("🎬 Direct URL detected (could not parse):", input);
+    }
+    if (input.includes("/view")) {
+      dbg("⚠️ WARNING: URL contains '/view' — Google Drive share links need converting to /uc?export=download&id=<id>");
+    }
+    dbg("🎬 Final resolved fallback URL =", input);
     return input;
   }
+
   // Otherwise treat as Google Drive file ID
   const driveUrl = `https://drive.google.com/uc?export=download&id=${input}`;
-  dbg("🎬 Fallback source detected as Google Drive ID:", input, "→", driveUrl);
+  dbg("🎬 Raw Google Drive ID detected:", input, "→", driveUrl);
+  if (driveUrl.includes("/view")) {
+    dbg("⚠️ WARNING: Resolved URL still contains '/view' — may not be playable");
+  }
+  dbg("🎬 Final resolved fallback URL =", driveUrl);
   return driveUrl;
 }
 
-const FALLBACK_VIDEO_SOURCE = {
-  title: 'Sample Fallback Video',
-  url: resolveFallbackUrl(FALLBACK_SOURCE_INPUT),
-  poster: '',
-  controls: true
-};
 
 /* -------------------- persistence -------------------- */
 function saveState(){ try{ localStorage.setItem('likes',JSON.stringify(likes)); localStorage.setItem('discards',JSON.stringify(discards)); }catch{} }
