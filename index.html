@@ -226,8 +226,10 @@ const AUTOLOAD=true, AUTOLOAD_THRESHOLD_PX=1400, AUTOLOAD_THROTTLE_MS=1400, MAX_
 let pool=[], likes=[], discards=[], currentFeed='home', fetching=false, lastErrors=[], loadLock=false, lastAutoTs=0;
 const logEl = document.getElementById('log');
 const localVideoInput = document.getElementById('localVideoInput');
+const LOCAL_VIDEO_STORAGE_KEY = 'local_video_card';
 let localVideoCard = null;
 let localVideoObjectUrl = null;
+let localVideoData = null;
 
 /* --- unified debug logger --- */
 function dbg(...args) {
@@ -244,6 +246,96 @@ const truncateLog = (value, max = 400) => {
   const str = String(value);
   return str.length > max ? str.slice(0, max) + '…' : str;
 };
+
+function readFileAsDataURL(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error || new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function persistLocalVideoData(name, dataUrl){
+  localVideoData = { name, dataUrl };
+  try {
+    localStorage.setItem(LOCAL_VIDEO_STORAGE_KEY, JSON.stringify(localVideoData));
+  } catch (err) {
+    dbg('⚠️ local video persist error', err?.message || err);
+  }
+}
+
+function loadStoredLocalVideoData(){
+  try {
+    const raw = localStorage.getItem(LOCAL_VIDEO_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || !parsed.dataUrl) return null;
+    localVideoData = parsed;
+    return parsed;
+  } catch (err) {
+    dbg('⚠️ local video restore error', err?.message || err);
+    return null;
+  }
+}
+
+function dataUrlToBlob(dataUrl){
+  if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.includes(',')) {
+    throw new Error('Invalid data URL');
+  }
+  const [header, base64] = dataUrl.split(',');
+  const mimeMatch = header.match(/:(.*?);/);
+  const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+  const binary = atob(base64);
+  const len = binary.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
+  return new Blob([bytes], { type: mime });
+}
+
+function ensureLocalCardAtTop(feed){
+  if (!feed) return null;
+  const card = localVideoCard || feed.querySelector('[data-kind="local-video"]');
+  if (!card) return null;
+  localVideoCard = card;
+  if (card.parentElement !== feed) {
+    feed.prepend(card);
+  } else if (feed.firstElementChild !== card) {
+    feed.insertBefore(card, feed.firstElementChild);
+  }
+  feed.querySelectorAll('[data-kind="local-video"]').forEach(node => {
+    if (node !== card) node.remove();
+  });
+  return card;
+}
+
+function applyLocalVideoData(record){
+  if (!record || !record.dataUrl) return null;
+  try {
+    const blob = dataUrlToBlob(record.dataUrl);
+    if (localVideoObjectUrl) {
+      try { URL.revokeObjectURL(localVideoObjectUrl); } catch {}
+      localVideoObjectUrl = null;
+    }
+    const objectUrl = URL.createObjectURL(blob);
+    localVideoObjectUrl = objectUrl;
+    const cardEl = VideoContainer({
+      title: record.name || 'Local video',
+      url: objectUrl,
+      controls: true
+    });
+    cardEl.dataset.kind = 'local-video';
+    localVideoCard = cardEl;
+    const feed = document.getElementById('home');
+    if (feed) ensureLocalCardAtTop(feed);
+    dbg('source=local-fallback', truncateLog(record.name || 'local video', 160));
+    document.dispatchEvent(new Event('videosBuilt'));
+    return cardEl;
+  } catch (err) {
+    dbg('⚠️ local video apply error', err?.message || err);
+    return null;
+  }
+}
 
 /* -------------------- persistence -------------------- */
 function saveState(){ try{ localStorage.setItem('likes',JSON.stringify(likes)); localStorage.setItem('discards',JSON.stringify(discards)); }catch{} }
@@ -536,7 +628,7 @@ function VideoContainer({ title, url, poster = '', controls = false } = {}) {
 }
 
 function getLocalVideoCard() {
-  if (localVideoCard && localVideoCard.isConnected) return localVideoCard;
+  if (localVideoCard) return localVideoCard;
   const existing = document.querySelector('#home [data-kind="local-video"]');
   if (existing) {
     localVideoCard = existing;
@@ -545,39 +637,30 @@ function getLocalVideoCard() {
   return null;
 }
 
-function setLocalVideoFromFile(file) {
+async function setLocalVideoFromFile(file) {
   if (!file) return;
-
-  if (localVideoObjectUrl) {
-    try { URL.revokeObjectURL(localVideoObjectUrl); } catch {}
-    localVideoObjectUrl = null;
+  try {
+    const dataUrl = await readFileAsDataURL(file);
+    persistLocalVideoData(file.name || 'Local video', dataUrl);
+    const cardEl = applyLocalVideoData({ name: file.name || 'Local video', dataUrl });
+    if (!cardEl) {
+      try { localStorage.removeItem(LOCAL_VIDEO_STORAGE_KEY); } catch {}
+      localVideoData = null;
+    }
+  } catch (err) {
+    dbg('⚠️ local video load error', err?.message || err);
   }
+}
 
-  const objectUrl = URL.createObjectURL(file);
-  localVideoObjectUrl = objectUrl;
-
-  const feed = document.getElementById('home');
-  if (!feed) return;
-
-  const existingItems = [...feed.querySelectorAll('.card')]
-    .map(node => node.__item)
-    .filter(Boolean);
-
-  const cardEl = VideoContainer({
-    title: file.name,
-    url: objectUrl,
-    controls: true
-  });
-  cardEl.dataset.kind = 'local-video';
-  localVideoCard = cardEl;
-
-  feed.innerHTML = '';
-  feed.appendChild(cardEl);
-  for (const item of existingItems) {
-    feed.appendChild(card(item));
+function bootstrapLocalVideo(){
+  const stored = loadStoredLocalVideoData();
+  if (stored) {
+    const cardEl = applyLocalVideoData(stored);
+    if (!cardEl) {
+      try { localStorage.removeItem(LOCAL_VIDEO_STORAGE_KEY); } catch {}
+      localVideoData = null;
+    }
   }
-
-  document.dispatchEvent(new Event('videosBuilt'));
 }
 
 /* --- unlock gesture --- */
@@ -740,6 +823,7 @@ async function normalize(d) {
   // 1️⃣ Reddit-hosted videos (v.redd.it)
   const rv = d.secure_media?.reddit_video || d.media?.reddit_video;
   if (rv?.fallback_url && rv.fallback_url.includes('v.redd.it')) {
+    dbg('source=reddit', truncateLog(rv.fallback_url, 200));
     return {
       t: 'video',
       url: rv.fallback_url,
@@ -932,10 +1016,15 @@ function card(item){
 
 async function renderChunk(where, n=CHUNK){
   if(loadLock) return;
-  if(pool.length===0){ ui.progressVisibility(); return; }
+  if(pool.length===0){
+    if(where==='home') ensureLocalCardAtTop(document.getElementById(where));
+    ui.progressVisibility();
+    return;
+  }
   loadLock=true;
   try{
     const feed=document.getElementById(where);
+    if(where==='home') ensureLocalCardAtTop(feed);
     const need=Math.min(n,pool.length); let appended=0;
     while(appended<need){
       const frag=document.createDocumentFragment();
@@ -944,6 +1033,7 @@ async function renderChunk(where, n=CHUNK){
       feed.appendChild(frag); appended+=step;
       await new Promise(r=>requestAnimationFrame(r));
     }
+    if(where==='home') ensureLocalCardAtTop(feed);
   }finally{ loadLock=false; ui.progressVisibility(); }
 }
 
@@ -953,10 +1043,9 @@ async function newBatch(){
   fetching=true; ui.phase('Fetching…'); ui.bar(10); ui.setProgressMode(true);
   pool.length=0;
   const homeFeed=document.getElementById('home');
-  const localCard = homeFeed ? getLocalVideoCard() : null;
   if(homeFeed){
     homeFeed.innerHTML='';
-    if(localCard) homeFeed.appendChild(localCard);
+    ensureLocalCardAtTop(homeFeed);
   }
 
   const subs=[...STARTER_SUBS, ...OPTIONAL_NSFW];
@@ -986,6 +1075,7 @@ async function newBatch(){
 
   ui.bar(100); ui.phase('Ready'); ui.setProgressMode(false);
   await renderChunk('home', Math.min(CHUNK, pool.length));
+  if (homeFeed) ensureLocalCardAtTop(homeFeed);
   fetching=false;
   
   document.dispatchEvent(new Event('videosBuilt'));
@@ -994,17 +1084,17 @@ async function newBatch(){
 /* -------------------- shuffle/subs/troubleshoot -------------------- */
 function shuffleVisibleAndPool(){
   const feed=document.getElementById('home');
-  const localCard = feed ? getLocalVideoCard() : null;
-  const nodes=[...feed.children].filter(n=>n.classList.contains('card') && n !== localCard);
+  const localCard = getLocalVideoCard();
+  const nodes=feed ? [...feed.children].filter(n=>n.classList.contains('card') && n !== localCard) : [];
   const visibleItems=nodes.map(n=>n.__item).filter(Boolean);
   const combined=[...visibleItems, ...pool];
   shuffleArray(combined);
   const keep=visibleItems.length;
   if(feed){
     feed.innerHTML='';
-    if(localCard) feed.appendChild(localCard);
+    ensureLocalCardAtTop(feed);
+    for(let i=0;i<Math.min(keep,combined.length);i++) feed.appendChild(card(combined[i]));
   }
-  for(let i=0;i<Math.min(keep,combined.length);i++) feed.appendChild(card(combined[i]));
   pool=combined.slice(keep);
   ui.progressVisibility();
 }
@@ -1046,8 +1136,9 @@ if (localVideoInput) {
   localVideoInput.addEventListener('change', e => {
     const [file] = e.target.files || [];
     if (!file) return;
-    setLocalVideoFromFile(file);
-    e.target.value = '';
+    Promise.resolve(setLocalVideoFromFile(file)).finally(()=>{
+      e.target.value = '';
+    });
   });
 }
 
@@ -1117,6 +1208,7 @@ captureTokenFromHash();
 ui.setProgressMode(false);
 ui.bar(100); ui.phase('Ready');
 log('Ready. Swipe right to Like, left to Dismiss. Tap a video to start, then tap again to mute/unmute. “Viewed” items are skipped.');
+bootstrapLocalVideo();
 (async ()=>{ await newBatch(); })();
 </script>
 </body>
