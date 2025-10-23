@@ -173,6 +173,8 @@
   </div>
 </div>
 
+<input type="file" id="localVideoInput" accept="video/mp4,video/*" style="display:none" />
+
 <script>
 /* =========================================================
    CelebWall – Production (Reddit-only, gesture-first video)
@@ -223,6 +225,9 @@ const AUTOLOAD=true, AUTOLOAD_THRESHOLD_PX=1400, AUTOLOAD_THROTTLE_MS=1400, MAX_
 /* -------------------- state -------------------- */
 let pool=[], likes=[], discards=[], currentFeed='home', fetching=false, lastErrors=[], loadLock=false, lastAutoTs=0;
 const logEl = document.getElementById('log');
+const localVideoInput = document.getElementById('localVideoInput');
+let localVideoCard = null;
+let localVideoObjectUrl = null;
 
 /* --- unified debug logger --- */
 function dbg(...args) {
@@ -239,94 +244,6 @@ const truncateLog = (value, max = 400) => {
   const str = String(value);
   return str.length > max ? str.slice(0, max) + '…' : str;
 };
-
-/* -------------------- fallback video -------------------- */
-// You can paste either a Google Drive file ID (short string) OR a direct MP4 URL.
-const FALLBACK_SOURCE_INPUT = "1jiMLN5dM0KLGj_uDw41kvCrTt-Qbbzpp"; 
-// Example: "1jiMLN5dM0KLGj_uDw41kvCrTt-Qbbzpp" (Drive ID)
-// Example: "https://example.com/myvideo.mp4" (direct MP4 link)
-
-function resolveFallbackUrl(input) {
-  if (input == null) return "";
-
-  const originalInput = String(input);
-  const originalLen = originalInput.length;
-  input = originalInput.trim();
-  const trimmedLen = input.length;
-  const whitespaceRemoved = originalLen !== trimmedLen;
-  dbg(
-    "🎬 Input received:",
-    originalInput,
-    "len=",
-    originalLen,
-    "→ trimmedLen=",
-    trimmedLen,
-    "whitespaceRemoved=",
-    whitespaceRemoved
-  );
-
-  if (!input) {
-    dbg("🎬 Final resolved fallback URL =", "");
-    return "";
-  }
-
-  let resolvedUrl = "";
-  const driveShareMatch = input.match(/^https?:\/\/drive\.google\.com\/file\/d\/([^/]+)\/view(?:\?.*)?(?:#.*)?$/i);
-  if (driveShareMatch) {
-    const id = driveShareMatch[1];
-    resolvedUrl = `https://drive.google.com/uc?export=download&id=${id}`;
-    dbg("🎬 Fallback source detected as Google Drive ID:", input, "→", resolvedUrl);
-    dbg(
-      "🎬 Drive share link conversion",
-      "originalUrl=",
-      originalInput,
-      "extractedId=",
-      id,
-      "downloadUrl=",
-      resolvedUrl,
-      "note=",
-      "normalized from /file/d/.../view"
-    );
-  } else if (/^https?:\/\//i.test(input)) {
-    dbg("🎬 Fallback source detected as direct URL:", input);
-    let host = "unknown";
-    let protocol = "unknown";
-    try {
-      const parsed = new URL(input);
-      protocol = parsed.protocol.replace(/:$/, "");
-      host = parsed.hostname;
-    } catch (err) {
-      // ignore parse failures; we'll log placeholder values below
-    }
-    dbg("🎬 Direct URL details", "protocol=", protocol, "host=", host);
-    dbg("🎬 Direct URL detected:", input, "host=", host, "protocol=", protocol);
-    resolvedUrl = input;
-  } else {
-    resolvedUrl = `https://drive.google.com/uc?export=download&id=${input}`;
-    dbg("🎬 Fallback source detected as Google Drive ID:", input, "→", resolvedUrl);
-    dbg(
-      "🎬 Raw Drive ID conversion",
-      "id=",
-      input,
-      "downloadUrl=",
-      resolvedUrl,
-      "note=",
-      "interpreted as bare ID"
-    );
-  }
-
-  dbg("🎬 Final resolved fallback URL =", resolvedUrl);
-  return resolvedUrl;
-}
-
-const FALLBACK_VIDEO_SOURCE = {
-  title: 'Sample Fallback Video',
-  url: resolveFallbackUrl(FALLBACK_SOURCE_INPUT),
-  poster: '',
-  controls: true
-};
-
-
 
 /* -------------------- persistence -------------------- */
 function saveState(){ try{ localStorage.setItem('likes',JSON.stringify(likes)); localStorage.setItem('discards',JSON.stringify(discards)); }catch{} }
@@ -618,20 +535,49 @@ function VideoContainer({ title, url, poster = '', controls = false } = {}) {
   return container;
 }
 
-function insertFallbackVideo(where = 'home') {
-  const feed = document.getElementById(where);
-  if (!feed) return;
-  if (!FALLBACK_VIDEO_SOURCE?.url) return;
-  if (feed.querySelector('[data-kind="fallback-video"]')) return;
+function getLocalVideoCard() {
+  if (localVideoCard && localVideoCard.isConnected) return localVideoCard;
+  const existing = document.querySelector('#home [data-kind="local-video"]');
+  if (existing) {
+    localVideoCard = existing;
+    return existing;
+  }
+  return null;
+}
 
-  const fallbackCard = VideoContainer({
-    title: FALLBACK_VIDEO_SOURCE.title,
-    url: FALLBACK_VIDEO_SOURCE.url,
-    poster: FALLBACK_VIDEO_SOURCE.poster || '',
-    controls: !!FALLBACK_VIDEO_SOURCE.controls
+function setLocalVideoFromFile(file) {
+  if (!file) return;
+
+  if (localVideoObjectUrl) {
+    try { URL.revokeObjectURL(localVideoObjectUrl); } catch {}
+    localVideoObjectUrl = null;
+  }
+
+  const objectUrl = URL.createObjectURL(file);
+  localVideoObjectUrl = objectUrl;
+
+  const feed = document.getElementById('home');
+  if (!feed) return;
+
+  const existingItems = [...feed.querySelectorAll('.card')]
+    .map(node => node.__item)
+    .filter(Boolean);
+
+  const cardEl = VideoContainer({
+    title: file.name,
+    url: objectUrl,
+    controls: true
   });
-  fallbackCard.dataset.kind = 'fallback-video';
-  feed.prepend(fallbackCard);
+  cardEl.dataset.kind = 'local-video';
+  localVideoCard = cardEl;
+
+  feed.innerHTML = '';
+  feed.appendChild(cardEl);
+  for (const item of existingItems) {
+    feed.appendChild(card(item));
+  }
+
+  document.dispatchEvent(new Event('videosBuilt'));
 }
 
 /* --- unlock gesture --- */
@@ -647,6 +593,9 @@ window.addEventListener('DOMContentLoaded',()=>{
   };
   ['pointerdown','touchstart','click','keydown','scroll','focus']
     .forEach(evt=>window.addEventListener(evt,unlock,{once:true,passive:true}));
+  if (localVideoInput) {
+    requestAnimationFrame(()=>localVideoInput.click());
+  }
 });
 
 /* --- update Troubleshoot button to start live logging --- */
@@ -1004,8 +953,11 @@ async function newBatch(){
   fetching=true; ui.phase('Fetching…'); ui.bar(10); ui.setProgressMode(true);
   pool.length=0;
   const homeFeed=document.getElementById('home');
-  if(homeFeed) homeFeed.innerHTML='';
-  insertFallbackVideo('home');
+  const localCard = homeFeed ? getLocalVideoCard() : null;
+  if(homeFeed){
+    homeFeed.innerHTML='';
+    if(localCard) homeFeed.appendChild(localCard);
+  }
 
   const subs=[...STARTER_SUBS, ...OPTIONAL_NSFW];
   const all=[]; let done=0; lastErrors=[];
@@ -1042,12 +994,16 @@ async function newBatch(){
 /* -------------------- shuffle/subs/troubleshoot -------------------- */
 function shuffleVisibleAndPool(){
   const feed=document.getElementById('home');
-  const nodes=[...feed.children].filter(n=>n.classList.contains('card'));
+  const localCard = feed ? getLocalVideoCard() : null;
+  const nodes=[...feed.children].filter(n=>n.classList.contains('card') && n !== localCard);
   const visibleItems=nodes.map(n=>n.__item).filter(Boolean);
   const combined=[...visibleItems, ...pool];
   shuffleArray(combined);
-  const keep=visibleItems.length; feed.innerHTML='';
-  insertFallbackVideo('home');
+  const keep=visibleItems.length;
+  if(feed){
+    feed.innerHTML='';
+    if(localCard) feed.appendChild(localCard);
+  }
   for(let i=0;i<Math.min(keep,combined.length);i++) feed.appendChild(card(combined[i]));
   pool=combined.slice(keep);
   ui.progressVisibility();
@@ -1086,6 +1042,22 @@ function dumpTroubleshoot(){
 }
 
 /* -------------------- events -------------------- */
+if (localVideoInput) {
+  localVideoInput.addEventListener('change', e => {
+    const [file] = e.target.files || [];
+    if (!file) return;
+    setLocalVideoFromFile(file);
+    e.target.value = '';
+  });
+}
+
+window.addEventListener('beforeunload', () => {
+  if (localVideoObjectUrl) {
+    try { URL.revokeObjectURL(localVideoObjectUrl); } catch {}
+    localVideoObjectUrl = null;
+  }
+});
+
 document.getElementById('newBatchBtn').addEventListener('click', newBatch);
 document.getElementById('shuffleBtn').addEventListener('click', shuffleVisibleAndPool);
 document.getElementById('homeBtn').addEventListener('click', ()=>ui.showPage('home'));
@@ -1142,7 +1114,6 @@ function getToken(){ try{ const t=JSON.parse(localStorage.getItem('reddit_token'
 
 /* -------------------- boot -------------------- */
 captureTokenFromHash();
-insertFallbackVideo('home');
 ui.setProgressMode(false);
 ui.bar(100); ui.phase('Ready');
 log('Ready. Swipe right to Like, left to Dismiss. Tap a video to start, then tap again to mute/unmute. “Viewed” items are skipped.');
