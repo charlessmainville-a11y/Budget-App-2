@@ -247,16 +247,76 @@ const FALLBACK_SOURCE_INPUT = "1jiMLN5dM0KLGj_uDw41kvCrTt-Qbbzpp";
 // Example: "https://example.com/myvideo.mp4" (direct MP4 link)
 
 function resolveFallbackUrl(input) {
-  if (!input) return "";
-  // If it's clearly a URL already (http/https)
-  if (/^https?:\/\//i.test(input)) {
-    dbg("🎬 Fallback source detected as direct URL:", input);
-    return input.trim();
+  if (input == null) return "";
+
+  const originalInput = String(input);
+  const originalLen = originalInput.length;
+  input = originalInput.trim();
+  const trimmedLen = input.length;
+  const whitespaceRemoved = originalLen !== trimmedLen;
+  dbg(
+    "🎬 Input received:",
+    originalInput,
+    "len=",
+    originalLen,
+    "→ trimmedLen=",
+    trimmedLen,
+    "whitespaceRemoved=",
+    whitespaceRemoved
+  );
+
+  if (!input) {
+    dbg("🎬 Final resolved fallback URL =", "");
+    return "";
   }
-  // Otherwise treat as Google Drive file ID
-  const driveUrl = `https://drive.google.com/uc?export=download&id=${input}`;
-  dbg("🎬 Fallback source detected as Google Drive ID:", input, "→", driveUrl);
-  return driveUrl;
+
+  let resolvedUrl = "";
+  const driveShareMatch = input.match(/^https?:\/\/drive\.google\.com\/file\/d\/([^/]+)\/view(?:\?.*)?(?:#.*)?$/i);
+  if (driveShareMatch) {
+    const id = driveShareMatch[1];
+    resolvedUrl = `https://drive.google.com/uc?export=download&id=${id}`;
+    dbg("🎬 Fallback source detected as Google Drive ID:", input, "→", resolvedUrl);
+    dbg(
+      "🎬 Drive share link conversion",
+      "originalUrl=",
+      originalInput,
+      "extractedId=",
+      id,
+      "downloadUrl=",
+      resolvedUrl,
+      "note=",
+      "normalized from /file/d/.../view"
+    );
+  } else if (/^https?:\/\//i.test(input)) {
+    dbg("🎬 Fallback source detected as direct URL:", input);
+    let host = "unknown";
+    let protocol = "unknown";
+    try {
+      const parsed = new URL(input);
+      protocol = parsed.protocol.replace(/:$/, "");
+      host = parsed.hostname;
+    } catch (err) {
+      // ignore parse failures; we'll log placeholder values below
+    }
+    dbg("🎬 Direct URL details", "protocol=", protocol, "host=", host);
+    dbg("🎬 Direct URL detected:", input, "host=", host, "protocol=", protocol);
+    resolvedUrl = input;
+  } else {
+    resolvedUrl = `https://drive.google.com/uc?export=download&id=${input}`;
+    dbg("🎬 Fallback source detected as Google Drive ID:", input, "→", resolvedUrl);
+    dbg(
+      "🎬 Raw Drive ID conversion",
+      "id=",
+      input,
+      "downloadUrl=",
+      resolvedUrl,
+      "note=",
+      "interpreted as bare ID"
+    );
+  }
+
+  dbg("🎬 Final resolved fallback URL =", resolvedUrl);
+  return resolvedUrl;
 }
 
 const FALLBACK_VIDEO_SOURCE = {
@@ -336,7 +396,7 @@ const ui = {
     if(name==='home') el('#home').classList.remove('hidden');
     if(name==='likes') el('#likes').classList.remove('hidden');
     if(name==='discard') el('#discard').classList.remove('hidden');
-    if(name==='subs') el('#subsPage').classList.remove('hidden');
+    if(name==='subs') document.getElementById('subsPage').classList.remove('hidden');
     el('#pageTabs').classList.remove('hidden');
     el('#tabSubs').style.display = (name==='subs' ? '' : (el('#tabSubs').style.display || ''));
     this.progressVisibility();
@@ -344,122 +404,6 @@ const ui = {
   progressVisibility(){ const visible = currentFeed==='home' && (pool.length>0 || !fetching); el('#progressBtn').style.display = visible ? '' : 'none'; }
 };
 
-/* -------------------- Redgifs Proxy Resolver -------------------- */
-/*function extractRedgifsMeta(input) {
-  if (!input) return null;
-  const str = String(input).trim();
-
-  const buildMeta = (raw, source) => {
-    const cleaned = cleanRedgifsId(raw);
-    return cleaned ? { id: cleaned, raw: raw || '', source } : null;
-  };
-
-  // If an entire iframe HTML snippet was passed, pull out the src attribute first
-  const iframeSrc = str.includes('<iframe')
-    ? (str.match(/src=["']([^"']+redgifs[^"']*)["']/i)?.[1] || '')
-    : '';
-  const candidate = iframeSrc || str;
-
-  // Direct embeds such as https://redgifs.com/watch/{id}
-  const directMatch = candidate.match(/redgifs\.com\/(?:watch|ifr|detail)\/([a-zA-Z0-9_-]+)/i);
-  if (directMatch) return buildMeta(directMatch[1], 'direct');
-
-  // Thumbnails/CDN assets live on subdomains like thumbs2.redgifs.com or i.redgifs.com
-  try {
-    const url = new URL(candidate);
-    if (/redgifs\.com$/i.test(url.hostname) || /\.redgifs\.com$/i.test(url.hostname)) {
-      const parts = url.pathname.split('/').filter(Boolean);
-      const raw = parts.pop();
-      const meta = buildMeta(raw, 'asset');
-      if (meta) return meta;
-    }
-  } catch (_) {
-    // Non-URL strings will be handled by the fallback below
-  }
-
-  const raw = candidate.split('?')[0].split('/').filter(Boolean).pop();
-  return buildMeta(raw, 'fallback');
-}
-
-function extractRedgifsId(input) {
-  return extractRedgifsMeta(input)?.id || null;
-}
-
-*/
-function cleanRedgifsId(raw) {
-  if (!raw) return null;
-  return raw
-    .replace(/\.(?:mp4|gif|webm|jpe?g|png|webp)$/i, '')
-    .replace(/-(?:size_restricted|mobile|poster)$/i, '')
-    .replace(/_(?:mobile)$/i, '');
-}
-
-/*async function resolveViaProxy(redgifsUrl) {
-  dbg('🔍 Proxy resolving', redgifsUrl);
-  const meta = extractRedgifsMeta(redgifsUrl);
-  const id = meta?.id;
-  if (!id) {
-    dbg('❌ Proxy error', 'Unable to parse Redgifs id from', redgifsUrl);
-    return null;
-  }
-
-  if (meta?.raw && meta.raw !== id) {
-    dbg('🧼 Sanitized Redgifs id', `${meta.raw} → ${id}`);
-  } else {
-    dbg('🆔 Redgifs id', id);
-  }
-  if (meta?.source) {
-    dbg('📌 Redgifs id source', meta.source);
-  }
-
-  // ✅ Use your deployed Vercel proxy (full URL)
-  const apiUrl = `https://budget-app-2-phi.vercel.app/api/redgifs?id=${encodeURIComponent(id)}`;
-  dbg('🌐 Proxy request', apiUrl);
-
-  let res;
-  try {
-    res = await fetch(apiUrl);
-  } catch (networkErr) {
-    dbg('❌ Proxy network error', networkErr?.message || networkErr);
-    if (networkErr?.stack) dbg('📚 Proxy error stack', truncateLog(networkErr.stack));
-    return null;
-  }
-
-  const statusLabel = `${res.status}${res.statusText ? ' ' + res.statusText : ''}`.trim();
-  dbg('📡 Proxy status', statusLabel || res.status);
-
-  const bodyText = await res.text();
-
-  if (!res.ok) {
-    dbg('❌ Proxy HTTP error body', bodyText ? truncateLog(bodyText) : '(empty response)');
-    return null;
-  }
-
-  let data = {};
-  if (bodyText) {
-    try {
-      data = JSON.parse(bodyText);
-    } catch (parseErr) {
-      dbg('❌ Proxy JSON parse error', parseErr?.message || parseErr);
-      dbg('📝 Proxy raw body snippet', truncateLog(bodyText));
-      return null;
-    }
-  }
-
-  if (data.error) {
-    dbg('⚠️ Proxy payload error', truncateLog(JSON.stringify(data)));
-  }
-
-  if (!data.url) {
-    dbg('❌ Proxy missing url', truncateLog(JSON.stringify(data)) || '(no body)');
-    return null;
-  }
-
-  dbg('✅ Proxy resolved URL', data.url);
-  return data.url;
-}
-
-*/
 /* =========================================================
    VIDEO ENGINE (gesture-first; Safari + Meta Quest)
    ========================================================= */
@@ -758,17 +702,22 @@ document.addEventListener('videosBuilt', attachVideoDiagnostics);
 
 /* -------------------- Reddit fetchers -------------------- */
 
-function baseUrl(sub, token) {
+function baseUrl(sub, token, after) {
+  const params = new URLSearchParams({ limit: LIMIT, raw_json: 1 });
+  if (after) params.set('after', after);
+
   if (token) {
     // OAuth endpoint
     return {
-      url: `https://oauth.reddit.com/r/${sub}/hot?limit=${LIMIT}&raw_json=1`,
+      url: `https://oauth.reddit.com/r/${sub}/hot?${params.toString()}`,
       mode: "oauth"
     };
   }
-    // Fallback (no token) → use proxy
+
+  // Fallback (no token) → use proxy
+  const target = `https://www.reddit.com/r/${sub}/hot.json?${params.toString()}`;
   return {
-    url: `https://corsproxy.io/?https://www.reddit.com/r/${sub}/hot.json?limit=${LIMIT}&raw_json=1`,
+    url: `https://corsproxy.io/?${encodeURIComponent(target)}`,
     mode: "proxy"
   };
 }
@@ -778,9 +727,9 @@ async function pullSubreddit(sub) {
   const out = [];
 
   for (let page = 0; page < PAGES; page++) {
-    const { url, mode } = baseUrl(sub, token);
+    const { url, mode } = baseUrl(sub, token, after);
     try {
-      const res = await fetch(url + (after ? `&after=${after}` : ''), 
+      const res = await fetch(url,
         token && mode === "oauth" ? { headers: { 'Authorization': `Bearer ${token}` } } : {}
       );
 
@@ -834,95 +783,7 @@ function bestMeta(meta) {
 }
 
 /* =========================================================
-   🧩 REDGIFS VIDEO RESOLVER — Simplified, always HD/audio
-   ========================================================= */
-
-const redgifsTokenCache = {
-  token: null,
-  expiresAt: 0
-};
-
-function clearRedgifsToken() {
-  redgifsTokenCache.token = null;
-  redgifsTokenCache.expiresAt = 0;
-}
-
-// Always return your RedGifs token
-async function getRedgifsKey(forceRefresh = false) {
-  const now = Date.now();
-  if (!forceRefresh && redgifsTokenCache.token && now < redgifsTokenCache.expiresAt - 5000) {
-    return redgifsTokenCache.token;
-  }
-
-  if (forceRefresh) clearRedgifsToken();
-
-  try {
-    const res = await fetch('https://api.redgifs.com/v2/auth/temporary', {
-      method: 'POST'
-    });
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
-    }
-    const data = await res.json();
-    const token = data.access_token || data.token || data.key || null;
-    const expiresIn = Number(data.expires_in || data.expires || 0);
-    if (!token) {
-      throw new Error('Missing token in response');
-    }
-    redgifsTokenCache.token = token;
-    redgifsTokenCache.expiresAt = expiresIn > 0 ? now + expiresIn * 1000 : now + 55 * 60 * 1000;
-    dbg('🔑 RedGifs token fetched', `expires in ${Math.round((redgifsTokenCache.expiresAt - now) / 1000)}s`);
-    return token;
-  } catch (err) {
-    dbg('❌ RedGifs token error', err.message || err);
-    throw err;
-  }
-}
-
-// Resolve any RedGifs embed/link into a playable HD/audio MP4
-async function resolveRedgifs(urlOrHtml) {
-  const match = String(urlOrHtml).match(/redgifs\.com\/(?:ifr|watch|thumbs2)\/([a-zA-Z0-9_.-]+)/);
-  if (!match) return null;
-  const rawId = match[1];
-  const id = cleanRedgifsId(rawId);
-  if (!id) return null;
-  if (rawId !== id) {
-    dbg('🧼 Sanitized RedGifs id', `${rawId} → ${id}`);
-  }
-  const apiUrl = `https://api.redgifs.com/v2/gifs/${id}`;
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      const token = await getRedgifsKey(attempt === 1);
-      const headers = { "Authorization": `Bearer ${token}` };
-      const res = await fetch(apiUrl, { headers });
-      if (res.status === 401 || res.status === 403) {
-        dbg('🔁 RedGifs token refresh', `status ${res.status}`);
-        clearRedgifsToken();
-        if (attempt === 0) continue;
-      }
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      const urls = data.gif?.urls || {};
-      const playable = urls.hd || urls.sd || null;
-      if (playable) {
-        dbg('🎞️ RedGifs resolved', id, '→', playable);
-        return playable;
-      }
-      break;
-    } catch (err) {
-      if (attempt === 0 && /401|403/.test(String(err.message))) {
-        clearRedgifsToken();
-        continue;
-      }
-      dbg('❌ RedGifs API error', err.message || err);
-      break;
-    }
-  }
-  return null;
-}
-
-/* =========================================================
-   normalize() — unified Reddit + RedGifs media resolver
+   normalize() — unified Reddit media resolver
    ========================================================= */
 async function normalize(d) {
 
@@ -941,32 +802,7 @@ async function normalize(d) {
     };
   }
 
-  // 2️⃣ RedGifs embeds (direct API resolver)
-  const oembed = d.secure_media?.oembed || d.media?.oembed || d.secure_media_embed || {};
-  const redgifsUrl =
-    (d.url_overridden_by_dest && d.url_overridden_by_dest.includes('redgifs.com'))
-      ? d.url_overridden_by_dest
-      : (oembed.thumbnail_url || oembed.html || oembed.content || '');
-
-  if (/redgifs\.com/i.test(redgifsUrl)) {
-    const playable = await resolveRedgifs(redgifsUrl);
-    const idMatch = String(redgifsUrl).match(/redgifs\.com\/(?:watch|ifr|detail|thumbs2)\/([a-zA-Z0-9_.-]+)/i);
-    const redgifsId = idMatch ? cleanRedgifsId(idMatch[1]) : null;
-    if (playable) {
-      return {
-        t: 'video',
-        url: playable, // ✅ direct MP4 from RedGifs
-        thumb: oembed.thumbnail_url || pickThumb(d),
-        title: d.title,
-        author: d.author,
-        sub: d.subreddit,
-        link: redgifsId ? `https://www.redgifs.com/watch/${redgifsId}` : d.url,
-        provider: 'redgifs'
-      };
-    }
-  }
-
-  // 3️⃣ Direct MP4 hosts (often include audio)
+  // 2️⃣ Direct MP4 hosts (often include audio)
   const directUrlRaw = fix(d.url_overridden_by_dest || d.url || '');
   if (directUrlRaw) {
     let playable = directUrlRaw.trim();
@@ -1305,6 +1141,7 @@ function getToken(){ try{ const t=JSON.parse(localStorage.getItem('reddit_token'
 
 /* -------------------- boot -------------------- */
 captureTokenFromHash();
+insertFallbackVideo('home');
 ui.setProgressMode(false);
 ui.bar(100); ui.phase('Ready');
 log('Ready. Swipe right to Like, left to Dismiss. Tap a video to start, then tap again to mute/unmute. “Viewed” items are skipped.');
