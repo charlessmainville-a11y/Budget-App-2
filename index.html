@@ -68,6 +68,12 @@
     -webkit-backdrop-filter:blur(14px) saturate(140%);backdrop-filter:blur(14px) saturate(140%);
     box-shadow:0 22px 40px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.18);
   }
+  .local-badge{
+    position:absolute;top:12px;left:12px;padding:6px 12px;border-radius:999px;
+    background:rgba(9,11,14,.75);color:#fff;font:900 13px/1 Inter,system-ui;
+    display:inline-flex;align-items:center;gap:4px;pointer-events:none;user-select:none;
+    box-shadow:0 6px 14px rgba(0,0,0,.45);
+  }
   .card.swiping{transition:none}
   .media{display:block;width:100%;height:auto;max-height:86vh;object-fit:cover;background:#0b0f15}
   video.media{max-height:86vh;background:#0b0f15}
@@ -338,12 +344,22 @@ function setLocalVideoObjectUrl(objectUrl) {
   localVideoObjectUrl = objectUrl || null;
 }
 
+function ensureLocalVideoBadge(card){
+  if (!card) return;
+  if (card.querySelector('.local-badge')) return;
+  const badge=document.createElement('div');
+  badge.className='local-badge';
+  badge.textContent='📌 Local';
+  card.appendChild(badge);
+}
+
 function ensureLocalCardAtTop(feed, options = {}){
   if (!feed) return null;
   const { logReinsert = true } = options;
   const card = localVideoCard || feed.querySelector('[data-kind="local-video"]');
   if (!card) return null;
   localVideoCard = card;
+  ensureLocalVideoBadge(card);
   let reinserted = false;
   if (card.parentElement !== feed) {
     feed.prepend(card);
@@ -386,6 +402,7 @@ function applyLocalVideoData(record, options = {}){
     });
     cardEl.dataset.kind = 'local-video';
     cardEl.dataset.localVideoName = name;
+    ensureLocalVideoBadge(cardEl);
     localVideoCard = cardEl;
     const feed = document.getElementById('home');
     if (feed) ensureLocalCardAtTop(feed, { logReinsert: false });
@@ -715,6 +732,7 @@ function getLocalVideoCard() {
   const existing = document.querySelector('#home [data-kind="local-video"]');
   if (existing) {
     localVideoCard = existing;
+    ensureLocalVideoBadge(existing);
     return existing;
   }
   return null;
@@ -1130,13 +1148,20 @@ function card(item){
         const fallbackStill = item.previewStill || item.thumb || '';
         if (fallbackStill) video.dataset.previewFallback = fallbackStill;
         let downgraded = false;
-        let watchdog = null;
+        let retryTimer = null;
+        let downgradeTimer = null;
+        let retryAttempted = false;
+        const logUrl = truncateLog(item.url || video.currentSrc || video.src || '', 200);
+        const clearTimers = () => {
+          if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; }
+          if (downgradeTimer) { clearTimeout(downgradeTimer); downgradeTimer = null; }
+        };
         const downgradeToImage = (reason) => {
           if (downgraded) return;
           downgraded = true;
           const still = fallbackStill;
           if (!still) return;
-          if (watchdog) { clearTimeout(watchdog); watchdog = null; }
+          clearTimers();
           try { io.unobserve(video); } catch {}
           const img = document.createElement('img');
           img.className = 'media';
@@ -1147,18 +1172,31 @@ function card(item){
           video.replaceWith(img);
           const downgradedItem = { ...item, t: 'image', url: still, thumb: still, provider: 'preview-image', isPreviewMp4: false };
           wrap.__item = downgradedItem;
-          dbg(`⚠️ downgraded preview.mp4 to static image ${truncateLog(still, 200)}`);
+          if (reason === 'stall-3s') {
+            dbg(`⚠️ preview.mp4 stalled >3s, downgraded to static image ${logUrl}`);
+          } else {
+            dbg(`⚠️ downgraded preview.mp4 to static image ${truncateLog(still, 200)}`);
+          }
           dbg('source=preview-image', truncateLog(still, 200));
         };
         const degrade = () => downgradeToImage('error');
         video.addEventListener('error', degrade);
         video.__handlePlayError = () => downgradeToImage('play-error');
-        const clearWatchdog = () => { if (watchdog) { clearTimeout(watchdog); watchdog = null; } };
-        video.addEventListener('loadeddata', clearWatchdog, { once: true });
-        video.addEventListener('playing', clearWatchdog, { once: true });
-        watchdog = setTimeout(()=>{
-          if (video.readyState < 2) downgradeToImage('timeout');
-        }, 8000);
+        const handleReady = () => { clearTimers(); };
+        video.addEventListener('loadeddata', handleReady, { once: true });
+        video.addEventListener('playing', handleReady, { once: true });
+        retryTimer = setTimeout(()=>{
+          if (downgraded || retryAttempted) return;
+          retryAttempted = true;
+          if (video.readyState >= 2) return;
+          dbg(`⚠️ preview.mp4 stalled at 2s, retrying safePlay ${logUrl}`);
+          safePlay(video);
+        }, 2000);
+        downgradeTimer = setTimeout(()=>{
+          if (downgraded) return;
+          if (video.readyState >= 2) return;
+          downgradeToImage('stall-3s');
+        }, 3000);
       }
     });
     wrap.__item = item;
