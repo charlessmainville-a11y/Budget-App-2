@@ -231,6 +231,9 @@ const LOCAL_VIDEO_STORAGE_KEY = 'local_video_card';
 let localVideoCard = null;
 let localVideoObjectUrl = null;
 let localVideoData = null;
+let localVideoReady = false;
+let localVideoReadyPromise = null;
+let resolveLocalVideoReady = null;
 
 /* --- unified debug logger --- */
 function dbg(...args) {
@@ -269,6 +272,34 @@ function persistLocalVideoData(name, dataUrl){
   } catch (err) {
     dbg('⚠️ local video persist error', err?.message || err);
   }
+}
+
+function waitForLocalVideoReady(){
+  if (localVideoReady) return Promise.resolve();
+  if (!localVideoReadyPromise) {
+    localVideoReadyPromise = new Promise(res => {
+      resolveLocalVideoReady = res;
+    });
+  }
+  return localVideoReadyPromise;
+}
+
+function setLocalVideoReady(value){
+  if (value) {
+    if (!localVideoReady) {
+      localVideoReady = true;
+      if (typeof resolveLocalVideoReady === 'function') {
+        resolveLocalVideoReady();
+      }
+      resolveLocalVideoReady = null;
+      localVideoReadyPromise = Promise.resolve();
+    }
+    return;
+  }
+  localVideoReady = false;
+  localVideoReadyPromise = new Promise(res => {
+    resolveLocalVideoReady = res;
+  });
 }
 
 function loadStoredLocalVideoData(){
@@ -366,10 +397,12 @@ function applyLocalVideoData(record, options = {}){
       dbg('source=local-fallback', label);
     }
 
+    setLocalVideoReady(true);
     document.dispatchEvent(new Event('videosBuilt'));
     return cardEl;
   } catch (err) {
     setLocalVideoObjectUrl(null);
+    setLocalVideoReady(false);
     dbg('⚠️ local video apply error', err?.message || err);
     return null;
   }
@@ -484,6 +517,13 @@ async function safePlay(v){
     dbg('play() success', v.src);
   }catch(err){
     dbg('play() error', err.message);
+    if (typeof v.__handlePlayError === 'function') {
+      try {
+        v.__handlePlayError(err);
+      } catch (innerErr) {
+        dbg('play() error handler failure', innerErr?.message || innerErr);
+      }
+    }
   }
 }
 
@@ -623,7 +663,7 @@ function makeVideo(url, thumb, provider) {
 /* =========================================================
    📼 VideoContainer — Autoplay fallback
    ========================================================= */
-function VideoContainer({ title, url, poster = '', controls = false } = {}) {
+function VideoContainer({ title, url, poster = '', controls = false, onVideo = null, onPlayError = null } = {}) {
   const container = document.createElement('article');
   container.className = 'card';
   container.dataset.component = 'video-container';
@@ -650,6 +690,7 @@ function VideoContainer({ title, url, poster = '', controls = false } = {}) {
     video.removeAttribute('controls');
   }
   video.dataset.userStarted = '1';
+  video.__handlePlayError = typeof onPlayError === 'function' ? err => onPlayError(err, video) : null;
 
   container.appendChild(video);
 
@@ -658,6 +699,10 @@ function VideoContainer({ title, url, poster = '', controls = false } = {}) {
     caption.className = 'caption';
     caption.textContent = title;
     container.appendChild(caption);
+  }
+
+  if (typeof onVideo === 'function') {
+    try { onVideo(video); } catch (err) { dbg('⚠️ onVideo handler error', err?.message || err); }
   }
 
   requestAnimationFrame(()=>{ try{ io.observe(video); safePlay(video); }catch{} });
@@ -692,6 +737,7 @@ async function setLocalVideoFromFile(file) {
     setLocalVideoObjectUrl(null);
     try { localStorage.removeItem(LOCAL_VIDEO_STORAGE_KEY); } catch {}
     localVideoData = null;
+    setLocalVideoReady(false);
   }
 }
 
@@ -702,8 +748,11 @@ function bootstrapLocalVideo(){
     if (!cardEl) {
       try { localStorage.removeItem(LOCAL_VIDEO_STORAGE_KEY); } catch {}
       localVideoData = null;
+      setLocalVideoReady(false);
     }
+    return;
   }
+  setLocalVideoReady(false);
 }
 
 /* --- unlock gesture --- */
@@ -889,6 +938,23 @@ async function normalize(d) {
     let playable = directUrlRaw.trim();
     if (/\.gifv(\?.*)?$/i.test(playable)) playable = playable.replace(/\.gifv(\?.*)?$/i, '.mp4$1');
     if (/\.(mp4|m4v|mov)(\?.*)?$/i.test(playable)) {
+      const isPreviewHost = /preview\.redd\.it/i.test(playable);
+      if (isPreviewHost) {
+        const still = pickThumb(d) || '';
+        dbg('source=reddit', truncateLog(playable, 200));
+        return {
+          t: 'video',
+          url: playable,
+          thumb: still,
+          title: d.title,
+          author: d.author,
+          sub: d.subreddit,
+          link: `https://reddit.com${d.permalink}`,
+          provider: 'reddit',
+          isPreviewMp4: true,
+          previewStill: still
+        };
+      }
       return {
         t: 'video',
         url: playable,
@@ -906,15 +972,19 @@ async function normalize(d) {
   const preview = d.preview?.images?.[0];
   const variants = preview?.variants;
   if (variants?.mp4?.source?.url) {
+    const mp4Url = fix(variants.mp4.source.url);
+    dbg('source=reddit', truncateLog(mp4Url, 200));
     return {
       t: 'video',
-      url: fix(variants.mp4.source.url),
+      url: mp4Url,
       thumb: fix(preview?.source?.url),
       title: d.title,
       author: d.author,
       sub: d.subreddit,
       link: `https://reddit.com${d.permalink}`,
-      provider: 'preview'
+      provider: 'reddit',
+      isPreviewMp4: true,
+      previewStill: fix(preview?.source?.url)
     };
   }
 
@@ -969,6 +1039,7 @@ async function normalize(d) {
   // 8️⃣ Fallback preview
   if (preview?.source?.url) {
     const src = fix(preview.source.url);
+    dbg('source=preview-image', truncateLog(src, 200));
     return {
       t: 'image',
       url: src,
@@ -1000,6 +1071,7 @@ function attachSwipe(wrap, item){
 
   let startX=0, startY=0, dx=0, dy=0, dragging=false;
   const threshold=Math.max(120, window.innerWidth*0.22), rotFactor=20;
+  const currentItem = () => wrap.__item || item;
 
   function setTransform(x){
     const r=(x/threshold)*rotFactor;
@@ -1019,7 +1091,12 @@ function attachSwipe(wrap, item){
       const off=(didLike?1:-1)*(window.innerWidth+200);
       wrap.style.transition='transform .28s ease-out, opacity .28s ease-out';
       wrap.style.transform=`translateX(${off}px) rotate(${off>0?rotFactor:-rotFactor}deg)`; wrap.style.opacity='0.2';
-      setTimeout(()=>{ if(didLike) registerLike(item); else registerDiscard(item); markViewed(item.url); wrap.remove(); },280);
+      setTimeout(()=>{
+        const active = currentItem();
+        if(didLike) registerLike(active); else registerDiscard(active);
+        markViewed(active.url);
+        wrap.remove();
+      },280);
     }else{
       wrap.style.transition='transform .22s ease'; wrap.style.transform=''; likeStamp.style.opacity=0; noStamp.style.opacity=0;
       setTimeout(()=>{ wrap.style.transition=''; },240);
@@ -1033,31 +1110,86 @@ function attachSwipe(wrap, item){
 }
 
 function card(item){
-  const wrap=document.createElement('article'); wrap.className='card'; wrap.__item=item;
   const performer = inferPerformer(item);
+  const captionText = performer || (item.title||'').slice(0,64);
+  const usePreviewContainer = item.t==='video' && item.provider==='reddit' && item.isPreviewMp4;
 
+  let wrap;
   let media;
-  if(item.t==='video' || item.t==='gif'){ media = makeVideo(item.url, item.thumb || null, item.provider); }
-  else{
-    media = document.createElement('img'); media.className='media'; media.loading='lazy'; media.alt=item.title||''; media.src=item.url;
-    media.addEventListener('error',()=>wrap.remove());
-  }
-  wrap.appendChild(media);
 
-  const caption=document.createElement('div'); caption.className='caption';
-  caption.textContent = performer || (item.title||'').slice(0,64); wrap.appendChild(caption);
+  if(usePreviewContainer){
+    wrap = VideoContainer({
+      title: captionText,
+      url: item.url,
+      poster: item.thumb || '',
+      controls: false,
+      onVideo(video){
+        media = video;
+        video.dataset.provider = item.provider || '';
+        video.dataset.previewMp4 = '1';
+        const fallbackStill = item.previewStill || item.thumb || '';
+        if (fallbackStill) video.dataset.previewFallback = fallbackStill;
+        let downgraded = false;
+        let watchdog = null;
+        const downgradeToImage = (reason) => {
+          if (downgraded) return;
+          downgraded = true;
+          const still = fallbackStill;
+          if (!still) return;
+          if (watchdog) { clearTimeout(watchdog); watchdog = null; }
+          try { io.unobserve(video); } catch {}
+          const img = document.createElement('img');
+          img.className = 'media';
+          img.loading = 'lazy';
+          img.alt = item.title || '';
+          img.src = still;
+          img.addEventListener('error', ()=>wrap.remove());
+          video.replaceWith(img);
+          const downgradedItem = { ...item, t: 'image', url: still, thumb: still, provider: 'preview-image', isPreviewMp4: false };
+          wrap.__item = downgradedItem;
+          dbg(`⚠️ downgraded preview.mp4 to static image ${truncateLog(still, 200)}`);
+          dbg('source=preview-image', truncateLog(still, 200));
+        };
+        const degrade = () => downgradeToImage('error');
+        video.addEventListener('error', degrade);
+        video.__handlePlayError = () => downgradeToImage('play-error');
+        const clearWatchdog = () => { if (watchdog) { clearTimeout(watchdog); watchdog = null; } };
+        video.addEventListener('loadeddata', clearWatchdog, { once: true });
+        video.addEventListener('playing', clearWatchdog, { once: true });
+        watchdog = setTimeout(()=>{
+          if (video.readyState < 2) downgradeToImage('timeout');
+        }, 8000);
+      }
+    });
+    wrap.__item = item;
+    media = media || wrap.querySelector('video.media');
+  } else {
+    wrap=document.createElement('article'); wrap.className='card'; wrap.__item=item;
+
+    if(item.t==='video' || item.t==='gif'){ media = makeVideo(item.url, item.thumb || null, item.provider); }
+    else{
+      media = document.createElement('img'); media.className='media'; media.loading='lazy'; media.alt=item.title||''; media.src=item.url;
+      media.addEventListener('error',()=>wrap.remove());
+    }
+    wrap.appendChild(media);
+
+    const caption=document.createElement('div'); caption.className='caption';
+    caption.textContent = captionText; wrap.appendChild(caption);
+  }
 
   const actions=document.createElement('div'); actions.className='actions';
   actions.innerHTML=`<button class="btn no" data-act="no">Dismiss</button><button class="btn ok" data-act="ok">Like</button>`;
   actions.addEventListener('click',e=>{
     const b=e.target.closest('button'); if(!b) return;
-    if(b.dataset.act==='ok'){ if(!likes.some(i=>i.url===item.url)){ likes.push(item); saveState(); } wrap.classList.add('burst'); }
-    else { if(!discards.some(i=>i.url===item.url)){ discards.push(item); saveState(); } wrap.classList.add('fade'); }
-    markViewed(item.url); setTimeout(()=>wrap.remove(),260);
+    const targetItem = wrap.__item || item;
+    if(b.dataset.act==='ok'){ if(!likes.some(i=>i.url===targetItem.url)){ likes.push(targetItem); saveState(); } wrap.classList.add('burst'); }
+    else { if(!discards.some(i=>i.url===targetItem.url)){ discards.push(targetItem); saveState(); } wrap.classList.add('fade'); }
+    markViewed(targetItem.url);
+    setTimeout(()=>wrap.remove(),260);
   });
   wrap.appendChild(actions);
 
-  attachSwipe(wrap, item);
+  attachSwipe(wrap, wrap.__item || item);
   return wrap;
 }
 
@@ -1087,6 +1219,7 @@ async function renderChunk(where, n=CHUNK){
 /* -------------------- batching -------------------- */
 async function newBatch(){
   if(fetching) return;
+  await waitForLocalVideoReady();
   fetching=true; ui.phase('Fetching…'); ui.bar(10); ui.setProgressMode(true);
   pool.length=0;
   const homeFeed=document.getElementById('home');
@@ -1182,7 +1315,12 @@ function dumpTroubleshoot(){
 if (localVideoInput) {
   localVideoInput.addEventListener('change', e => {
     const [file] = e.target.files || [];
-    if (!file) return;
+    if (!file) {
+      if (!localVideoReady) {
+        setTimeout(()=>localVideoInput.click(), 120);
+      }
+      return;
+    }
     Promise.resolve(setLocalVideoFromFile(file)).finally(()=>{
       e.target.value = '';
     });
@@ -1259,7 +1397,10 @@ ui.setProgressMode(false);
 ui.bar(100); ui.phase('Ready');
 log('Ready. Swipe right to Like, left to Dismiss. Tap a video to start, then tap again to mute/unmute. “Viewed” items are skipped.');
 bootstrapLocalVideo();
-(async ()=>{ await newBatch(); })();
+(async ()=>{
+  await waitForLocalVideoReady();
+  await newBatch();
+})();
 </script>
 </body>
 </html>
