@@ -247,16 +247,76 @@ const FALLBACK_SOURCE_INPUT = "1jiMLN5dM0KLGj_uDw41kvCrTt-Qbbzpp";
 // Example: "https://example.com/myvideo.mp4" (direct MP4 link)
 
 function resolveFallbackUrl(input) {
-  if (!input) return "";
-  // If it's clearly a URL already (http/https)
-  if (/^https?:\/\//i.test(input)) {
-    dbg("🎬 Fallback source detected as direct URL:", input);
-    return input.trim();
+  if (input == null) return "";
+
+  const originalInput = String(input);
+  const originalLen = originalInput.length;
+  input = originalInput.trim();
+  const trimmedLen = input.length;
+  const whitespaceRemoved = originalLen !== trimmedLen;
+  dbg(
+    "🎬 Input received:",
+    originalInput,
+    "len=",
+    originalLen,
+    "→ trimmedLen=",
+    trimmedLen,
+    "whitespaceRemoved=",
+    whitespaceRemoved
+  );
+
+  if (!input) {
+    dbg("🎬 Final resolved fallback URL =", "");
+    return "";
   }
-  // Otherwise treat as Google Drive file ID
-  const driveUrl = `https://drive.google.com/uc?export=download&id=${input}`;
-  dbg("🎬 Fallback source detected as Google Drive ID:", input, "→", driveUrl);
-  return driveUrl;
+
+  let resolvedUrl = "";
+  const driveShareMatch = input.match(/^https?:\/\/drive\.google\.com\/file\/d\/([^/]+)\/view(?:\?.*)?(?:#.*)?$/i);
+  if (driveShareMatch) {
+    const id = driveShareMatch[1];
+    resolvedUrl = `https://drive.google.com/uc?export=download&id=${id}`;
+    dbg("🎬 Fallback source detected as Google Drive ID:", input, "→", resolvedUrl);
+    dbg(
+      "🎬 Drive share link conversion",
+      "originalUrl=",
+      originalInput,
+      "extractedId=",
+      id,
+      "downloadUrl=",
+      resolvedUrl,
+      "note=",
+      "normalized from /file/d/.../view"
+    );
+  } else if (/^https?:\/\//i.test(input)) {
+    dbg("🎬 Fallback source detected as direct URL:", input);
+    let host = "unknown";
+    let protocol = "unknown";
+    try {
+      const parsed = new URL(input);
+      protocol = parsed.protocol.replace(/:$/, "");
+      host = parsed.hostname;
+    } catch (err) {
+      // ignore parse failures; we'll log placeholder values below
+    }
+    dbg("🎬 Direct URL details", "protocol=", protocol, "host=", host);
+    dbg("🎬 Direct URL detected:", input, "host=", host, "protocol=", protocol);
+    resolvedUrl = input;
+  } else {
+    resolvedUrl = `https://drive.google.com/uc?export=download&id=${input}`;
+    dbg("🎬 Fallback source detected as Google Drive ID:", input, "→", resolvedUrl);
+    dbg(
+      "🎬 Raw Drive ID conversion",
+      "id=",
+      input,
+      "downloadUrl=",
+      resolvedUrl,
+      "note=",
+      "interpreted as bare ID"
+    );
+  }
+
+  dbg("🎬 Final resolved fallback URL =", resolvedUrl);
+  return resolvedUrl;
 }
 
 const FALLBACK_VIDEO_SOURCE = {
@@ -758,17 +818,22 @@ document.addEventListener('videosBuilt', attachVideoDiagnostics);
 
 /* -------------------- Reddit fetchers -------------------- */
 
-function baseUrl(sub, token) {
+function baseUrl(sub, token, after) {
+  const params = new URLSearchParams({ limit: LIMIT, raw_json: 1 });
+  if (after) params.set('after', after);
+
   if (token) {
     // OAuth endpoint
     return {
-      url: `https://oauth.reddit.com/r/${sub}/hot?limit=${LIMIT}&raw_json=1`,
+      url: `https://oauth.reddit.com/r/${sub}/hot?${params.toString()}`,
       mode: "oauth"
     };
   }
-    // Fallback (no token) → use proxy
+
+  // Fallback (no token) → use proxy
+  const target = `https://www.reddit.com/r/${sub}/hot.json?${params.toString()}`;
   return {
-    url: `https://corsproxy.io/?https://www.reddit.com/r/${sub}/hot.json?limit=${LIMIT}&raw_json=1`,
+    url: `https://corsproxy.io/?${encodeURIComponent(target)}`,
     mode: "proxy"
   };
 }
@@ -778,9 +843,9 @@ async function pullSubreddit(sub) {
   const out = [];
 
   for (let page = 0; page < PAGES; page++) {
-    const { url, mode } = baseUrl(sub, token);
+    const { url, mode } = baseUrl(sub, token, after);
     try {
-      const res = await fetch(url + (after ? `&after=${after}` : ''), 
+      const res = await fetch(url,
         token && mode === "oauth" ? { headers: { 'Authorization': `Bearer ${token}` } } : {}
       );
 
