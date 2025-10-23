@@ -326,6 +326,8 @@ const FALLBACK_VIDEO_SOURCE = {
   controls: true
 };
 
+
+
 /* -------------------- persistence -------------------- */
 function saveState(){ try{ localStorage.setItem('likes',JSON.stringify(likes)); localStorage.setItem('discards',JSON.stringify(discards)); }catch{} }
 function loadState(){ try{ likes=JSON.parse(localStorage.getItem('likes')||'[]'); discards=JSON.parse(localStorage.getItem('discards')||'[]'); }catch{ likes=[]; discards=[]; } }
@@ -698,7 +700,6 @@ function attachVideoDiagnostics(){
 /* hook it to new batches */
 document.addEventListener('videosBuilt', attachVideoDiagnostics);
 
-/* -------------------- Reddit fetchers -------------------- */
 
 /* -------------------- Reddit fetchers -------------------- */
 
