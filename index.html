@@ -130,9 +130,11 @@
     <button class="btn tile small" id="homeBtn">Home</button>
     <button class="btn tile small" id="likesBtn">Likes</button>
     <button class="btn tile small" id="discardBtn">Discard</button>
+    <button class="btn tile small" id="localBtn">Local</button>
     <button class="btn tile grad small" id="newBatchBtn">New batch</button>
     <button class="btn tile small" id="shuffleBtn">Shuffle feed</button>
     <button class="btn tile small" id="replaceLocalBtn">Replace Video</button>
+    <button class="btn tile small" id="addLocalVideosBtn">Add Local Videos</button>
     <button class="btn tile small" id="manageSubsBtn">Subreddits</button>
     <button class="btn tile small" id="troubleBtn">Troubleshoot</button>
     <button class="btn tile small" id="connectBtn">Connect Reddit</button>
@@ -147,12 +149,17 @@
     <span class="pill" id="tabHome">Home</span>
     <span class="pill" id="tabLikes">Likes</span>
     <span class="pill" id="tabDiscard">Discard</span>
+    <span class="pill" id="tabLocal">Local</span>
     <span class="pill" id="tabSubs" style="display:none">Subreddits</span>
   </div>
 
   <div id="home" class="feed"></div>
   <div id="likes" class="feed hidden"></div>
   <div id="discard" class="feed hidden"></div>
+  <div id="localTools" class="hidden" style="display:flex;justify-content:flex-end;margin:0 0 12px;gap:10px">
+    <button class="btn tile small" id="clearLocalBtn">Clear Local Videos</button>
+  </div>
+  <div id="local" class="feed hidden"></div>
 
   <section id="subsPage" class="hidden">
     <div class="sheet glass" style="padding:12px">
@@ -180,7 +187,7 @@
   </div>
 </div>
 
-<input type="file" id="localVideoInput" accept="video/mp4,video/*" style="display:none" />
+<input type="file" id="localVideoInput" accept="video/mp4,video/*" multiple style="display:none" />
 
 <script>
 /* =========================================================
@@ -233,7 +240,11 @@ const AUTOLOAD=true, AUTOLOAD_THRESHOLD_PX=1400, AUTOLOAD_THROTTLE_MS=1400, MAX_
 let pool=[], likes=[], discards=[], currentFeed='home', fetching=false, lastErrors=[], loadLock=false, lastAutoTs=0;
 const logEl = document.getElementById('log');
 const localVideoInput = document.getElementById('localVideoInput');
+const localFeedEl = document.getElementById('local');
+const localToolsEl = document.getElementById('localTools');
+const clearLocalBtn = document.getElementById('clearLocalBtn');
 const LOCAL_VIDEO_STORAGE_KEY = 'local_video_card';
+const LOCAL_FEED_STORAGE_KEY = 'local_video_feed';
 let localVideoCard = null;
 let localVideoObjectUrl = null;
 let localVideoData = null;
@@ -241,6 +252,9 @@ let localVideoReady = false;
 let localVideoReadyPromise = null;
 let resolveLocalVideoReady = null;
 let localVideoReadyTimeout = null;
+let localFeedRecords = [];
+const localFeedObjectUrls = new Map();
+let localInputMode = 'replace';
 
 /* --- unified debug logger --- */
 function dbg(...args) {
@@ -442,6 +456,175 @@ function applyLocalVideoData(record, options = {}){
   }
 }
 
+function clearLocalFeedObjectUrls(){
+  for (const url of localFeedObjectUrls.values()) {
+    try { URL.revokeObjectURL(url); } catch {}
+  }
+  localFeedObjectUrls.clear();
+}
+
+function setLocalFeedRecords(records, options = {}){
+  const { persist = true } = options;
+  const normalized = Array.isArray(records)
+    ? records.map((rec, idx) => {
+        const name = typeof rec?.name === 'string' && rec.name.trim() ? rec.name.trim() : 'Local video';
+        const dataUrl = typeof rec?.dataUrl === 'string' ? rec.dataUrl : '';
+        const savedAt = typeof rec?.savedAt === 'number' && Number.isFinite(rec.savedAt)
+          ? rec.savedAt
+          : (Date.now() + idx);
+        return { name, dataUrl, savedAt };
+      }).filter(rec => !!rec.dataUrl)
+    : [];
+
+  normalized.sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
+  localFeedRecords = normalized;
+
+  if (persist) {
+    try {
+      localStorage.setItem(LOCAL_FEED_STORAGE_KEY, JSON.stringify(localFeedRecords));
+    } catch (err) {
+      dbg('⚠️ local feed persist error', err?.message || err);
+    }
+  }
+
+  updateLocalFeedControls();
+}
+
+function createLocalFeedCard(record){
+  if (!record) return null;
+  const name = record.name || 'Local video';
+  let objectUrl = record.objectUrl || null;
+  if (!objectUrl && record.dataUrl) {
+    try {
+      const blob = dataUrlToBlob(record.dataUrl);
+      objectUrl = URL.createObjectURL(blob);
+    } catch (err) {
+      dbg('⚠️ local feed decode error', err?.message || err);
+      return null;
+    }
+  }
+  if (!objectUrl) return null;
+
+  if (typeof record.savedAt === 'number') {
+    const previous = localFeedObjectUrls.get(record.savedAt);
+    if (previous && previous !== objectUrl) {
+      try { URL.revokeObjectURL(previous); } catch {}
+    }
+    localFeedObjectUrls.set(record.savedAt, objectUrl);
+  }
+
+  const card = VideoContainer({
+    title: name,
+    url: objectUrl,
+    controls: true
+  });
+  card.dataset.kind = 'local-feed-video';
+  card.dataset.localVideoName = name;
+  ensureLocalVideoBadge(card);
+  return card;
+}
+
+function updateLocalFeedEmptyState(){
+  if (!localFeedEl) return;
+  let emptyEl = localFeedEl.querySelector('[data-role="local-empty"]');
+  if (localFeedRecords.length === 0) {
+    if (!emptyEl) {
+      emptyEl = document.createElement('div');
+      emptyEl.dataset.role = 'local-empty';
+      emptyEl.textContent = 'No local videos. Tap Add Local Videos.';
+      emptyEl.style.textAlign = 'center';
+      emptyEl.style.opacity = '0.8';
+      emptyEl.style.padding = '32px 12px';
+      emptyEl.style.fontWeight = '800';
+    }
+    localFeedEl.appendChild(emptyEl);
+  } else if (emptyEl) {
+    emptyEl.remove();
+  }
+}
+
+function updateLocalFeedControls(){
+  if (!clearLocalBtn) return;
+  if (localFeedRecords.length === 0) {
+    clearLocalBtn.setAttribute('disabled', '');
+  } else {
+    clearLocalBtn.removeAttribute('disabled');
+  }
+}
+
+function rebuildLocalFeed(){
+  if (!localFeedEl) return;
+  clearLocalFeedObjectUrls();
+  localFeedEl.innerHTML = '';
+  for (const record of localFeedRecords) {
+    const card = createLocalFeedCard(record);
+    if (card) localFeedEl.appendChild(card);
+  }
+  updateLocalFeedEmptyState();
+}
+
+function loadStoredLocalFeedRecords(){
+  try {
+    const raw = localStorage.getItem(LOCAL_FEED_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed;
+  } catch (err) {
+    dbg('⚠️ local feed restore error', err?.message || err);
+    return [];
+  }
+}
+
+async function addFilesToLocalFeed(files){
+  if (!files || !files.length) return;
+  const baseTs = Date.now();
+  const newRecords = [];
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    if (!file) continue;
+    try {
+      const dataUrl = await readFileAsDataURL(file);
+      newRecords.push({
+        name: file.name || 'Local video',
+        dataUrl,
+        savedAt: baseTs + i
+      });
+    } catch (err) {
+      dbg('⚠️ local feed read error', err?.message || err);
+    }
+  }
+  if (!newRecords.length) return;
+
+  setLocalFeedRecords([...newRecords, ...localFeedRecords]);
+  rebuildLocalFeed();
+  dbg(`source=local-feed (${newRecords.length} files added)`);
+}
+
+function clearLocalFeed(){
+  localFeedRecords = [];
+  try { localStorage.removeItem(LOCAL_FEED_STORAGE_KEY); } catch {}
+  try { localStorage.removeItem(LOCAL_VIDEO_STORAGE_KEY); } catch {}
+  document.querySelectorAll('#home [data-kind="local-video"]').forEach(node => node.remove());
+  localVideoCard = null;
+  localVideoData = null;
+  setLocalVideoObjectUrl(null);
+  setLocalVideoReady(true);
+  updateLocalFeedControls();
+  clearLocalFeedObjectUrls();
+  rebuildLocalFeed();
+  dbg('source=local-feed (cleared)');
+}
+
+function bootstrapLocalFeed(){
+  const stored = loadStoredLocalFeedRecords();
+  setLocalFeedRecords(stored, { persist: false });
+  rebuildLocalFeed();
+  if (localFeedRecords.length) {
+    dbg(`source=local-feed (restored ${localFeedRecords.length} files)`);
+  }
+}
+
 /* -------------------- persistence -------------------- */
 function saveState(){ try{ localStorage.setItem('likes',JSON.stringify(likes)); localStorage.setItem('discards',JSON.stringify(discards)); }catch{} }
 function loadState(){ try{ likes=JSON.parse(localStorage.getItem('likes')||'[]'); discards=JSON.parse(localStorage.getItem('discards')||'[]'); }catch{ likes=[]; discards=[]; } }
@@ -508,11 +691,19 @@ const ui = {
   },
   showPage(name){
     currentFeed = name;
-    ['home','likes','discard','subsPage'].forEach(id => el('#'+id).classList.add('hidden'));
+    ['home','likes','discard','local','subsPage'].forEach(id => el('#'+id)?.classList.add('hidden'));
     if(name==='home') el('#home').classList.remove('hidden');
     if(name==='likes') el('#likes').classList.remove('hidden');
     if(name==='discard') el('#discard').classList.remove('hidden');
+    if(name==='local') {
+      el('#local').classList.remove('hidden');
+      updateLocalFeedEmptyState();
+    }
     if(name==='subs') document.getElementById('subsPage').classList.remove('hidden');
+    if (localToolsEl) {
+      if (name === 'local') localToolsEl.classList.remove('hidden');
+      else localToolsEl.classList.add('hidden');
+    }
     el('#pageTabs').classList.remove('hidden');
     el('#tabSubs').style.display = (name==='subs' ? '' : (el('#tabSubs').style.display || ''));
     this.progressVisibility();
@@ -904,6 +1095,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     let hasStoredLocal = false;
     try { hasStoredLocal = !!localStorage.getItem(LOCAL_VIDEO_STORAGE_KEY); } catch {}
     if (!hasStoredLocal) {
+      localInputMode = 'replace';
       requestAnimationFrame(()=>localVideoInput.click());
     }
   }
@@ -1464,22 +1656,41 @@ function dumpTroubleshoot(){
 
 /* -------------------- events -------------------- */
 if (localVideoInput) {
-  localVideoInput.addEventListener('change', e => {
-    const [file] = e.target.files || [];
-    if (!file) {
-      if (!localVideoReady) {
-        setTimeout(()=>localVideoInput.click(), 120);
+  localVideoInput.addEventListener('change', async e => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+
+    if (!files.length) {
+      if (localInputMode === 'replace' && !localVideoReady) {
+        setTimeout(()=>{
+          localInputMode = 'replace';
+          localVideoInput.click();
+        }, 120);
       }
+      localInputMode = 'replace';
       return;
     }
-    Promise.resolve(setLocalVideoFromFile(file)).finally(()=>{
-      e.target.value = '';
-    });
+
+    try {
+      if (localInputMode === 'replace') {
+        const [file] = files;
+        if (file) await setLocalVideoFromFile(file);
+      } else {
+        const hasPinned = !!(localVideoData?.hasLocal) || !!getLocalVideoCard();
+        if (!hasPinned && files[0]) {
+          await setLocalVideoFromFile(files[0]);
+        }
+        await addFilesToLocalFeed(files);
+      }
+    } finally {
+      localInputMode = 'replace';
+    }
   });
 }
 
 window.addEventListener('beforeunload', () => {
   setLocalVideoObjectUrl(null);
+  clearLocalFeedObjectUrls();
 });
 
 document.getElementById('newBatchBtn').addEventListener('click', newBatch);
@@ -1487,12 +1698,27 @@ document.getElementById('shuffleBtn').addEventListener('click', shuffleVisibleAn
 const replaceLocalBtn = document.getElementById('replaceLocalBtn');
 if (replaceLocalBtn && localVideoInput) {
   replaceLocalBtn.addEventListener('click', () => {
+    localInputMode = 'replace';
+    localVideoInput.click();
+  });
+}
+const addLocalVideosBtn = document.getElementById('addLocalVideosBtn');
+if (addLocalVideosBtn && localVideoInput) {
+  addLocalVideosBtn.addEventListener('click', () => {
+    localInputMode = 'add';
     localVideoInput.click();
   });
 }
 document.getElementById('homeBtn').addEventListener('click', ()=>ui.showPage('home'));
 document.getElementById('likesBtn').addEventListener('click', ()=>{ paintList('likes', likes); requestAnimationFrame(()=>ui.showPage('likes')); });
 document.getElementById('discardBtn').addEventListener('click', ()=>{ paintList('discard', discards); requestAnimationFrame(()=>ui.showPage('discard')); });
+const localBtn = document.getElementById('localBtn');
+if (localBtn) {
+  localBtn.addEventListener('click', () => {
+    updateLocalFeedEmptyState();
+    requestAnimationFrame(()=>ui.showPage('local'));
+  });
+}
 document.getElementById('manageSubsBtn').addEventListener('click', ()=>{ buildSubsUI(); ui.showPage('subs'); el('#tabSubs').style.display=''; });
 document.getElementById('closeModal').addEventListener('click', ()=> el('#modal').classList.remove('show'));
 document.getElementById('connectBtn').addEventListener('click', beginOAuth);
@@ -1500,6 +1726,12 @@ document.getElementById('subsSelectAll').addEventListener('click', ()=>{ documen
 document.getElementById('subsClearAll').addEventListener('click', ()=>{ document.querySelectorAll('#subsGrid input[type="checkbox"]')?.forEach(c=>c.checked=false); });
 document.getElementById('subsBack').addEventListener('click', ()=> ui.showPage('home'));
 document.getElementById('subsSave').addEventListener('click', async ()=>{ saveSubsFromUI(); await newBatch(); ui.showPage('home'); });
+
+if (clearLocalBtn) {
+  clearLocalBtn.addEventListener('click', () => {
+    clearLocalFeed();
+  });
+}
 
 function paintList(where, arr){ const host=document.getElementById(where); host.innerHTML=''; arr.forEach(it=>host.appendChild(card(it))); }
 
@@ -1547,6 +1779,7 @@ captureTokenFromHash();
 ui.setProgressMode(false);
 ui.bar(100); ui.phase('Ready');
 log('Ready. Swipe right to Like, left to Dismiss. Tap a video to start, then tap again to mute/unmute. “Viewed” items are skipped.');
+bootstrapLocalFeed();
 bootstrapLocalVideo();
 (async ()=>{
   await waitForLocalVideoReady();
