@@ -247,14 +247,24 @@ const FALLBACK_SOURCE_INPUT = "1jiMLN5dM0KLGj_uDw41kvCrTt-Qbbzpp";
 // Example: "https://example.com/myvideo.mp4" (direct MP4 link)
 
 function resolveFallbackUrl(input) {
-  if (!input) return "";
-  const originalInput = input;
+  if (input == null) return "";
+
+  const originalInput = String(input);
   const originalLen = originalInput.length;
-  const trimmed = originalInput.trim();
-  const trimmedLen = trimmed.length;
+  input = originalInput.trim();
+  const trimmedLen = input.length;
   const whitespaceRemoved = originalLen !== trimmedLen;
-  dbg("🎬 Input received:", originalInput, "len=", originalLen, "→ trimmedLen=", trimmedLen, "whitespaceRemoved=", whitespaceRemoved);
-  input = trimmed;
+  dbg(
+    "🎬 Input received:",
+    originalInput,
+    "len=",
+    originalLen,
+    "→ trimmedLen=",
+    trimmedLen,
+    "whitespaceRemoved=",
+    whitespaceRemoved
+  );
+
   if (!input) {
     dbg("🎬 Final resolved fallback URL =", "");
     return "";
@@ -266,7 +276,17 @@ function resolveFallbackUrl(input) {
     const id = driveShareMatch[1];
     resolvedUrl = `https://drive.google.com/uc?export=download&id=${id}`;
     dbg("🎬 Fallback source detected as Google Drive ID:", input, "→", resolvedUrl);
-    dbg("🎬 Drive share link conversion", "originalUrl=", originalInput, "extractedId=", id, "downloadUrl=", resolvedUrl, "note=", "normalized from /file/d/.../view");
+    dbg(
+      "🎬 Drive share link conversion",
+      "originalUrl=",
+      originalInput,
+      "extractedId=",
+      id,
+      "downloadUrl=",
+      resolvedUrl,
+      "note=",
+      "normalized from /file/d/.../view"
+    );
   } else if (/^https?:\/\//i.test(input)) {
     dbg("🎬 Fallback source detected as direct URL:", input);
     let host = "unknown";
@@ -275,16 +295,24 @@ function resolveFallbackUrl(input) {
       const parsed = new URL(input);
       protocol = parsed.protocol.replace(/:$/, "");
       host = parsed.hostname;
-      dbg("🎬 Direct URL details", "protocol=", protocol, "host=", host);
     } catch (err) {
-      dbg("🎬 Direct URL details", "protocol=", "unknown", "host=", "unknown");
+      // ignore parse failures; we'll log placeholder values below
     }
+    dbg("🎬 Direct URL details", "protocol=", protocol, "host=", host);
     dbg("🎬 Direct URL detected:", input, "host=", host, "protocol=", protocol);
     resolvedUrl = input;
   } else {
     resolvedUrl = `https://drive.google.com/uc?export=download&id=${input}`;
     dbg("🎬 Fallback source detected as Google Drive ID:", input, "→", resolvedUrl);
-    dbg("🎬 Raw Drive ID conversion", "id=", input, "downloadUrl=", resolvedUrl, "note=", "interpreted as bare ID");
+    dbg(
+      "🎬 Raw Drive ID conversion",
+      "id=",
+      input,
+      "downloadUrl=",
+      resolvedUrl,
+      "note=",
+      "interpreted as bare ID"
+    );
   }
 
   dbg("🎬 Final resolved fallback URL =", resolvedUrl);
