@@ -251,15 +251,21 @@ function resolveFallbackUrl(input) {
   const originalInput = input;
   const originalLen = originalInput.length;
   input = input.trim();
-  dbg("🎬 Trimmed input", "originalLen=", originalLen, "trimmedLen=", input.length);
-  if (!input) return "";
+  const trimmedLen = input.length;
+  const whitespaceRemoved = originalLen !== trimmedLen;
+  dbg("🎬 Trimmed input", "original=", originalInput, "len=", originalLen, "→ trimmedLen=", trimmedLen, "whitespaceRemoved=", whitespaceRemoved);
+  if (!input) {
+    dbg("🎬 Final resolved fallback URL =", "");
+    return "";
+  }
 
   const driveShareMatch = input.match(/^https?:\/\/drive\.google\.com\/file\/d\/([^/]+)\/view(?:\?.*)?(?:#.*)?$/i);
   if (driveShareMatch) {
     const id = driveShareMatch[1];
     const driveUrl = `https://drive.google.com/uc?export=download&id=${id}`;
     dbg("🎬 Fallback source detected as Google Drive ID:", input, "→", driveUrl);
-    dbg("🎬 Drive share link conversion", "input=", originalInput, "id=", id, "downloadUrl=", driveUrl);
+    dbg("🎬 Drive share link conversion", "originalUrl=", originalInput, "extractedId=", id, "downloadUrl=", driveUrl, "note=", "normalized from /file/d/.../view");
+    dbg("🎬 Final resolved fallback URL =", driveUrl);
     return driveUrl;
   }
 
@@ -273,12 +279,14 @@ function resolveFallbackUrl(input) {
     } catch (err) {
       dbg("🎬 Direct URL details", "scheme=", "unknown", "host=", "unknown");
     }
+    dbg("🎬 Final resolved fallback URL =", input);
     return input;
   }
   // Otherwise treat as Google Drive file ID
   const driveUrl = `https://drive.google.com/uc?export=download&id=${input}`;
   dbg("🎬 Fallback source detected as Google Drive ID:", input, "→", driveUrl);
-  dbg("🎬 Raw Drive ID conversion", "id=", input, "downloadUrl=", driveUrl);
+  dbg("🎬 Raw Drive ID conversion", "id=", input, "downloadUrl=", driveUrl, "note=", "interpreted as bare ID");
+  dbg("🎬 Final resolved fallback URL =", driveUrl);
   return driveUrl;
 }
 
