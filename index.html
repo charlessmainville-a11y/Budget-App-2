@@ -390,10 +390,6 @@ const ui = {
   progressVisibility(){ const visible = currentFeed==='home' && (pool.length>0 || !fetching); el('#progressBtn').style.display = visible ? '' : 'none'; }
 };
 
-}
-
-
-
   /* =========================================================
    VIDEO ENGINE (gesture-first; Safari + Meta Quest)
    ========================================================= */
@@ -688,7 +684,6 @@ function attachVideoDiagnostics(){
 /* hook it to new batches */
 document.addEventListener('videosBuilt', attachVideoDiagnostics);
 
-/* -------------------- Reddit fetchers -------------------- */
 
 /* -------------------- Reddit fetchers -------------------- */
 
