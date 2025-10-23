@@ -419,8 +419,8 @@ function applyLocalVideoData(record, options = {}){
     return cardEl;
   } catch (err) {
     setLocalVideoObjectUrl(null);
-    setLocalVideoReady(false);
-    dbg('⚠️ local video apply error', err?.message || err);
+    setLocalVideoReady(true);
+    dbg('⚠️ local video failed, skipping pin', err?.message || err);
     return null;
   }
 }
@@ -725,6 +725,103 @@ function VideoContainer({ title, url, poster = '', controls = false, onVideo = n
   requestAnimationFrame(()=>{ try{ io.observe(video); safePlay(video); }catch{} });
 
   return container;
+}
+
+function attachPreviewWatchdog(video, item, wrap){
+  if (!(video instanceof HTMLVideoElement)) {
+    return {
+      cleanup(){},
+      downgradeToImage(){},
+    };
+  }
+
+  const fallbackStill = item.previewStill || item.thumb || '';
+  const logUrl = truncateLog(item.url || video.currentSrc || video.src || '', 200);
+  let downgraded = false;
+  let retryAttempted = false;
+  let cleanupLogged = false;
+  let retryTimer = null;
+  let downgradeTimer = null;
+  let rafId = null;
+
+  const handleReady = () => {
+    cleanup();
+  };
+
+  const cleanup = () => {
+    if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; }
+    if (downgradeTimer) { clearTimeout(downgradeTimer); downgradeTimer = null; }
+    if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
+    video.removeEventListener('loadeddata', handleReady);
+    video.removeEventListener('playing', handleReady);
+    video.removeEventListener('error', handleError);
+    if (!cleanupLogged) {
+      cleanupLogged = true;
+      dbg(`🧹 cleared watchdog for ${logUrl}`);
+    }
+  };
+
+  const downgradeToImage = (reason) => {
+    if (downgraded) return;
+    downgraded = true;
+    cleanup();
+    if (!fallbackStill) return;
+    if (!wrap?.isConnected || !video.isConnected) return;
+    try { io.unobserve(video); } catch {}
+    const img = document.createElement('img');
+    img.className = 'media';
+    img.loading = 'lazy';
+    img.alt = item.title || '';
+    img.src = fallbackStill;
+    img.addEventListener('error', ()=>{ if (wrap?.isConnected) wrap.remove(); });
+    if (video.isConnected) {
+      video.replaceWith(img);
+    }
+    if (wrap) {
+      const downgradedItem = { ...item, t: 'image', url: fallbackStill, thumb: fallbackStill, provider: 'preview-image', isPreviewMp4: false };
+      wrap.__item = downgradedItem;
+    }
+    if (reason === 'stall-3s') {
+      dbg(`⚠️ preview.mp4 stalled >3s, downgraded to static image ${logUrl}`);
+    } else {
+      dbg(`⚠️ downgraded preview.mp4 to static image ${truncateLog(fallbackStill, 200)}`);
+    }
+    dbg('source=preview-image', truncateLog(fallbackStill, 200));
+  };
+
+  const handleError = () => downgradeToImage('error');
+
+  const checkConnected = () => {
+    if (!wrap?.isConnected || !video.isConnected) {
+      cleanup();
+      return;
+    }
+    rafId = requestAnimationFrame(checkConnected);
+  };
+
+  video.addEventListener('loadeddata', handleReady, { once: true });
+  video.addEventListener('playing', handleReady, { once: true });
+  video.addEventListener('error', handleError);
+
+  rafId = requestAnimationFrame(checkConnected);
+
+  retryTimer = setTimeout(()=>{
+    if (downgraded || retryAttempted) return;
+    if (!wrap?.isConnected || !video.isConnected) { cleanup(); return; }
+    if (video.readyState >= 2) return;
+    retryAttempted = true;
+    dbg(`⚠️ preview.mp4 stalled at 2s, retrying safePlay ${logUrl}`);
+    safePlay(video);
+  }, 2000);
+
+  downgradeTimer = setTimeout(()=>{
+    if (downgraded) return;
+    if (!wrap?.isConnected || !video.isConnected) { cleanup(); return; }
+    if (video.readyState >= 2) return;
+    downgradeToImage('stall-3s');
+  }, 3000);
+
+  return { cleanup, downgradeToImage };
 }
 
 function getLocalVideoCard() {
@@ -1147,60 +1244,14 @@ function card(item){
         video.dataset.previewMp4 = '1';
         const fallbackStill = item.previewStill || item.thumb || '';
         if (fallbackStill) video.dataset.previewFallback = fallbackStill;
-        let downgraded = false;
-        let retryTimer = null;
-        let downgradeTimer = null;
-        let retryAttempted = false;
-        const logUrl = truncateLog(item.url || video.currentSrc || video.src || '', 200);
-        const clearTimers = () => {
-          if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; }
-          if (downgradeTimer) { clearTimeout(downgradeTimer); downgradeTimer = null; }
-        };
-        const downgradeToImage = (reason) => {
-          if (downgraded) return;
-          downgraded = true;
-          const still = fallbackStill;
-          if (!still) return;
-          clearTimers();
-          try { io.unobserve(video); } catch {}
-          const img = document.createElement('img');
-          img.className = 'media';
-          img.loading = 'lazy';
-          img.alt = item.title || '';
-          img.src = still;
-          img.addEventListener('error', ()=>wrap.remove());
-          video.replaceWith(img);
-          const downgradedItem = { ...item, t: 'image', url: still, thumb: still, provider: 'preview-image', isPreviewMp4: false };
-          wrap.__item = downgradedItem;
-          if (reason === 'stall-3s') {
-            dbg(`⚠️ preview.mp4 stalled >3s, downgraded to static image ${logUrl}`);
-          } else {
-            dbg(`⚠️ downgraded preview.mp4 to static image ${truncateLog(still, 200)}`);
-          }
-          dbg('source=preview-image', truncateLog(still, 200));
-        };
-        const degrade = () => downgradeToImage('error');
-        video.addEventListener('error', degrade);
-        video.__handlePlayError = () => downgradeToImage('play-error');
-        const handleReady = () => { clearTimers(); };
-        video.addEventListener('loadeddata', handleReady, { once: true });
-        video.addEventListener('playing', handleReady, { once: true });
-        retryTimer = setTimeout(()=>{
-          if (downgraded || retryAttempted) return;
-          retryAttempted = true;
-          if (video.readyState >= 2) return;
-          dbg(`⚠️ preview.mp4 stalled at 2s, retrying safePlay ${logUrl}`);
-          safePlay(video);
-        }, 2000);
-        downgradeTimer = setTimeout(()=>{
-          if (downgraded) return;
-          if (video.readyState >= 2) return;
-          downgradeToImage('stall-3s');
-        }, 3000);
       }
     });
     wrap.__item = item;
     media = media || wrap.querySelector('video.media');
+    if (media instanceof HTMLVideoElement) {
+      const { downgradeToImage } = attachPreviewWatchdog(media, item, wrap);
+      media.__handlePlayError = () => downgradeToImage('play-error');
+    }
   } else {
     wrap=document.createElement('article'); wrap.className='card'; wrap.__item=item;
 
