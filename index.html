@@ -245,6 +245,7 @@ const truncateLog = (value, max = 400) => {
 const FALLBACK_SOURCE_INPUT = "1jiMLN5dM0KLGj_uDw41kvCrTt-Qbbzpp"; 
 // Example: "1jiMLN5dM0KLGj_uDw41kvCrTt-Qbbzpp" (Drive ID)
 // Example: "https://example.com/myvideo.mp4" (direct MP4 link)
+
 function resolveFallbackUrl(input) {
   if (!input) {
     dbg("🎬 Final resolved fallback URL =", "");
@@ -262,19 +263,22 @@ function resolveFallbackUrl(input) {
     return "";
   }
 
-  const driveShareMatch = input.match(/^https?:\/\/drive\.google\.com\/file\/d\/([^/]+)\/view(?:\?.*)?(?:#.*)?$/i);
+  // Detect Google Drive share links
+  const driveShareMatch = input.match(/^https?:\/\/drive\.google\.com\/file\/d\/([^/]+)\/view/i);
   if (driveShareMatch) {
     const id = driveShareMatch[1];
     const driveUrl = `https://drive.google.com/uc?export=download&id=${id}`;
-    dbg("🎬 Drive share link conversion", "originalUrl=", originalInput, "extractedId=", id, "downloadUrl=", driveUrl, "note=", "normalized from /file/d/.../view");
+    dbg("🎬 Drive share link conversion", "originalUrl=", originalInput, "extractedId=", id, "downloadUrl=", driveUrl);
     if (driveUrl.includes("/view")) {
       dbg("⚠️ WARNING: Resolved URL still contains '/view' — may not be playable");
+    } else {
+      dbg("✅ URL looks playable (Google Drive)");
     }
     dbg("🎬 Final resolved fallback URL =", driveUrl);
     return driveUrl;
   }
 
-  // If it's clearly a URL already (http/https)
+  // If it's already a full URL
   if (/^https?:\/\//i.test(input)) {
     try {
       const u = new URL(input);
@@ -283,21 +287,29 @@ function resolveFallbackUrl(input) {
       dbg("🎬 Direct URL detected (could not parse):", input);
     }
     if (input.includes("/view")) {
-      dbg("⚠️ WARNING: URL contains '/view' — Google Drive share links need converting to /uc?export=download&id=<id>");
+      dbg("⚠️ WARNING: URL contains '/view' — Google Drive share links need converting");
+    } else if (/\.(mp4|m4v|mov)(\?.*)?$/i.test(input)) {
+      dbg("✅ URL looks playable (.mp4 or movie file)");
     }
     dbg("🎬 Final resolved fallback URL =", input);
     return input;
   }
 
-  // Otherwise treat as Google Drive file ID
+  // Otherwise treat as a raw Drive ID
   const driveUrl = `https://drive.google.com/uc?export=download&id=${input}`;
   dbg("🎬 Raw Google Drive ID detected:", input, "→", driveUrl);
-  if (driveUrl.includes("/view")) {
-    dbg("⚠️ WARNING: Resolved URL still contains '/view' — may not be playable");
-  }
+  dbg("✅ URL looks playable (converted from ID)");
   dbg("🎬 Final resolved fallback URL =", driveUrl);
   return driveUrl;
 }
+
+const FALLBACK_VIDEO_SOURCE = {
+  title: 'Sample Fallback Video',
+  url: resolveFallbackUrl(FALLBACK_SOURCE_INPUT),
+  poster: '',
+  controls: true
+};
+
 
 
 /* -------------------- persistence -------------------- */
