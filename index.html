@@ -4,6 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>CelebWall v2.5.0</title>
+<link rel="stylesheet" href="./styles.css" />
 <style>
   :root{
     --bg-900:#05070c;
@@ -1099,6 +1100,7 @@ function attachPreviewWatchdog(video, item, wrap){
     if (wrap) {
       const downgradedItem = { ...item, t: 'image', url: fallbackStill, thumb: fallbackStill, provider: 'preview-image', isPreviewMp4: false };
       wrap.__item = downgradedItem;
+      wrap.classList.add('zoomable');
     }
     if (reason === 'stall-3s') {
       dbg(`⚠️ preview.mp4 stalled >3s, downgraded to static image ${logUrl}`);
@@ -1595,6 +1597,9 @@ function card(item){
       media = document.createElement('img'); media.className='media'; media.loading='lazy'; media.alt=item.title||''; media.src=item.url;
       media.addEventListener('error',()=>wrap.remove());
     }
+    if(item.t!=='video' && item.t!=='gif'){
+      wrap.classList.add('zoomable');
+    }
     wrap.appendChild(media);
 
     const caption=document.createElement('div'); caption.className='caption';
@@ -1934,5 +1939,6 @@ bootstrapLocalVideo();
   await loadBatch();
 })();
 </script>
+<script type="module" src="./app.js"></script>
 </body>
 </html>
