@@ -1,10 +1,10 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const fs = require('fs/promises');
-const path = require('path');
-const os = require('os');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'fs/promises';
+import path from 'path';
+import os from 'os';
 
-const { loadEnv, getOpenAiApiKey } = require('../src/config/env');
+import { loadEnv, getOpenAiApiKey } from '../src/config/env.js';
 
 test('loadEnv reads values from a .env file without overwriting existing variables', async (t) => {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'budget-env-'));
