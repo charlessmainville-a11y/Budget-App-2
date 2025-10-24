@@ -243,17 +243,10 @@ const localVideoInput = document.getElementById('localVideoInput');
 const localFeedEl = document.getElementById('local');
 const localToolsEl = document.getElementById('localTools');
 const clearLocalBtn = document.getElementById('clearLocalBtn');
-const LOCAL_VIDEO_STORAGE_KEY = 'local_video_card';
-const LOCAL_FEED_STORAGE_KEY = 'local_video_feed';
 let localVideoCard = null;
 let localVideoObjectUrl = null;
-let localVideoData = null;
-let localVideoReady = false;
-let localVideoReadyPromise = null;
-let resolveLocalVideoReady = null;
-let localVideoReadyTimeout = null;
 let localFeedRecords = [];
-const localFeedObjectUrls = new Map();
+const localFeedObjectUrls = new Set();
 let localInputMode = 'replace';
 
 /* --- unified debug logger --- */
@@ -272,102 +265,6 @@ const truncateLog = (value, max = 400) => {
   return str.length > max ? str.slice(0, max) + '…' : str;
 };
 
-function readFileAsDataURL(file){
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = () => reject(reader.error || new Error('Failed to read file'));
-    reader.readAsDataURL(file);
-  });
-}
-
-function persistLocalVideoData(name, dataUrl){
-  localVideoData = {
-    name,
-    dataUrl,
-    hasLocal: true,
-    savedAt: Date.now()
-  };
-  try {
-    localStorage.setItem(LOCAL_VIDEO_STORAGE_KEY, JSON.stringify(localVideoData));
-  } catch (err) {
-    dbg('⚠️ local video persist error', err?.message || err);
-  }
-}
-
-function waitForLocalVideoReady(){
-  if (localVideoReady) return Promise.resolve();
-  if (!localVideoReadyPromise) {
-    localVideoReadyPromise = new Promise(res => {
-      resolveLocalVideoReady = res;
-    });
-  }
-  if (!localVideoReadyTimeout) {
-    localVideoReadyTimeout = setTimeout(()=>{
-      if (!localVideoReady) {
-        log('⚠️ local video not ready, continuing without pin');
-        setLocalVideoReady(true);
-      }
-    }, 2000);
-  }
-  return localVideoReadyPromise;
-}
-
-function setLocalVideoReady(value){
-  if (value) {
-    if (!localVideoReady) {
-      localVideoReady = true;
-      if (typeof resolveLocalVideoReady === 'function') {
-        resolveLocalVideoReady();
-      }
-      resolveLocalVideoReady = null;
-      localVideoReadyPromise = Promise.resolve();
-    }
-    if (localVideoReadyTimeout) {
-      clearTimeout(localVideoReadyTimeout);
-      localVideoReadyTimeout = null;
-    }
-    return;
-  }
-  if (localVideoReadyTimeout) {
-    clearTimeout(localVideoReadyTimeout);
-    localVideoReadyTimeout = null;
-  }
-  localVideoReady = false;
-  localVideoReadyPromise = new Promise(res => {
-    resolveLocalVideoReady = res;
-  });
-}
-
-function loadStoredLocalVideoData(){
-  try {
-    const raw = localStorage.getItem(LOCAL_VIDEO_STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (!parsed || !parsed.dataUrl) return null;
-    if (!parsed.hasLocal) parsed.hasLocal = true;
-    localVideoData = parsed;
-    return parsed;
-  } catch (err) {
-    dbg('⚠️ local video restore error', err?.message || err);
-    return null;
-  }
-}
-
-function dataUrlToBlob(dataUrl){
-  if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.includes(',')) {
-    throw new Error('Invalid data URL');
-  }
-  const [header, base64] = dataUrl.split(',');
-  const mimeMatch = header.match(/:(.*?);/);
-  const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
-  const binary = atob(base64);
-  const len = binary.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
-  return new Blob([bytes], { type: mime });
-}
-
 function setLocalVideoObjectUrl(objectUrl) {
   if (localVideoObjectUrl && localVideoObjectUrl !== objectUrl) {
     try { URL.revokeObjectURL(localVideoObjectUrl); } catch {}
@@ -382,6 +279,26 @@ function ensureLocalVideoBadge(card){
   badge.className='local-badge';
   badge.textContent='📌 Local';
   card.appendChild(badge);
+}
+
+function createLocalVideoCard(name, objectUrl){
+  const cardEl = VideoContainer({
+    title: name,
+    url: objectUrl,
+    controls: true
+  });
+  cardEl.dataset.kind = 'local-video';
+  cardEl.dataset.localVideoName = name;
+  ensureLocalVideoBadge(cardEl);
+  return cardEl;
+}
+
+function clearLocalVideoCard(){
+  if (localVideoCard && localVideoCard.parentElement) {
+    localVideoCard.remove();
+  }
+  localVideoCard = null;
+  setLocalVideoObjectUrl(null);
 }
 
 function ensureLocalCardAtTop(feed, options = {}){
@@ -403,119 +320,64 @@ function ensureLocalCardAtTop(feed, options = {}){
     if (node !== card) node.remove();
   });
   if (reinserted && logReinsert) {
-    const label = truncateLog(card.dataset.localVideoName || localVideoData?.name || 'local video', 160);
-    dbg('source=local-fallback (reinserted)', label);
+    const label = truncateLog(card.dataset.localVideoName || 'local video', 160);
+    dbg('source=local-session (reinserted)', label);
   }
   return card;
 }
 
-function applyLocalVideoData(record, options = {}){
-  if (!record) return null;
-  const { logReason = 'initial' } = options;
-  try {
-    let objectUrl = record.objectUrl || null;
-    if (!objectUrl && record.dataUrl) {
-      const blob = dataUrlToBlob(record.dataUrl);
-      objectUrl = URL.createObjectURL(blob);
-    }
-    if (!objectUrl) return null;
-
-    setLocalVideoObjectUrl(objectUrl);
-
-    const name = record.name || 'Local video';
-    document.querySelectorAll('#home [data-kind="local-video"]').forEach(node => node.remove());
-    localVideoCard = null;
-
-    const cardEl = VideoContainer({
-      title: name,
-      url: objectUrl,
-      controls: true
-    });
-    cardEl.dataset.kind = 'local-video';
-    cardEl.dataset.localVideoName = name;
-    ensureLocalVideoBadge(cardEl);
-    localVideoCard = cardEl;
-    const feed = document.getElementById('home');
-    if (feed) ensureLocalCardAtTop(feed, { logReinsert: false });
-
-    const label = truncateLog(name, 160);
-    if (logReason === 'replaced') {
-      dbg('source=local-fallback (replaced)', label);
-    } else {
-      dbg('source=local-fallback', label);
-    }
-
-    setLocalVideoReady(true);
-    document.dispatchEvent(new Event('videosBuilt'));
-    return cardEl;
-  } catch (err) {
-    setLocalVideoObjectUrl(null);
-    setLocalVideoReady(true);
-    dbg('⚠️ local video failed, skipping pin', err?.message || err);
-    return null;
+function insertLocalVideoCard(name, objectUrl){
+  if (!objectUrl) return null;
+  const feed = document.getElementById('home');
+  const cardEl = createLocalVideoCard(name, objectUrl);
+  if (feed) {
+    feed.querySelectorAll('[data-kind="local-video"]').forEach(node => node.remove());
+    feed.prepend(cardEl);
   }
+  localVideoCard = cardEl;
+  document.dispatchEvent(new Event('videosBuilt'));
+  return cardEl;
 }
 
 function clearLocalFeedObjectUrls(){
-  for (const url of localFeedObjectUrls.values()) {
+  for (const url of localFeedObjectUrls) {
     try { URL.revokeObjectURL(url); } catch {}
   }
   localFeedObjectUrls.clear();
 }
 
-function setLocalFeedRecords(records, options = {}){
-  const { persist = true } = options;
-  const normalized = Array.isArray(records)
-    ? records.map((rec, idx) => {
+function setLocalFeedRecords(records){
+  if (!Array.isArray(records)) {
+    localFeedRecords = [];
+  } else {
+    localFeedRecords = records
+      .map((rec, idx) => {
         const name = typeof rec?.name === 'string' && rec.name.trim() ? rec.name.trim() : 'Local video';
-        const dataUrl = typeof rec?.dataUrl === 'string' ? rec.dataUrl : '';
+        const objectUrl = typeof rec?.objectUrl === 'string' && rec.objectUrl ? rec.objectUrl : '';
         const savedAt = typeof rec?.savedAt === 'number' && Number.isFinite(rec.savedAt)
           ? rec.savedAt
           : (Date.now() + idx);
-        return { name, dataUrl, savedAt };
-      }).filter(rec => !!rec.dataUrl)
-    : [];
+        return { name, objectUrl, savedAt };
+      })
+      .filter(rec => !!rec.objectUrl);
+  }
 
-  normalized.sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
-  localFeedRecords = normalized;
+  localFeedRecords.sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
 
-  if (persist) {
-    try {
-      localStorage.setItem(LOCAL_FEED_STORAGE_KEY, JSON.stringify(localFeedRecords));
-    } catch (err) {
-      dbg('⚠️ local feed persist error', err?.message || err);
-    }
+  localFeedObjectUrls.clear();
+  for (const rec of localFeedRecords) {
+    if (rec.objectUrl) localFeedObjectUrls.add(rec.objectUrl);
   }
 
   updateLocalFeedControls();
 }
 
 function createLocalFeedCard(record){
-  if (!record) return null;
+  if (!record || !record.objectUrl) return null;
   const name = record.name || 'Local video';
-  let objectUrl = record.objectUrl || null;
-  if (!objectUrl && record.dataUrl) {
-    try {
-      const blob = dataUrlToBlob(record.dataUrl);
-      objectUrl = URL.createObjectURL(blob);
-    } catch (err) {
-      dbg('⚠️ local feed decode error', err?.message || err);
-      return null;
-    }
-  }
-  if (!objectUrl) return null;
-
-  if (typeof record.savedAt === 'number') {
-    const previous = localFeedObjectUrls.get(record.savedAt);
-    if (previous && previous !== objectUrl) {
-      try { URL.revokeObjectURL(previous); } catch {}
-    }
-    localFeedObjectUrls.set(record.savedAt, objectUrl);
-  }
-
   const card = VideoContainer({
     title: name,
-    url: objectUrl,
+    url: record.objectUrl,
     controls: true
   });
   card.dataset.kind = 'local-feed-video';
@@ -554,26 +416,12 @@ function updateLocalFeedControls(){
 
 function rebuildLocalFeed(){
   if (!localFeedEl) return;
-  clearLocalFeedObjectUrls();
   localFeedEl.innerHTML = '';
   for (const record of localFeedRecords) {
     const card = createLocalFeedCard(record);
     if (card) localFeedEl.appendChild(card);
   }
   updateLocalFeedEmptyState();
-}
-
-function loadStoredLocalFeedRecords(){
-  try {
-    const raw = localStorage.getItem(LOCAL_FEED_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed;
-  } catch (err) {
-    dbg('⚠️ local feed restore error', err?.message || err);
-    return [];
-  }
 }
 
 async function addFilesToLocalFeed(files){
@@ -583,16 +431,13 @@ async function addFilesToLocalFeed(files){
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
     if (!file) continue;
-    try {
-      const dataUrl = await readFileAsDataURL(file);
-      newRecords.push({
-        name: file.name || 'Local video',
-        dataUrl,
-        savedAt: baseTs + i
-      });
-    } catch (err) {
-      dbg('⚠️ local feed read error', err?.message || err);
-    }
+    const objectUrl = URL.createObjectURL(file);
+    localFeedObjectUrls.add(objectUrl);
+    newRecords.push({
+      name: file.name || 'Local video',
+      objectUrl,
+      savedAt: baseTs + i
+    });
   }
   if (!newRecords.length) return;
 
@@ -602,14 +447,13 @@ async function addFilesToLocalFeed(files){
 }
 
 function clearLocalFeed(){
+  localFeedRecords.forEach(rec => {
+    if (rec.objectUrl) {
+      try { URL.revokeObjectURL(rec.objectUrl); } catch {}
+    }
+  });
   localFeedRecords = [];
-  try { localStorage.removeItem(LOCAL_FEED_STORAGE_KEY); } catch {}
-  try { localStorage.removeItem(LOCAL_VIDEO_STORAGE_KEY); } catch {}
-  document.querySelectorAll('#home [data-kind="local-video"]').forEach(node => node.remove());
-  localVideoCard = null;
-  localVideoData = null;
-  setLocalVideoObjectUrl(null);
-  setLocalVideoReady(true);
+  clearLocalVideoCard();
   updateLocalFeedControls();
   clearLocalFeedObjectUrls();
   rebuildLocalFeed();
@@ -617,12 +461,8 @@ function clearLocalFeed(){
 }
 
 function bootstrapLocalFeed(){
-  const stored = loadStoredLocalFeedRecords();
-  setLocalFeedRecords(stored, { persist: false });
+  setLocalFeedRecords([]);
   rebuildLocalFeed();
-  if (localFeedRecords.length) {
-    dbg(`source=local-feed (restored ${localFeedRecords.length} files)`);
-  }
 }
 
 /* -------------------- persistence -------------------- */
@@ -1046,36 +886,25 @@ function getLocalVideoCard() {
 async function setLocalVideoFromFile(file) {
   if (!file) return;
   const name = file.name || 'Local video';
-  const hadExisting = !!(localVideoData?.hasLocal) || !!getLocalVideoCard();
-  let cardEl = null;
+  clearLocalVideoCard();
   try {
     const objectUrl = URL.createObjectURL(file);
-    cardEl = applyLocalVideoData({ name, objectUrl }, { logReason: hadExisting ? 'replaced' : 'initial' });
-    const dataUrl = await readFileAsDataURL(file);
-    persistLocalVideoData(name, dataUrl);
+    setLocalVideoObjectUrl(objectUrl);
+    const cardEl = insertLocalVideoCard(name, objectUrl);
+    if (cardEl) {
+      const label = truncateLog(name, 160);
+      dbg('source=local-session (local video added)', label);
+    }
+    return cardEl;
   } catch (err) {
     dbg('⚠️ local video load error', err?.message || err);
-  }
-  if (!cardEl) {
     setLocalVideoObjectUrl(null);
-    try { localStorage.removeItem(LOCAL_VIDEO_STORAGE_KEY); } catch {}
-    localVideoData = null;
-    setLocalVideoReady(false);
+    return null;
   }
 }
 
 function bootstrapLocalVideo(){
-  const stored = loadStoredLocalVideoData();
-  if (stored) {
-    const cardEl = applyLocalVideoData(stored);
-    if (!cardEl) {
-      try { localStorage.removeItem(LOCAL_VIDEO_STORAGE_KEY); } catch {}
-      localVideoData = null;
-      setLocalVideoReady(false);
-    }
-    return;
-  }
-  setLocalVideoReady(false);
+  clearLocalVideoCard();
 }
 
 /* --- unlock gesture --- */
@@ -1091,14 +920,6 @@ window.addEventListener('DOMContentLoaded',()=>{
   };
   ['pointerdown','touchstart','click','keydown','scroll','focus']
     .forEach(evt=>window.addEventListener(evt,unlock,{once:true,passive:true}));
-  if (localVideoInput) {
-    let hasStoredLocal = false;
-    try { hasStoredLocal = !!localStorage.getItem(LOCAL_VIDEO_STORAGE_KEY); } catch {}
-    if (!hasStoredLocal) {
-      localInputMode = 'replace';
-      requestAnimationFrame(()=>localVideoInput.click());
-    }
-  }
 });
 
 /* --- update Troubleshoot button to start live logging --- */
@@ -1661,12 +1482,6 @@ if (localVideoInput) {
     e.target.value = '';
 
     if (!files.length) {
-      if (localInputMode === 'replace' && !localVideoReady) {
-        setTimeout(()=>{
-          localInputMode = 'replace';
-          localVideoInput.click();
-        }, 120);
-      }
       localInputMode = 'replace';
       return;
     }
@@ -1676,8 +1491,7 @@ if (localVideoInput) {
         const [file] = files;
         if (file) await setLocalVideoFromFile(file);
       } else {
-        const hasPinned = !!(localVideoData?.hasLocal) || !!getLocalVideoCard();
-        if (!hasPinned && files[0]) {
+        if (!getLocalVideoCard() && files[0]) {
           await setLocalVideoFromFile(files[0]);
         }
         await addFilesToLocalFeed(files);
@@ -1699,6 +1513,8 @@ const replaceLocalBtn = document.getElementById('replaceLocalBtn');
 if (replaceLocalBtn && localVideoInput) {
   replaceLocalBtn.addEventListener('click', () => {
     localInputMode = 'replace';
+    clearLocalVideoCard();
+    localVideoInput.value = '';
     localVideoInput.click();
   });
 }
@@ -1706,6 +1522,7 @@ const addLocalVideosBtn = document.getElementById('addLocalVideosBtn');
 if (addLocalVideosBtn && localVideoInput) {
   addLocalVideosBtn.addEventListener('click', () => {
     localInputMode = 'add';
+    localVideoInput.value = '';
     localVideoInput.click();
   });
 }
