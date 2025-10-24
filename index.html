@@ -199,10 +199,10 @@
 <body>
 <div class="wrap">
   <div class="dash">
-    <button class="btn tile small" id="homeBtn">Home</button>
-    <button class="btn tile small" id="likesBtn">Likes</button>
-    <button class="btn tile small" id="discardBtn">Discard</button>
-    <button class="btn tile small" id="localBtn">Local</button>
+    <button class="btn tile small nav-btn" id="homeBtn" data-feed="home">Home</button>
+    <button class="btn tile small nav-btn" id="likesBtn" data-feed="likes">Likes</button>
+    <button class="btn tile small nav-btn" id="discardBtn" data-feed="discard">Discard</button>
+    <button class="btn tile small nav-btn" id="localBtn" data-feed="local">Local</button>
     <button class="btn tile grad small" id="newBatchBtn">New batch</button>
     <button class="btn tile small" id="refreshBtn">Refresh</button>
     <button class="btn tile small" id="shuffleBtn">Shuffle feed</button>
@@ -656,6 +656,14 @@ function persistLike(item){
   return !exists;
 }
 
+function handleLike(item){
+  if(!item) return false;
+  const added = persistLike(item);
+  showToast('Liked!', 'linear-gradient(135deg,var(--accent-1),var(--accent-2))');
+  if(item?.url) markViewed(item.url);
+  return added;
+}
+
 function persistDiscard(item){
   if(!item) return false;
   const exists=discards.some(it=>it.url===item.url);
@@ -778,6 +786,41 @@ const ui = {
   },
   progressVisibility(){ const visible = currentFeed==='home' && (pool.length>0 || !isFetching); el('#progressBtn').style.display = visible ? '' : 'none'; }
 };
+
+function renderHome(){
+  ui.showPage('home');
+}
+
+function renderLikes(){
+  paintList('likes', likes);
+  ui.showPage('likes');
+}
+
+function renderDiscard(){
+  paintList('discard', discards);
+  ui.showPage('discard');
+}
+
+function renderLocal(){
+  ensureLocalCacheReady().finally(()=>{
+    ui.showPage('local');
+  });
+}
+
+function renderFeed(){
+  if(currentFeed==='home'){ renderHome(); return; }
+  if(currentFeed==='likes'){ renderLikes(); return; }
+  if(currentFeed==='discard'){ renderDiscard(); return; }
+  if(currentFeed==='local'){ renderLocal(); }
+}
+
+function switchFeed(feedName){
+  if(!feedName) return;
+  if(!['home','likes','discard','local'].includes(feedName)) return;
+  currentFeed = feedName;
+  renderFeed();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
 /* =========================================================
    VIDEO ENGINE (gesture-first; Safari + Meta Quest)
@@ -1496,13 +1539,12 @@ function attachSwipe(wrap, item){
       setTimeout(()=>{
         const active = currentItem();
         if(didLike){
-          persistLike(active);
-          showToast('Liked!', 'linear-gradient(135deg,var(--accent-1),var(--accent-2))');
+          handleLike(active);
         }else{
           persistDiscard(active);
           showToast('Dismissed.', 'linear-gradient(135deg,var(--danger-1),var(--danger-2))');
+          if(active?.url) markViewed(active.url);
         }
-        markViewed(active.url);
         wrap.remove();
       },280);
     }else{
@@ -1580,11 +1622,10 @@ function card(item){
 
   likeBtn.addEventListener('click',()=>{
     const targetItem=wrap.__item || item;
-    persistLike(targetItem);
-    showToast('Liked!', 'linear-gradient(135deg,var(--accent-1),var(--accent-2))');
-    markViewed(targetItem?.url);
+    handleLike(targetItem);
     wrap.classList.add('burst');
     setTimeout(()=>wrap.remove(),260);
+    switchFeed('likes');
   });
 
   actions.appendChild(dismissBtn);
@@ -1793,24 +1834,21 @@ if (addLocalVideosBtn && localVideoInput) {
     localVideoInput.click();
   });
 }
-document.getElementById('homeBtn').addEventListener('click', ()=>ui.showPage('home'));
-document.getElementById('likesBtn').addEventListener('click', ()=>{ paintList('likes', likes); requestAnimationFrame(()=>ui.showPage('likes')); });
-document.getElementById('discardBtn').addEventListener('click', ()=>{ paintList('discard', discards); requestAnimationFrame(()=>ui.showPage('discard')); });
-const localBtn = document.getElementById('localBtn');
-if (localBtn) {
-  localBtn.addEventListener('click', () => {
-    ensureLocalCacheReady().finally(() => {
-      requestAnimationFrame(()=>ui.showPage('local'));
-    });
+document.querySelectorAll('.nav-btn[data-feed]').forEach(btn => {
+  btn.addEventListener('click', e => {
+    const target = e.currentTarget;
+    const feed = target?.dataset?.feed;
+    if(!feed) return;
+    switchFeed(feed);
   });
-}
+});
 document.getElementById('manageSubsBtn').addEventListener('click', ()=>{ buildSubsUI(); ui.showPage('subs'); el('#tabSubs').style.display=''; });
 document.getElementById('closeModal').addEventListener('click', ()=> el('#modal').classList.remove('show'));
 document.getElementById('connectBtn').addEventListener('click', beginOAuth);
 document.getElementById('subsSelectAll').addEventListener('click', ()=>{ document.querySelectorAll('#subsGrid input[type="checkbox"]')?.forEach(c=>c.checked=true); });
 document.getElementById('subsClearAll').addEventListener('click', ()=>{ document.querySelectorAll('#subsGrid input[type="checkbox"]')?.forEach(c=>c.checked=false); });
-document.getElementById('subsBack').addEventListener('click', ()=> ui.showPage('home'));
-document.getElementById('subsSave').addEventListener('click', async ()=>{ saveSubsFromUI(); await loadBatch(); ui.showPage('home'); });
+document.getElementById('subsBack').addEventListener('click', ()=> switchFeed('home'));
+document.getElementById('subsSave').addEventListener('click', async ()=>{ saveSubsFromUI(); await loadBatch(); switchFeed('home'); });
 
 if (clearLocalBtn) {
   clearLocalBtn.addEventListener('click', () => {
@@ -1824,22 +1862,8 @@ if (pageTabsEl) {
     const btn = e.target.closest('.pill[data-action]');
     if (!btn) return;
     const action = btn.dataset.action;
-    if (action === 'home') {
-      ui.showPage('home');
-      return;
-    }
-    if (action === 'likes') {
-      paintList('likes', likes);
-      ui.showPage('likes');
-      return;
-    }
-    if (action === 'discard') {
-      paintList('discard', discards);
-      ui.showPage('discard');
-      return;
-    }
-    if (action === 'local') {
-      ensureLocalCacheReady().finally(() => ui.showPage('local'));
+    if (['home','likes','discard','local'].includes(action)) {
+      switchFeed(action);
       return;
     }
     if (action === 'subs') {
