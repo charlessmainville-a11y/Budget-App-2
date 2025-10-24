@@ -1367,6 +1367,10 @@ async function renderChunk(where, n=CHUNK){
   }finally{ loadLock=false; ui.progressVisibility(); }
 }
 
+function waitForLocalVideoReady(){
+  return Promise.resolve();
+}
+
 /* -------------------- batching -------------------- */
 async function newBatch(){
   if(fetching) return;
