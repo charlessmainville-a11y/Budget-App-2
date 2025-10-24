@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 const loadedEnvPaths = new Set();
 
@@ -31,7 +31,7 @@ function parseLine(line) {
   return [key, value];
 }
 
-function loadEnv(options = {}) {
+export function loadEnv(options = {}) {
   const envPath = options.envPath
     ? path.resolve(options.envPath)
     : path.resolve(process.cwd(), '.env');
@@ -64,7 +64,7 @@ function loadEnv(options = {}) {
   loadedEnvPaths.add(envPath);
 }
 
-function getOpenAiApiKey(options = {}) {
+export function getOpenAiApiKey(options = {}) {
   loadEnv(options);
   const rawValue = process.env.OPENAI_API_KEY;
   if (!rawValue) {
@@ -73,7 +73,7 @@ function getOpenAiApiKey(options = {}) {
   return rawValue.trim();
 }
 
-module.exports = {
+export default {
   loadEnv,
   getOpenAiApiKey,
 };
