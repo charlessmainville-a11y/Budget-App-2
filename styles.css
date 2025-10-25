@@ -1,26 +1,27 @@
-#zoom-overlay {
+.zoom-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
+  background: rgba(0, 0, 0, 0.85);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.25s ease;
+  transition: opacity 0.2s ease;
   z-index: 9999;
+  cursor: zoom-out;
 }
 
-#zoom-overlay.active {
+.zoom-overlay.is-active {
   opacity: 1;
-  pointer-events: all;
+  pointer-events: auto;
 }
 
-#zoom-overlay img {
-  max-width: 95%;
-  max-height: 95%;
-  border-radius: 10px;
+.zoom-overlay img,
+.zoom-overlay video {
+  max-width: 95vw;
+  max-height: 95vh;
+  object-fit: contain;
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
-  transform: scale(1);
-  transition: transform 0.25s ease-out;
+  border-radius: 12px;
 }
