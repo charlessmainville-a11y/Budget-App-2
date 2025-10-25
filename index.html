@@ -44,8 +44,33 @@
   p{margin:0 0 1em;color:var(--text-200);}
   .wrap{max-width:920px;margin:0 auto;padding:24px 18px 110px;display:flex;flex-direction:column;gap:18px;}
 
-  .dash{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));align-items:stretch;}
-  @media(min-width:920px){.dash{gap:16px;grid-template-columns:repeat(3,minmax(0,1fr));}}
+  .dash{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:10px;
+    margin:20px 0;
+  }
+  .dash .btn{
+    flex:1 1 45%;
+    max-width:320px;
+    min-width:180px;
+    text-align:center;
+    transition:box-shadow 0.2s ease;
+  }
+  .dash .btn:hover{
+    box-shadow:0 0 10px rgba(255,255,255,0.1),0 22px 38px rgba(7,10,18,0.66);
+  }
+  #progressBtn{
+    flex:1 1 100%;
+    max-width:640px;
+  }
+  @media(max-width:520px){
+    .dash .btn{
+      flex:1 1 100%;
+      min-width:0;
+    }
+  }
   .btn{position:relative;border:1px solid var(--glass-border);border-radius:var(--radius-md);cursor:pointer;
     color:var(--text-100);padding:16px 18px;font:700 16px/1.1 var(--font-display);letter-spacing:0.015em;text-transform:none;
     background:linear-gradient(180deg,rgba(40,52,71,0.55),rgba(22,28,40,0.62));
@@ -234,10 +259,7 @@
     <button class="btn tile small nav-btn" id="discardBtn" data-feed="discard">Discard</button>
     <button class="btn tile small nav-btn" id="localBtn" data-feed="local">Local</button>
     <button class="btn tile grad small" id="newBatchBtn">New batch</button>
-    <button class="btn tile small" id="refreshBtn">Refresh</button>
     <button class="btn tile small" id="shuffleBtn">Shuffle feed</button>
-    <button class="btn tile small" id="replaceLocalBtn">Replace Video</button>
-    <button class="btn tile small" id="addLocalVideosBtn">Add Local Videos</button>
     <button class="btn tile small" id="manageSubsBtn">Subreddits</button>
     <button class="btn tile small" id="troubleBtn">Troubleshoot</button>
     <button class="btn tile small" id="connectBtn">Connect Reddit</button>
@@ -259,8 +281,9 @@
   <div id="home" class="feed page is-active" data-page="home"></div>
   <div id="likes" class="feed page hidden" data-page="likes"></div>
   <div id="discard" class="feed page hidden" data-page="discard"></div>
-  <div id="localTools" class="hidden" style="display:flex;justify-content:flex-end;margin:0 0 12px;gap:10px">
+  <div id="localTools" class="hidden" style="display:flex;justify-content:flex-end;margin:0 0 12px;gap:10px;flex-wrap:wrap">
     <button class="btn tile small" id="clearLocalBtn">Clear Local Videos</button>
+    <button class="btn tile small" id="addLocalVideosBtn">Add Local Videos</button>
   </div>
   <div id="local" class="feed page hidden" data-page="local"></div>
 
@@ -1824,20 +1847,7 @@ window.addEventListener('beforeunload', () => {
 });
 
 document.getElementById('newBatchBtn').addEventListener('click', loadBatch);
-const refreshBtn = document.getElementById('refreshBtn');
-if(refreshBtn){
-  refreshBtn.addEventListener('click', ()=>{ loadBatch(); });
-}
 document.getElementById('shuffleBtn').addEventListener('click', shuffleVisibleAndPool);
-const replaceLocalBtn = document.getElementById('replaceLocalBtn');
-if (replaceLocalBtn && localVideoInput) {
-  replaceLocalBtn.addEventListener('click', () => {
-    localInputMode = 'replace';
-    clearLocalVideoCard();
-    localVideoInput.value = '';
-    localVideoInput.click();
-  });
-}
 const addLocalVideosBtn = document.getElementById('addLocalVideosBtn');
 if (addLocalVideosBtn && localVideoInput) {
   addLocalVideosBtn.addEventListener('click', () => {
