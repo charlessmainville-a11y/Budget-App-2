@@ -191,6 +191,28 @@
     box-shadow:0 18px 32px rgba(0,0,0,0.45);
   }
 
+  /* Fullscreen Image Viewer */
+  #img-viewer-overlay{
+    position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+    background:rgba(2,4,8,0.88);
+    opacity:0; pointer-events:none; transition:opacity 0.25s ease; z-index:10000;
+  }
+  #img-viewer-overlay.active{ opacity:1; pointer-events:auto; }
+  #img-viewer-img{
+    max-width:96vw; max-height:96vh; transform:translate3d(0,0,0) scale(1);
+    will-change:transform;
+    border-radius:12px; box-shadow:0 24px 60px rgba(0,0,0,0.8);
+    touch-action:none;
+  }
+  #img-viewer-close{
+    position:fixed; top:14px; right:14px;
+    border:1px solid var(--glass-border);
+    border-radius:12px; padding:10px 14px; font:800 14px/1 var(--font-display);
+    background:linear-gradient(180deg,rgba(42,54,74,0.55),rgba(26,33,46,0.68));
+    -webkit-backdrop-filter:blur(12px) saturate(160%); backdrop-filter:blur(12px) saturate(160%);
+    color:var(--text-100); box-shadow:0 10px 24px rgba(0,0,0,0.45),inset 0 1px 0 rgba(255,255,255,0.18);
+  }
+
   @media(prefers-reduced-motion:reduce){
     *,*::before,*::after{transition:none!important;animation-duration:0.01ms!important;animation-iteration-count:1!important;}
     .btn:hover::after{opacity:0;}
@@ -249,6 +271,11 @@
       <div class="subs-grid" id="subsGrid"></div>
     </div>
   </section>
+</div>
+
+<div id="img-viewer-overlay" aria-hidden="true">
+  <img id="img-viewer-img" alt="">
+  <button id="img-viewer-close" type="button">Close</button>
 </div>
 
 <div class="modal" id="modal">
@@ -1243,7 +1270,155 @@ function attachVideoDiagnostics(){
   });
 }
 
+/* =========================================================
+   🖼 Fullscreen Image Viewer (double-tap open, pinch zoom, swipe-down close)
+   ========================================================= */
+(function(){
+  let overlay, imgEl, closeBtn;
+  let scale = 1, targetScale = 1, minScale = 1, maxScale = 4;
+  let lastTapTime = 0;
+  let startX = 0, startY = 0, currX = 0, currY = 0;
+  let pinching = false, startDist = 0, startScale = 1;
+  let dragging = false, dragStartY = 0, totalDragY = 0;
+  let rafId = 0;
+
+  function ensureEls(){
+    overlay = document.getElementById('img-viewer-overlay');
+    imgEl = document.getElementById('img-viewer-img');
+    closeBtn = document.getElementById('img-viewer-close');
+  }
+  function setTransform(){
+    if (!imgEl) return;
+    imgEl.style.transform = `translate3d(${currX}px, ${currY}px, 0) scale(${scale})`;
+  }
+  function openViewer(src){
+    ensureEls();
+    if(!overlay || !imgEl) return;
+    imgEl.src = src;
+    scale = targetScale = 1;
+    currX = currY = 0;
+    setTransform();
+    overlay.classList.add('active');
+    overlay.setAttribute('aria-hidden','false');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeViewer(){
+    if(!overlay) return;
+    overlay.classList.remove('active');
+    overlay.setAttribute('aria-hidden','true');
+    document.body.style.overflow = '';
+  }
+
+  function dist(t0,t1){
+    const dx = t0.clientX - t1.clientX;
+    const dy = t0.clientY - t1.clientY;
+    return Math.hypot(dx, dy);
+  }
+
+  function onOverlayPointerDown(e){
+    if(e.pointerType === 'mouse' && e.button !== 0) return;
+    dragging = true;
+    dragStartY = e.clientY;
+    totalDragY = 0;
+  }
+  function onOverlayPointerMove(e){
+    if(!dragging || pinching) return;
+    totalDragY = e.clientY - dragStartY;
+    overlay.style.transform = `translateY(${Math.max(0, totalDragY*0.35)}px)`;
+    overlay.style.opacity = (Math.abs(totalDragY) > 0) ? (1 - Math.min(0.45, Math.abs(totalDragY)/800)) : 1;
+  }
+  function onOverlayPointerUp(){
+    if(!dragging) return;
+    dragging = false;
+    overlay.style.transform = '';
+    overlay.style.opacity = '';
+    if(totalDragY > 140){ closeViewer(); }
+  }
+
+  function onImgTouchStart(e){
+    if(e.touches.length === 2){
+      pinching = true;
+      startDist = dist(e.touches[0], e.touches[1]);
+      startScale = scale;
+    }else if(e.touches.length === 1){
+      startX = e.touches[0].clientX - currX;
+      startY = e.touches[0].clientY - currY;
+    }
+  }
+  function onImgTouchMove(e){
+    if(e.touches.length === 2){
+      e.preventDefault();
+      const d = dist(e.touches[0], e.touches[1]);
+      const factor = d / startDist;
+      targetScale = Math.min(maxScale, Math.max(minScale, startScale * factor));
+      scale += (targetScale - scale) * 0.3;
+      setTransform();
+    }else if(e.touches.length === 1){
+      e.preventDefault();
+      currX = e.touches[0].clientX - startX;
+      currY = e.touches[0].clientY - startY;
+      setTransform();
+    }
+  }
+  function onImgTouchEnd(e){
+    if(e.touches.length < 2) pinching = false;
+  }
+
+  function onImgWheel(e){
+    if(!overlay.classList.contains('active')) return;
+    e.preventDefault();
+    const delta = -e.deltaY;
+    targetScale = Math.min(maxScale, Math.max(minScale, scale + delta*0.0018));
+    scale += (targetScale - scale) * 0.5;
+    setTransform();
+  }
+
+  function onGridClick(e){
+    const img = e.target.closest('img.media, .zoomable img, img');
+    if(!img) return;
+    if(img.tagName !== 'IMG') return;
+    const now = performance.now();
+    const dt = now - lastTapTime;
+    lastTapTime = now;
+    if(dt < 280){
+      openViewer(img.currentSrc || img.src);
+    }
+  }
+
+  function onOverlayClick(e){
+    if(e.target === overlay || e.target === closeBtn){
+      closeViewer();
+    }
+  }
+
+  function bind(){
+    ensureEls();
+    if(!overlay || !imgEl) return;
+    document.removeEventListener('click', onGridClick, true);
+    document.addEventListener('click', onGridClick, true);
+    overlay.removeEventListener('click', onOverlayClick);
+    overlay.addEventListener('click', onOverlayClick);
+    overlay.removeEventListener('pointerdown', onOverlayPointerDown);
+    overlay.removeEventListener('pointermove', onOverlayPointerMove);
+    overlay.removeEventListener('pointerup', onOverlayPointerUp);
+    overlay.addEventListener('pointerdown', onOverlayPointerDown);
+    overlay.addEventListener('pointermove', onOverlayPointerMove);
+    overlay.addEventListener('pointerup', onOverlayPointerUp);
+    imgEl.removeEventListener('touchstart', onImgTouchStart, {passive:false});
+    imgEl.removeEventListener('touchmove', onImgTouchMove, {passive:false});
+    imgEl.removeEventListener('touchend', onImgTouchEnd);
+    imgEl.addEventListener('touchstart', onImgTouchStart, {passive:false});
+    imgEl.addEventListener('touchmove', onImgTouchMove, {passive:false});
+    imgEl.addEventListener('touchend', onImgTouchEnd);
+    imgEl.addEventListener('wheel', onImgWheel, {passive:false});
+  }
+
+  window.__installImageViewer = function(){ bind(); };
+})();
+
 /* hook it to new batches */
+__installImageViewer();
+document.addEventListener('videosBuilt', __installImageViewer);
 document.addEventListener('videosBuilt', attachVideoDiagnostics);
 
 
