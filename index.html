@@ -364,6 +364,17 @@ const pages = {
   subs: document.getElementById('subsPage')
 };
 let activePageEl = pages.home || null;
+let _fsPrevScroll = 0;
+
+function toggleFullscreen(videoEl) {
+  if (!videoEl) return;
+  if (!document.fullscreenElement) {
+    _fsPrevScroll = window.scrollY;
+    videoEl.requestFullscreen?.().catch(()=>{});
+  } else {
+    document.exitFullscreen?.();
+  }
+}
 
 /* --- unified debug logger --- */
 function dbg(...args) {
@@ -907,7 +918,6 @@ function showMuteToast(isMuted){
 }
 
 /* --- fullscreen scroll restore --- */
-let _fsPrevScroll=0;
 document.addEventListener('fullscreenchange',()=>{
   if(document.fullscreenElement){
     document.body.style.overflow='hidden';
@@ -988,9 +998,35 @@ function makeVideo(url, thumb, provider) {
     display: 'none' // hidden until video starts
   });
 
+  const isFullscreenEligible = provider === 'reddit' || provider === 'direct';
+  let fsBtn = null;
+  if (isFullscreenEligible) {
+    fsBtn = document.createElement('button');
+    fsBtn.textContent = '⛶';
+    Object.assign(fsBtn.style, {
+      position: 'absolute',
+      top: '10px',
+      right: '56px',
+      fontSize: '22px',
+      border: 'none',
+      background: 'rgba(0,0,0,0.5)',
+      color: '#fff',
+      borderRadius: '50%',
+      width: '40px',
+      height: '40px',
+      cursor: 'pointer',
+      display: 'block'
+    });
+    fsBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      toggleFullscreen(v);
+    });
+  }
+
   overlay.appendChild(playBtn);
   wrap.appendChild(overlay);
   wrap.appendChild(muteBtn);
+  if (fsBtn) wrap.appendChild(fsBtn);
 
   // --- Play handler ---
   playBtn.addEventListener('click', async e => {
@@ -1017,6 +1053,13 @@ function makeVideo(url, thumb, provider) {
   // --- Log errors for troubleshoot ---
   v.addEventListener('error', e => dbg('❌ video error', url, e));
 
+  if (isFullscreenEligible) {
+    v.addEventListener('dblclick', e => {
+      e.stopPropagation();
+      toggleFullscreen(v);
+    });
+  }
+
   // mark as user-started when playback resumes from other gestures (e.g. fullscreen)
   v.addEventListener('play', ()=>{ v.dataset.userStarted = '1'; }, {once:true});
 
@@ -1029,7 +1072,7 @@ function makeVideo(url, thumb, provider) {
 /* =========================================================
    📼 VideoContainer — Autoplay fallback
    ========================================================= */
-function VideoContainer({ title, url, poster = '', controls = false, onVideo = null, onPlayError = null } = {}) {
+function VideoContainer({ title, url, poster = '', controls = false, provider = '', onVideo = null, onPlayError = null } = {}) {
   const container = document.createElement('article');
   container.className = 'card';
   container.dataset.component = 'video-container';
@@ -1048,6 +1091,11 @@ function VideoContainer({ title, url, poster = '', controls = false, onVideo = n
   video.setAttribute('autoplay', '');
   video.setAttribute('muted', '');
   video.setAttribute('loop', '');
+  const providerTag = typeof provider === 'string' ? provider : '';
+  if (providerTag) {
+    video.dataset.provider = providerTag;
+    container.dataset.provider = providerTag;
+  }
   if (controls) {
     video.controls = true;
     video.setAttribute('controls', '');
@@ -1060,6 +1108,32 @@ function VideoContainer({ title, url, poster = '', controls = false, onVideo = n
 
   container.appendChild(video);
 
+  const isFullscreenEligible = providerTag === 'reddit' || providerTag === 'direct';
+  let fsBtn = null;
+  if (isFullscreenEligible) {
+    fsBtn = document.createElement('button');
+    fsBtn.textContent = '⛶';
+    Object.assign(fsBtn.style, {
+      position: 'absolute',
+      top: '10px',
+      right: '56px',
+      fontSize: '22px',
+      border: 'none',
+      background: 'rgba(0,0,0,0.5)',
+      color: '#fff',
+      borderRadius: '50%',
+      width: '40px',
+      height: '40px',
+      cursor: 'pointer',
+      display: 'block'
+    });
+    fsBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      toggleFullscreen(video);
+    });
+    container.appendChild(fsBtn);
+  }
+
   if (title) {
     const caption = document.createElement('div');
     caption.className = 'caption';
@@ -1069,6 +1143,13 @@ function VideoContainer({ title, url, poster = '', controls = false, onVideo = n
 
   if (typeof onVideo === 'function') {
     try { onVideo(video); } catch (err) { dbg('⚠️ onVideo handler error', err?.message || err); }
+  }
+
+  if (isFullscreenEligible) {
+    video.addEventListener('dblclick', e => {
+      e.stopPropagation();
+      toggleFullscreen(video);
+    });
   }
 
   requestAnimationFrame(()=>{ try{ io.observe(video); safePlay(video); }catch{} });
@@ -1505,6 +1586,7 @@ function card(item){
       url: item.url,
       poster: item.thumb || '',
       controls: false,
+      provider: item.provider || '',
       onVideo(video){
         media = video;
         video.dataset.provider = item.provider || '';
