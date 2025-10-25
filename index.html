@@ -191,28 +191,6 @@
     box-shadow:0 18px 32px rgba(0,0,0,0.45);
   }
 
-  /* Fullscreen Image Viewer */
-  #img-viewer-overlay{
-    position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
-    background:rgba(2,4,8,0.88);
-    opacity:0; pointer-events:none; transition:opacity 0.25s ease; z-index:10000;
-  }
-  #img-viewer-overlay.active{ opacity:1; pointer-events:auto; }
-  #img-viewer-img{
-    max-width:96vw; max-height:96vh; transform:translate3d(0,0,0) scale(1);
-    will-change:transform;
-    border-radius:12px; box-shadow:0 24px 60px rgba(0,0,0,0.8);
-    touch-action:none;
-  }
-  #img-viewer-close{
-    position:fixed; top:14px; right:14px;
-    border:1px solid var(--glass-border);
-    border-radius:12px; padding:10px 14px; font:800 14px/1 var(--font-display);
-    background:linear-gradient(180deg,rgba(42,54,74,0.55),rgba(26,33,46,0.68));
-    -webkit-backdrop-filter:blur(12px) saturate(160%); backdrop-filter:blur(12px) saturate(160%);
-    color:var(--text-100); box-shadow:0 10px 24px rgba(0,0,0,0.45),inset 0 1px 0 rgba(255,255,255,0.18);
-  }
-
   @media(prefers-reduced-motion:reduce){
     *,*::before,*::after{transition:none!important;animation-duration:0.01ms!important;animation-iteration-count:1!important;}
     .btn:hover::after{opacity:0;}
@@ -271,11 +249,6 @@
       <div class="subs-grid" id="subsGrid"></div>
     </div>
   </section>
-</div>
-
-<div id="img-viewer-overlay" aria-hidden="true">
-  <img id="img-viewer-img" alt="">
-  <button id="img-viewer-close" type="button">Close</button>
 </div>
 
 <div class="modal" id="modal">
@@ -1074,104 +1047,6 @@ function VideoContainer({ title, url, poster = '', controls = false, onVideo = n
   return container;
 }
 
-function attachPreviewWatchdog(video, item, wrap){
-  if (!(video instanceof HTMLVideoElement)) {
-    return {
-      cleanup(){},
-      downgradeToImage(){},
-    };
-  }
-
-  const fallbackStill = item.previewStill || item.thumb || '';
-  const logUrl = truncateLog(item.url || video.currentSrc || video.src || '', 200);
-  let downgraded = false;
-  let retryAttempted = false;
-  let cleanupLogged = false;
-  let retryTimer = null;
-  let downgradeTimer = null;
-  let rafId = null;
-
-  const handleReady = () => {
-    cleanup();
-  };
-
-  const cleanup = () => {
-    if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; }
-    if (downgradeTimer) { clearTimeout(downgradeTimer); downgradeTimer = null; }
-    if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
-    video.removeEventListener('loadeddata', handleReady);
-    video.removeEventListener('playing', handleReady);
-    video.removeEventListener('error', handleError);
-    if (!cleanupLogged) {
-      cleanupLogged = true;
-      dbg(`🧹 cleared watchdog for ${logUrl}`);
-    }
-  };
-
-  const downgradeToImage = (reason) => {
-    if (downgraded) return;
-    downgraded = true;
-    cleanup();
-    if (!fallbackStill) return;
-    if (!wrap?.isConnected || !video.isConnected) return;
-    try { io.unobserve(video); } catch {}
-    const img = document.createElement('img');
-    img.className = 'media';
-    img.loading = 'lazy';
-    img.alt = item.title || '';
-    img.src = fallbackStill;
-    img.addEventListener('error', ()=>{ if (wrap?.isConnected) wrap.remove(); });
-    if (video.isConnected) {
-      video.replaceWith(img);
-    }
-    if (wrap) {
-      const downgradedItem = { ...item, t: 'image', url: fallbackStill, thumb: fallbackStill, provider: 'preview-image', isPreviewMp4: false };
-      wrap.__item = downgradedItem;
-      wrap.classList.add('zoomable');
-    }
-    if (reason === 'stall-3s') {
-      dbg(`⚠️ preview.mp4 stalled >3s, downgraded to static image ${logUrl}`);
-    } else {
-      dbg(`⚠️ downgraded preview.mp4 to static image ${truncateLog(fallbackStill, 200)}`);
-    }
-    dbg('source=preview-image', truncateLog(fallbackStill, 200));
-  };
-
-  const handleError = () => downgradeToImage('error');
-
-  const checkConnected = () => {
-    if (!wrap?.isConnected || !video.isConnected) {
-      cleanup();
-      return;
-    }
-    rafId = requestAnimationFrame(checkConnected);
-  };
-
-  video.addEventListener('loadeddata', handleReady, { once: true });
-  video.addEventListener('playing', handleReady, { once: true });
-  video.addEventListener('error', handleError);
-
-  rafId = requestAnimationFrame(checkConnected);
-
-  retryTimer = setTimeout(()=>{
-    if (downgraded || retryAttempted) return;
-    if (!wrap?.isConnected || !video.isConnected) { cleanup(); return; }
-    if (video.readyState >= 2) return;
-    retryAttempted = true;
-    dbg(`⚠️ preview.mp4 stalled at 2s, retrying safePlay ${logUrl}`);
-    safePlay(video);
-  }, 2000);
-
-  downgradeTimer = setTimeout(()=>{
-    if (downgraded) return;
-    if (!wrap?.isConnected || !video.isConnected) { cleanup(); return; }
-    if (video.readyState >= 2) return;
-    downgradeToImage('stall-3s');
-  }, 3000);
-
-  return { cleanup, downgradeToImage };
-}
-
 function getLocalVideoCard() {
   if (localVideoCard) return localVideoCard;
   const existing = document.querySelector('#home [data-kind="local-video"]');
@@ -1270,155 +1145,6 @@ function attachVideoDiagnostics(){
   });
 }
 
-/* =========================================================
-   🖼 Fullscreen Image Viewer (double-tap open, pinch zoom, swipe-down close)
-   ========================================================= */
-(function(){
-  let overlay, imgEl, closeBtn;
-  let scale = 1, targetScale = 1, minScale = 1, maxScale = 4;
-  let lastTapTime = 0;
-  let startX = 0, startY = 0, currX = 0, currY = 0;
-  let pinching = false, startDist = 0, startScale = 1;
-  let dragging = false, dragStartY = 0, totalDragY = 0;
-  let rafId = 0;
-
-  function ensureEls(){
-    overlay = document.getElementById('img-viewer-overlay');
-    imgEl = document.getElementById('img-viewer-img');
-    closeBtn = document.getElementById('img-viewer-close');
-  }
-  function setTransform(){
-    if (!imgEl) return;
-    imgEl.style.transform = `translate3d(${currX}px, ${currY}px, 0) scale(${scale})`;
-  }
-  function openViewer(src){
-    ensureEls();
-    if(!overlay || !imgEl) return;
-    imgEl.src = src;
-    scale = targetScale = 1;
-    currX = currY = 0;
-    setTransform();
-    overlay.classList.add('active');
-    overlay.setAttribute('aria-hidden','false');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeViewer(){
-    if(!overlay) return;
-    overlay.classList.remove('active');
-    overlay.setAttribute('aria-hidden','true');
-    document.body.style.overflow = '';
-  }
-
-  function dist(t0,t1){
-    const dx = t0.clientX - t1.clientX;
-    const dy = t0.clientY - t1.clientY;
-    return Math.hypot(dx, dy);
-  }
-
-  function onOverlayPointerDown(e){
-    if(e.pointerType === 'mouse' && e.button !== 0) return;
-    dragging = true;
-    dragStartY = e.clientY;
-    totalDragY = 0;
-  }
-  function onOverlayPointerMove(e){
-    if(!dragging || pinching) return;
-    totalDragY = e.clientY - dragStartY;
-    overlay.style.transform = `translateY(${Math.max(0, totalDragY*0.35)}px)`;
-    overlay.style.opacity = (Math.abs(totalDragY) > 0) ? (1 - Math.min(0.45, Math.abs(totalDragY)/800)) : 1;
-  }
-  function onOverlayPointerUp(){
-    if(!dragging) return;
-    dragging = false;
-    overlay.style.transform = '';
-    overlay.style.opacity = '';
-    if(totalDragY > 140){ closeViewer(); }
-  }
-
-  function onImgTouchStart(e){
-    if(e.touches.length === 2){
-      pinching = true;
-      startDist = dist(e.touches[0], e.touches[1]);
-      startScale = scale;
-    }else if(e.touches.length === 1){
-      startX = e.touches[0].clientX - currX;
-      startY = e.touches[0].clientY - currY;
-    }
-  }
-  function onImgTouchMove(e){
-    if(e.touches.length === 2){
-      e.preventDefault();
-      const d = dist(e.touches[0], e.touches[1]);
-      const factor = d / startDist;
-      targetScale = Math.min(maxScale, Math.max(minScale, startScale * factor));
-      scale += (targetScale - scale) * 0.3;
-      setTransform();
-    }else if(e.touches.length === 1){
-      e.preventDefault();
-      currX = e.touches[0].clientX - startX;
-      currY = e.touches[0].clientY - startY;
-      setTransform();
-    }
-  }
-  function onImgTouchEnd(e){
-    if(e.touches.length < 2) pinching = false;
-  }
-
-  function onImgWheel(e){
-    if(!overlay.classList.contains('active')) return;
-    e.preventDefault();
-    const delta = -e.deltaY;
-    targetScale = Math.min(maxScale, Math.max(minScale, scale + delta*0.0018));
-    scale += (targetScale - scale) * 0.5;
-    setTransform();
-  }
-
-  function onGridClick(e){
-    const img = e.target.closest('img.media, .zoomable img, img');
-    if(!img) return;
-    if(img.tagName !== 'IMG') return;
-    const now = performance.now();
-    const dt = now - lastTapTime;
-    lastTapTime = now;
-    if(dt < 280){
-      openViewer(img.currentSrc || img.src);
-    }
-  }
-
-  function onOverlayClick(e){
-    if(e.target === overlay || e.target === closeBtn){
-      closeViewer();
-    }
-  }
-
-  function bind(){
-    ensureEls();
-    if(!overlay || !imgEl) return;
-    document.removeEventListener('click', onGridClick, true);
-    document.addEventListener('click', onGridClick, true);
-    overlay.removeEventListener('click', onOverlayClick);
-    overlay.addEventListener('click', onOverlayClick);
-    overlay.removeEventListener('pointerdown', onOverlayPointerDown);
-    overlay.removeEventListener('pointermove', onOverlayPointerMove);
-    overlay.removeEventListener('pointerup', onOverlayPointerUp);
-    overlay.addEventListener('pointerdown', onOverlayPointerDown);
-    overlay.addEventListener('pointermove', onOverlayPointerMove);
-    overlay.addEventListener('pointerup', onOverlayPointerUp);
-    imgEl.removeEventListener('touchstart', onImgTouchStart, {passive:false});
-    imgEl.removeEventListener('touchmove', onImgTouchMove, {passive:false});
-    imgEl.removeEventListener('touchend', onImgTouchEnd);
-    imgEl.addEventListener('touchstart', onImgTouchStart, {passive:false});
-    imgEl.addEventListener('touchmove', onImgTouchMove, {passive:false});
-    imgEl.addEventListener('touchend', onImgTouchEnd);
-    imgEl.addEventListener('wheel', onImgWheel, {passive:false});
-  }
-
-  window.__installImageViewer = function(){ bind(); };
-})();
-
-/* hook it to new batches */
-__installImageViewer();
-document.addEventListener('videosBuilt', __installImageViewer);
 document.addEventListener('videosBuilt', attachVideoDiagnostics);
 
 
@@ -1754,16 +1480,10 @@ function card(item){
         media = video;
         video.dataset.provider = item.provider || '';
         video.dataset.previewMp4 = '1';
-        const fallbackStill = item.previewStill || item.thumb || '';
-        if (fallbackStill) video.dataset.previewFallback = fallbackStill;
       }
     });
     wrap.__item = item;
     media = media || wrap.querySelector('video.media');
-    if (media instanceof HTMLVideoElement) {
-      const { downgradeToImage } = attachPreviewWatchdog(media, item, wrap);
-      media.__handlePlayError = () => downgradeToImage('play-error');
-    }
   } else {
     wrap=document.createElement('article'); wrap.className='card'; wrap.__item=item;
 
@@ -1772,13 +1492,15 @@ function card(item){
       media = document.createElement('img'); media.className='media'; media.loading='lazy'; media.alt=item.title||''; media.src=item.url;
       media.addEventListener('error',()=>wrap.remove());
     }
-    if(item.t!=='video' && item.t!=='gif'){
-      wrap.classList.add('zoomable');
-    }
     wrap.appendChild(media);
 
     const caption=document.createElement('div'); caption.className='caption';
     caption.textContent = captionText; wrap.appendChild(caption);
+  }
+
+  const zoomTarget = media?.matches?.('.media') ? media : media?.querySelector?.('.media');
+  if (zoomTarget instanceof HTMLElement) {
+    zoomTarget.classList.add('zoomable');
   }
 
   const actions=document.createElement('div'); actions.className='action-buttons';
@@ -1815,6 +1537,114 @@ function card(item){
   attachSwipe(wrap, wrap.__item || item);
   return wrap;
 }
+
+let zoomOverlayEl = null;
+let zoomOverlayMediaEl = null;
+
+function ensureZoomOverlay(){
+  if (!zoomOverlayEl) {
+    zoomOverlayEl = document.createElement('div');
+    zoomOverlayEl.className = 'zoom-overlay';
+    zoomOverlayEl.setAttribute('aria-hidden', 'true');
+    zoomOverlayEl.addEventListener('click', closeZoomOverlay);
+    document.body.appendChild(zoomOverlayEl);
+  }
+  return zoomOverlayEl;
+}
+
+function openZoomOverlay(sourceEl){
+  const overlay = ensureZoomOverlay();
+  const target = sourceEl instanceof Element ? sourceEl : null;
+  if (!target) return;
+
+  const clone = target.cloneNode(true);
+  if (clone instanceof HTMLVideoElement) {
+    const src = target.currentSrc || target.src;
+    if (src) clone.src = src;
+    clone.controls = false;
+    clone.removeAttribute('controls');
+    clone.muted = true;
+    clone.defaultMuted = true;
+    clone.setAttribute('muted', '');
+    clone.playsInline = true;
+    clone.setAttribute('playsinline', '');
+    clone.setAttribute('webkit-playsinline', '');
+    clone.autoplay = true;
+    if (target.loop) clone.loop = true;
+  } else if (clone instanceof HTMLImageElement) {
+    const src = target.currentSrc || target.src;
+    if (src) clone.src = src;
+    clone.decoding = 'async';
+  }
+
+  overlay.innerHTML = '';
+  overlay.appendChild(clone);
+  overlay.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  requestAnimationFrame(()=>{
+    overlay.classList.add('is-active');
+    if (clone instanceof HTMLVideoElement) {
+      clone.play().catch(()=>{});
+    }
+  });
+  zoomOverlayMediaEl = clone;
+}
+
+function closeZoomOverlay(){
+  if (!zoomOverlayEl) return;
+  const overlay = zoomOverlayEl;
+  if (!overlay.classList.contains('is-active')) {
+    overlay.innerHTML = '';
+    overlay.setAttribute('aria-hidden', 'true');
+    zoomOverlayMediaEl = null;
+    document.body.style.overflow = '';
+    return;
+  }
+
+  if (zoomOverlayMediaEl instanceof HTMLVideoElement) {
+    zoomOverlayMediaEl.pause();
+  }
+
+  overlay.classList.remove('is-active');
+  overlay.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+
+  const cleanup = (event) => {
+    if (event && event.target !== overlay) return;
+    overlay.innerHTML = '';
+    zoomOverlayMediaEl = null;
+  };
+
+  overlay.addEventListener('transitionend', function handle(e){
+    if (e.target !== overlay) return;
+    overlay.removeEventListener('transitionend', handle);
+    cleanup(e);
+  });
+
+  setTimeout(()=>{
+    if (!overlay.classList.contains('is-active')) {
+      cleanup();
+    }
+  }, 250);
+}
+
+document.addEventListener('click', event => {
+  if (event.defaultPrevented) return;
+  if (typeof event.button === 'number' && event.button !== 0) return;
+  const el = event.target instanceof Element
+    ? event.target.closest('.zoomable img, .zoomable video, .media.zoomable')
+    : null;
+  if (!el) return;
+  if (zoomOverlayEl && zoomOverlayEl.contains(el)) return;
+  event.preventDefault();
+  openZoomOverlay(el);
+}, true);
+
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') {
+    closeZoomOverlay();
+  }
+});
 
 async function renderChunk(where, n=CHUNK){
   if(loadLock) return;
@@ -2114,6 +1944,5 @@ bootstrapLocalVideo();
   await loadBatch();
 })();
 </script>
-<script type="module" src="./app.js"></script>
 </body>
 </html>
