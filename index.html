@@ -191,6 +191,30 @@
     box-shadow:0 18px 32px rgba(0,0,0,0.45);
   }
 
+  #zoomOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.9);
+    overscroll-behavior: contain;
+    touch-action: none;
+    transform: none !important;
+    backface-visibility: hidden;
+    isolation: isolate;
+  }
+  #zoomOverlay.open { display: flex; }
+  #zoomOverlay img, #zoomOverlay video {
+    max-width: 100vw;
+    max-height: 100vh;
+    transform: none !important;
+  }
+  html.is-zoom-open, html.is-zoom-open body, html.is-zoom-open .wrap, html.is-zoom-open .card {
+    transform: none !important;
+  }
+
   @media(prefers-reduced-motion:reduce){
     *,*::before,*::after{transition:none!important;animation-duration:0.01ms!important;animation-iteration-count:1!important;}
     .btn:hover::after{opacity:0;}
@@ -1498,9 +1522,8 @@ function card(item){
     caption.textContent = captionText; wrap.appendChild(caption);
   }
 
-  const zoomTarget = media?.matches?.('.media') ? media : media?.querySelector?.('.media');
-  if (zoomTarget instanceof HTMLElement) {
-    zoomTarget.classList.add('zoomable');
+  if (media instanceof HTMLImageElement) {
+    media.classList.add('zoomable');
   }
 
   const actions=document.createElement('div'); actions.className='action-buttons';
@@ -1537,151 +1560,6 @@ function card(item){
   attachSwipe(wrap, wrap.__item || item);
   return wrap;
 }
-
-let zoomOverlayEl = null;
-let zoomOverlayMediaEl = null;
-let previousBodyOverflow = '';
-let previousBodyTransform = '';
-
-function ensureZoomOverlay(){
-  if (!zoomOverlayEl) {
-    zoomOverlayEl = document.createElement('div');
-    zoomOverlayEl.className = 'zoom-overlay';
-    zoomOverlayEl.setAttribute('aria-hidden', 'true');
-    zoomOverlayEl.addEventListener('click', closeZoomOverlay);
-    zoomOverlayEl.style.position = 'fixed';
-    zoomOverlayEl.style.top = '0';
-    zoomOverlayEl.style.right = '0';
-    zoomOverlayEl.style.bottom = '0';
-    zoomOverlayEl.style.left = '0';
-    zoomOverlayEl.style.display = 'flex';
-    zoomOverlayEl.style.alignItems = 'center';
-    zoomOverlayEl.style.justifyContent = 'center';
-    zoomOverlayEl.style.background = 'rgba(0,0,0,0.85)';
-    zoomOverlayEl.style.backfaceVisibility = 'hidden';
-    zoomOverlayEl.style.willChange = 'opacity';
-    zoomOverlayEl.style.isolation = 'isolate';
-    zoomOverlayEl.style.zIndex = '9999';
-    zoomOverlayEl.style.cursor = 'zoom-out';
-    zoomOverlayEl.style.setProperty('transform', 'none', 'important');
-    document.body.appendChild(zoomOverlayEl);
-  }
-  if (zoomOverlayEl.parentElement !== document.body) {
-    document.body.appendChild(zoomOverlayEl);
-  }
-  return zoomOverlayEl;
-}
-
-function openZoomOverlay(sourceEl){
-  const overlay = ensureZoomOverlay();
-  const target = sourceEl instanceof Element ? sourceEl : null;
-  if (!target) return;
-
-  const clone = target.cloneNode(true);
-  if (clone instanceof HTMLVideoElement) {
-    const src = target.currentSrc || target.src;
-    if (src) clone.src = src;
-    clone.controls = false;
-    clone.removeAttribute('controls');
-    clone.muted = true;
-    clone.defaultMuted = true;
-    clone.setAttribute('muted', '');
-    clone.playsInline = true;
-    clone.setAttribute('playsinline', '');
-    clone.setAttribute('webkit-playsinline', '');
-    clone.autoplay = true;
-    if (target.loop) clone.loop = true;
-  } else if (clone instanceof HTMLImageElement) {
-    const src = target.currentSrc || target.src;
-    if (src) clone.src = src;
-    clone.decoding = 'async';
-  }
-
-  clone.style.position = 'fixed';
-  clone.style.top = '0';
-  clone.style.right = '0';
-  clone.style.bottom = '0';
-  clone.style.left = '0';
-  clone.style.margin = 'auto';
-  clone.style.setProperty('transform', 'none', 'important');
-
-  overlay.innerHTML = '';
-  overlay.appendChild(clone);
-  overlay.setAttribute('aria-hidden', 'false');
-  previousBodyOverflow = document.body.style.overflow;
-  previousBodyTransform = document.body.style.transform;
-  document.body.style.overflow = 'hidden';
-  document.body.style.transform = 'none';
-  requestAnimationFrame(()=>{
-    overlay.classList.add('is-active');
-    if (clone instanceof HTMLVideoElement) {
-      clone.play().catch(()=>{});
-    }
-  });
-  zoomOverlayMediaEl = clone;
-}
-
-function closeZoomOverlay(){
-  if (!zoomOverlayEl) return;
-  const overlay = zoomOverlayEl;
-  if (!overlay.classList.contains('is-active')) {
-    overlay.innerHTML = '';
-    overlay.setAttribute('aria-hidden', 'true');
-    zoomOverlayMediaEl = null;
-    document.body.style.overflow = previousBodyOverflow;
-    document.body.style.transform = previousBodyTransform;
-    previousBodyOverflow = '';
-    previousBodyTransform = '';
-    return;
-  }
-
-  if (zoomOverlayMediaEl instanceof HTMLVideoElement) {
-    zoomOverlayMediaEl.pause();
-  }
-
-  overlay.classList.remove('is-active');
-  overlay.setAttribute('aria-hidden', 'true');
-  document.body.style.overflow = previousBodyOverflow;
-  document.body.style.transform = previousBodyTransform;
-
-  const cleanup = (event) => {
-    if (event && event.target !== overlay) return;
-    overlay.innerHTML = '';
-    zoomOverlayMediaEl = null;
-    previousBodyOverflow = '';
-    previousBodyTransform = '';
-  };
-
-  overlay.addEventListener('transitionend', function handle(e){
-    if (e.target !== overlay) return;
-    overlay.removeEventListener('transitionend', handle);
-    cleanup(e);
-  });
-
-  setTimeout(()=>{
-    if (!overlay.classList.contains('is-active')) {
-      cleanup();
-    }
-  }, 250);
-}
-
-document.addEventListener('click', event => {
-  if (event.defaultPrevented) return;
-  if (typeof event.button === 'number' && event.button !== 0) return;
-  const el = event.target instanceof Element
-    ? event.target.closest('.zoomable img, .zoomable video, .media.zoomable')
-    : null;
-  if (!el) return;
-  if (zoomOverlayEl && zoomOverlayEl.contains(el)) return;
-  event.preventDefault();
-  openZoomOverlay(el);
-}, true);
-
-document.addEventListener('keydown', event => {
-  if (event.key === 'Escape') {
-    closeZoomOverlay();
-  }
-});
 
 async function renderChunk(where, n=CHUNK){
   if(loadLock) return;
@@ -1967,6 +1845,92 @@ function captureTokenFromHash(){
 }
 function clearToken(){ localStorage.removeItem('reddit_token'); log('Token cleared'); }
 function getToken(){ try{ const t=JSON.parse(localStorage.getItem('reddit_token')||'null'); if(!t) return null; if(Date.now()>t.expires_at) return null; return t.access_token; }catch{ return null; } }
+
+let zoomOverlay = null;
+let zoomOpen = false;
+let prevBodyOverflow = '';
+let suppressSwipe = false;
+
+function ensureZoomOverlay() {
+  if (zoomOverlay) return zoomOverlay;
+  zoomOverlay = document.createElement('div');
+  zoomOverlay.id = 'zoomOverlay';
+  zoomOverlay.addEventListener('click', closeZoomOverlay);
+  document.body.appendChild(zoomOverlay);
+  return zoomOverlay;
+}
+
+function openZoomForMedia(mediaEl) {
+  if (!mediaEl) return;
+  const portal = ensureZoomOverlay();
+  portal.innerHTML = '';
+
+  const clone = mediaEl.cloneNode(true);
+  clone.removeAttribute('style');
+  clone.className = '';
+  Object.assign(clone.style, {
+    maxWidth: '100vw',
+    maxHeight: '100vh',
+    transform: 'none',
+    position: 'relative',
+    objectFit: 'contain'
+  });
+
+  if (clone.tagName === 'VIDEO') {
+    clone.muted = false;
+    clone.controls = true;
+    try { clone.pause(); } catch {}
+    try { mediaEl.pause(); } catch {}
+  }
+
+  portal.appendChild(clone);
+
+  prevBodyOverflow = document.body.style.overflow || '';
+  document.body.style.overflow = 'hidden';
+  document.documentElement.classList.add('is-zoom-open');
+
+  portal.classList.add('open');
+  zoomOpen = true;
+  suppressSwipe = true;
+}
+
+function closeZoomOverlay() {
+  if (!zoomOverlay) return;
+  zoomOverlay.classList.remove('open');
+  zoomOverlay.innerHTML = '';
+  document.body.style.overflow = prevBodyOverflow;
+  document.documentElement.classList.remove('is-zoom-open');
+  zoomOpen = false;
+  suppressSwipe = false;
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && zoomOpen) closeZoomOverlay();
+});
+
+document.addEventListener('click', e => {
+  if (zoomOpen) return;
+  const img = e.target.closest('img.zoomable, img.media.zoomable');
+  if (img) {
+    e.preventDefault();
+    openZoomForMedia(img);
+  }
+  // Uncomment below if videos should zoom too:
+  // const vid = e.target.closest('video.zoomable, video.media.zoomable');
+  // if (vid) { e.preventDefault(); openZoomForMedia(vid); }
+}, { capture: true });
+
+const _origAddEventListener = HTMLElement.prototype.addEventListener;
+HTMLElement.prototype.addEventListener = function(type, listener, opts) {
+  if (type === 'pointermove' || type === 'touchmove') {
+    const wrapped = function(ev) {
+      if (suppressSwipe) return;
+      return listener.call(this, ev);
+    };
+    return _origAddEventListener.call(this, type, wrapped, opts);
+  }
+  return _origAddEventListener.call(this, type, listener, opts);
+};
 
 /* -------------------- boot -------------------- */
 captureTokenFromHash();
