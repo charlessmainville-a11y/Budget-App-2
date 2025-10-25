@@ -1,15 +1,14 @@
 #zoom-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.85);
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.25s ease;
   z-index: 9999;
-  touch-action: none;
 }
 
 #zoom-overlay.active {
@@ -20,7 +19,7 @@
 #zoom-overlay img {
   max-width: 90%;
   max-height: 90%;
-  transition: transform 0.2s ease;
-  border-radius: 8px;
-  cursor: zoom-out;
+  border-radius: 10px;
+  transform: scale(1);
+  transition: transform 0.25s ease-out;
 }
