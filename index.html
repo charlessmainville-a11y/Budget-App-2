@@ -209,7 +209,12 @@
   #zoomOverlay img, #zoomOverlay video {
     max-width: 100vw;
     max-height: 100vh;
-    transform: none !important;
+    transform-origin: center center;
+    transform: translate3d(0, 0, 0) scale(1);
+    transition: transform 0.15s ease-out;
+    touch-action: none;
+    user-select: none;
+    will-change: transform;
   }
   html.is-zoom-open, html.is-zoom-open body, html.is-zoom-open .wrap, html.is-zoom-open .card {
     transform: none !important;
@@ -1850,13 +1855,28 @@ let zoomOverlay = null;
 let zoomOpen = false;
 let prevBodyOverflow = '';
 let suppressSwipe = false;
+let zoomOverlayGesturesBound = false;
+
+let currentScale = 1;
+let lastScale = 1;
+let startDistance = 0;
+let panX = 0;
+let panY = 0;
+let lastPanX = 0;
+let lastPanY = 0;
+let isPanning = false;
+let panPointerId = null;
+let panStartX = 0;
+let panStartY = 0;
+const activeTouches = new Map();
 
 function ensureZoomOverlay() {
-  if (zoomOverlay) return zoomOverlay;
-  zoomOverlay = document.createElement('div');
-  zoomOverlay.id = 'zoomOverlay';
-  zoomOverlay.addEventListener('click', closeZoomOverlay);
-  document.body.appendChild(zoomOverlay);
+  if (!zoomOverlay) {
+    zoomOverlay = document.createElement('div');
+    zoomOverlay.id = 'zoomOverlay';
+    document.body.appendChild(zoomOverlay);
+  }
+  attachZoomOverlayGestures();
   return zoomOverlay;
 }
 
@@ -1864,6 +1884,7 @@ function openZoomForMedia(mediaEl) {
   if (!mediaEl) return;
   const portal = ensureZoomOverlay();
   portal.innerHTML = '';
+  resetZoomState();
 
   const clone = mediaEl.cloneNode(true);
   clone.removeAttribute('style');
@@ -1884,6 +1905,7 @@ function openZoomForMedia(mediaEl) {
   }
 
   portal.appendChild(clone);
+  applyTransform();
 
   prevBodyOverflow = document.body.style.overflow || '';
   document.body.style.overflow = 'hidden';
@@ -1898,10 +1920,160 @@ function closeZoomOverlay() {
   if (!zoomOverlay) return;
   zoomOverlay.classList.remove('open');
   zoomOverlay.innerHTML = '';
+  resetZoomState();
   document.body.style.overflow = prevBodyOverflow;
   document.documentElement.classList.remove('is-zoom-open');
   zoomOpen = false;
   suppressSwipe = false;
+}
+
+function distance(t1, t2) {
+  const dx = t2.clientX - t1.clientX;
+  const dy = t2.clientY - t1.clientY;
+  return Math.hypot(dx, dy);
+}
+
+function getTransform() {
+  return `translate3d(${panX}px, ${panY}px, 0) scale(${currentScale})`;
+}
+
+function applyTransform() {
+  if (!zoomOverlay) return;
+  const media = zoomOverlay.querySelector('img, video');
+  if (media) media.style.transform = getTransform();
+}
+
+function resetZoomState(apply = false) {
+  currentScale = 1;
+  lastScale = 1;
+  startDistance = 0;
+  panX = 0;
+  panY = 0;
+  lastPanX = 0;
+  lastPanY = 0;
+  isPanning = false;
+  panPointerId = null;
+  panStartX = 0;
+  panStartY = 0;
+  activeTouches.clear();
+  if (apply) applyTransform();
+}
+
+function attachZoomOverlayGestures() {
+  if (!zoomOverlay || zoomOverlayGesturesBound) return;
+  zoomOverlayGesturesBound = true;
+
+  zoomOverlay.addEventListener('pointerdown', e => {
+    activeTouches.set(e.pointerId, e);
+    try { zoomOverlay.setPointerCapture(e.pointerId); } catch {}
+    if (activeTouches.size === 1 && currentScale > 1) {
+      isPanning = true;
+      panPointerId = e.pointerId;
+      panStartX = e.clientX;
+      panStartY = e.clientY;
+      lastPanX = panX;
+      lastPanY = panY;
+    }
+  });
+
+  zoomOverlay.addEventListener('pointermove', e => {
+    if (!activeTouches.has(e.pointerId)) return;
+    activeTouches.set(e.pointerId, e);
+
+    const media = zoomOverlay.querySelector('img, video');
+    if (!media) return;
+
+    if (activeTouches.size === 2) {
+      const touches = [...activeTouches.values()];
+      const dist = distance(touches[0], touches[1]);
+      if (startDistance === 0) startDistance = dist;
+      currentScale = Math.min(4, Math.max(1, (dist / startDistance) * lastScale));
+      if (currentScale === 1) {
+        panX = 0;
+        panY = 0;
+        lastPanX = 0;
+        lastPanY = 0;
+      }
+      applyTransform();
+      isPanning = false;
+      panPointerId = null;
+    } else if (isPanning && currentScale > 1 && e.pointerId === panPointerId) {
+      panX = lastPanX + (e.clientX - panStartX);
+      panY = lastPanY + (e.clientY - panStartY);
+      applyTransform();
+    }
+  });
+
+  zoomOverlay.addEventListener('pointerup', e => {
+    activeTouches.delete(e.pointerId);
+    try { zoomOverlay.releasePointerCapture(e.pointerId); } catch {}
+
+    if (e.pointerId === panPointerId) {
+      lastPanX = panX;
+      lastPanY = panY;
+      isPanning = false;
+      panPointerId = null;
+    }
+
+    if (activeTouches.size < 2) {
+      startDistance = 0;
+      lastScale = currentScale;
+      if (currentScale <= 1.02) {
+        currentScale = 1;
+        panX = 0;
+        panY = 0;
+        lastPanX = 0;
+        lastPanY = 0;
+        applyTransform();
+      } else {
+        lastPanX = panX;
+        lastPanY = panY;
+      }
+    }
+
+    if (activeTouches.size === 1 && currentScale > 1) {
+      const [remaining] = activeTouches.values();
+      isPanning = true;
+      panPointerId = remaining.pointerId;
+      panStartX = remaining.clientX;
+      panStartY = remaining.clientY;
+      lastPanX = panX;
+      lastPanY = panY;
+    }
+
+    if (activeTouches.size === 0 && currentScale <= 1.02) {
+      resetZoomState(true);
+    }
+  });
+
+  zoomOverlay.addEventListener('pointercancel', e => {
+    activeTouches.delete(e.pointerId);
+    try { zoomOverlay.releasePointerCapture(e.pointerId); } catch {}
+    if (e.pointerId === panPointerId) {
+      isPanning = false;
+      panPointerId = null;
+    }
+    if (activeTouches.size === 0 && currentScale <= 1.02) {
+      resetZoomState(true);
+    }
+  });
+
+  zoomOverlay.addEventListener('dblclick', e => {
+    e.preventDefault();
+    currentScale = 1;
+    panX = 0;
+    panY = 0;
+    lastPanX = 0;
+    lastPanY = 0;
+    lastScale = 1;
+    startDistance = 0;
+    applyTransform();
+  });
+
+  zoomOverlay.addEventListener('click', e => {
+    if (e.detail > 1) return;
+    if (currentScale <= 1.02) closeZoomOverlay();
+  });
 }
 
 document.addEventListener('keydown', e => {
