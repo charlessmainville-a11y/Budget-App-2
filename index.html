@@ -1540,6 +1540,8 @@ function card(item){
 
 let zoomOverlayEl = null;
 let zoomOverlayMediaEl = null;
+let previousBodyOverflow = '';
+let previousBodyTransform = '';
 
 function ensureZoomOverlay(){
   if (!zoomOverlayEl) {
@@ -1547,6 +1549,24 @@ function ensureZoomOverlay(){
     zoomOverlayEl.className = 'zoom-overlay';
     zoomOverlayEl.setAttribute('aria-hidden', 'true');
     zoomOverlayEl.addEventListener('click', closeZoomOverlay);
+    zoomOverlayEl.style.position = 'fixed';
+    zoomOverlayEl.style.top = '0';
+    zoomOverlayEl.style.right = '0';
+    zoomOverlayEl.style.bottom = '0';
+    zoomOverlayEl.style.left = '0';
+    zoomOverlayEl.style.display = 'flex';
+    zoomOverlayEl.style.alignItems = 'center';
+    zoomOverlayEl.style.justifyContent = 'center';
+    zoomOverlayEl.style.background = 'rgba(0,0,0,0.85)';
+    zoomOverlayEl.style.backfaceVisibility = 'hidden';
+    zoomOverlayEl.style.willChange = 'opacity';
+    zoomOverlayEl.style.isolation = 'isolate';
+    zoomOverlayEl.style.zIndex = '9999';
+    zoomOverlayEl.style.cursor = 'zoom-out';
+    zoomOverlayEl.style.setProperty('transform', 'none', 'important');
+    document.body.appendChild(zoomOverlayEl);
+  }
+  if (zoomOverlayEl.parentElement !== document.body) {
     document.body.appendChild(zoomOverlayEl);
   }
   return zoomOverlayEl;
@@ -1577,10 +1597,21 @@ function openZoomOverlay(sourceEl){
     clone.decoding = 'async';
   }
 
+  clone.style.position = 'fixed';
+  clone.style.top = '0';
+  clone.style.right = '0';
+  clone.style.bottom = '0';
+  clone.style.left = '0';
+  clone.style.margin = 'auto';
+  clone.style.setProperty('transform', 'none', 'important');
+
   overlay.innerHTML = '';
   overlay.appendChild(clone);
   overlay.setAttribute('aria-hidden', 'false');
+  previousBodyOverflow = document.body.style.overflow;
+  previousBodyTransform = document.body.style.transform;
   document.body.style.overflow = 'hidden';
+  document.body.style.transform = 'none';
   requestAnimationFrame(()=>{
     overlay.classList.add('is-active');
     if (clone instanceof HTMLVideoElement) {
@@ -1597,7 +1628,10 @@ function closeZoomOverlay(){
     overlay.innerHTML = '';
     overlay.setAttribute('aria-hidden', 'true');
     zoomOverlayMediaEl = null;
-    document.body.style.overflow = '';
+    document.body.style.overflow = previousBodyOverflow;
+    document.body.style.transform = previousBodyTransform;
+    previousBodyOverflow = '';
+    previousBodyTransform = '';
     return;
   }
 
@@ -1607,12 +1641,15 @@ function closeZoomOverlay(){
 
   overlay.classList.remove('is-active');
   overlay.setAttribute('aria-hidden', 'true');
-  document.body.style.overflow = '';
+  document.body.style.overflow = previousBodyOverflow;
+  document.body.style.transform = previousBodyTransform;
 
   const cleanup = (event) => {
     if (event && event.target !== overlay) return;
     overlay.innerHTML = '';
     zoomOverlayMediaEl = null;
+    previousBodyOverflow = '';
+    previousBodyTransform = '';
   };
 
   overlay.addEventListener('transitionend', function handle(e){
