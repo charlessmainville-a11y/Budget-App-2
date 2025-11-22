@@ -882,6 +882,10 @@ function switchFeed(feedName){
   if(!feedName) return;
   if(!['home','likes','discard','local'].includes(feedName)) return;
   currentFeed = feedName;
+  const shuffleBtn = document.getElementById('shuffleBtn');
+  if (shuffleBtn) {
+    shuffleBtn.textContent = (feedName === 'likes') ? 'Shuffle Likes' : 'Shuffle feed';
+  }
   renderFeed();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -1781,6 +1785,16 @@ function shuffleVisibleAndPool(){
   pool=combined.slice(keep);
   ui.progressVisibility();
 }
+function shuffleLikesFeed(){
+  if (!likes || likes.length === 0) return;
+  const shuffled = [...likes];
+  shuffleArray(shuffled);
+  likes = shuffled;
+  saveState();
+  if (currentFeed === 'likes') {
+    paintList('likes', likes);
+  }
+}
 function buildSubsUI(){
   const grid=document.getElementById('subsGrid'); grid.innerHTML='';
   const current=new Set([...STARTER_SUBS, ...OPTIONAL_NSFW]);
@@ -1847,7 +1861,13 @@ window.addEventListener('beforeunload', () => {
 });
 
 document.getElementById('newBatchBtn').addEventListener('click', loadBatch);
-document.getElementById('shuffleBtn').addEventListener('click', shuffleVisibleAndPool);
+document.getElementById('shuffleBtn').addEventListener('click', () => {
+  if (currentFeed === 'likes') {
+    shuffleLikesFeed();
+  } else {
+    shuffleVisibleAndPool();
+  }
+});
 const addLocalVideosBtn = document.getElementById('addLocalVideosBtn');
 if (addLocalVideosBtn && localVideoInput) {
   addLocalVideosBtn.addEventListener('click', () => {
